@@ -1,0 +1,118 @@
+---
+const label = Astro.locals.t('themeSelect.accessibleLabel');
+const options = [
+	{
+		value: 'light',
+		label: Astro.locals.t('themeSelect.light'),
+		path: 'M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z',
+	},
+	{
+		value: 'dark',
+		label: Astro.locals.t('themeSelect.dark'),
+		path: 'M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z',
+	},
+	{
+		value: 'auto',
+		label: Astro.locals.t('themeSelect.auto'),
+		path: 'M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z',
+	},
+] as const;
+---
+
+<starlight-theme-select class="theme-segmented">
+	<span class="sr-only">{label}</span>
+	<div class="theme-segmented-track" role="radiogroup" aria-label={label} data-active-index="1" data-theme-ready="false">
+		<span class="theme-segmented-indicator" aria-hidden="true"></span>
+		{
+			options.map(({ value, label: optionLabel, path }) => (
+				<button
+					type="button"
+					class="theme-segmented-btn"
+					data-theme-value={value}
+					role="radio"
+					aria-checked="false"
+					aria-label={optionLabel}
+					title={optionLabel}
+				>
+					<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+						<path d={path} />
+					</svg>
+				</button>
+			))
+		}
+	</div>
+</starlight-theme-select>
+
+<script>
+	type Theme = 'auto' | 'dark' | 'light';
+
+	const storageKey = 'starlight-theme';
+
+	const parseTheme = (theme: unknown): Theme =>
+		theme === 'auto' || theme === 'dark' || theme === 'light' ? theme : 'dark';
+
+	const loadTheme = (): Theme => {
+		const stored =
+			typeof localStorage !== 'undefined' && localStorage.getItem(storageKey);
+		return stored === 'light' || stored === 'dark' || stored === 'auto'
+			? parseTheme(stored)
+			: 'dark';
+	};
+
+	const getPreferredColorScheme = (): Theme =>
+		matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+
+	function storeTheme(theme: Theme): void {
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem(storageKey, theme === 'light' || theme === 'dark' ? theme : '');
+		}
+	}
+
+	const themeIndex: Record<Theme, number> = { light: 0, dark: 1, auto: 2 };
+
+	function updateButtons(root: HTMLElement, theme: Theme): void {
+		const index = themeIndex[theme];
+		root.querySelectorAll<HTMLButtonElement>('[data-theme-value]').forEach((button) => {
+			const active = button.dataset.themeValue === theme;
+			button.setAttribute('aria-checked', active ? 'true' : 'false');
+			button.classList.toggle('is-active', active);
+		});
+		const track = root.querySelector('.theme-segmented-track');
+		if (track) {
+			track.setAttribute('data-active-index', String(index));
+			track.setAttribute('data-theme-ready', 'true');
+		}
+	}
+
+	function onThemeChange(theme: Theme, root: HTMLElement): void {
+		document.documentElement.dataset.theme = theme === 'auto' ? getPreferredColorScheme() : theme;
+		storeTheme(theme);
+		updateButtons(root, theme);
+		document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+			if (picker !== root) updateButtons(picker as HTMLElement, theme);
+		});
+	}
+
+	matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+		if (loadTheme() === 'auto') {
+			document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+				onThemeChange('auto', picker as HTMLElement);
+			});
+		}
+	});
+
+	class StarlightThemeSelect extends HTMLElement {
+		constructor() {
+			super();
+			const theme = loadTheme();
+			onThemeChange(theme, this);
+			this.querySelectorAll<HTMLButtonElement>('[data-theme-value]').forEach((button) => {
+				button.addEventListener('click', () => {
+					onThemeChange(parseTheme(button.dataset.themeValue), this);
+				});
+			});
+		}
+	}
+
+	customElements.define('starlight-theme-select', StarlightThemeSelect);
+</script>

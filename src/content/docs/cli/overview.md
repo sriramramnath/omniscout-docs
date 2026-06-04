@@ -1,0 +1,187 @@
+---
+title: What is OmniScout?
+description: OmniScout — local-first browser control, semantic search, and research for AI agents.
+---
+
+OmniScout (CLI binary: `omniscout`) is a **local-first browser-control, semantic-
+search, and research tool built for AI agents**. It gives Claude Code,
+Cursor, Codex, Kimi, and any shell-capable agent the same kind of
+browser-actuator surface you'd get from Kimi WebBridge, Claude for Chrome,
+or ChatGPT Atlas — but it runs entirely on your machine, with no cloud
+APIs, no hosted browser session, and no MCP server.
+
+## What you get
+
+- A long-lived **daemon** that holds a browser open so per-action latency
+  is sub-second.
+- Two interchangeable backends behind the same JSON vocabulary:
+  - **Playwright** (default) — OmniScout launches its own Chrome with a
+    persistent profile.
+  - **Chrome extension** (opt-in) — OmniScout drives your real running
+    Chrome, with your real logins, via the `chrome.debugger` API and a
+    WebSocket bridge.
+- An **atomic action vocabulary**: `navigate`, `snapshot`, `click`,
+  `fill`, `scroll`, `key`, `hover`, `upload`, `screenshot`, `pdf`,
+  `eval`, `wait`, `tab`, `network`, `login`, `captcha`, `close`.
+- **`@eN` element refs** generated from the accessibility tree —
+  stable across CSS-class churn, the same convention Kimi uses.
+- **Persistent profiles** for cookies, logins, and extensions.
+- **Search + extract + research** engines that work offline-after-fetch
+  (DuckDuckGo + local embeddings + Qdrant).
+- A **skill file** the install command drops into Claude Code, Cursor,
+  and Codex's well-known skill directories — so agents auto-discover
+  OmniScout the next time they boot.
+
+## Design principles
+
+- **No cloud APIs.** Search hits DDG; everything else stays local.
+- **No SDK to learn.** The CLI is the public interface.
+- **JSON in, JSON out.** Every command supports `--json` (and
+  `OMNISCOUT_JSON=1` is the typical agent default).
+- **Stable contract.** The `Command` / `Response` envelope is versioned
+  (`protocol_version: "1"`) so an agent can refuse to talk to an
+  incompatible daemon.
+- **Persistent across invocations.** Profiles, sessions, and caches
+  survive between calls.
+
+## Architecture in one diagram
+
+```
+AI agent (Claude Code / Cursor / Codex)
+        │
+        ▼
+   omniscout CLI ─── HTTP POST /command ──▶  omniscout daemon
+        │                                       │
+        │                                       ├─ Playwright backend
+        │                                       │   └─ persistent Chrome profile
+        │                                       │
+        │                                       └─ Extension backend (opt-in)
+        │                                           └─ WebSocket ─▶ Chrome MV3
+        │                                                             └─ chrome.debugger
+        │                                                                 (your real Chrome)
+        │
+        └── Search / Extract / Research engines (embed via daemon when enabled)
+```
+
+See [Architecture](/cli/architecture) for the full picture.
+
+## Installation
+
+### Prerequisites
+
+- Python 3.11+
+- Google Chrome (recommended) or Playwright's bundled Chromium
+
+### Install from PyPI (recommended)
+
+```bash
+pip install omniscout
+omniscout install                    # verify Chrome + prefetch embedding model
+omniscout install --skill            # optional: install agent skill files
+```
+
+`omniscout install` verifies Chrome is reachable, prefetches the local embedding
+model to disk (~80MB), and optionally drops the agent skill into Claude Code,
+Cursor, and Codex's well-known skill directories. Search commands auto-start
+the daemon and keep the embed model loaded in RAM — no separate warm-up step.
+
+`scout` is a short CLI alias for `omniscout`. The `harness` command name is a legacy dev alias.
+
+### From source (contributors)
+
+```bash
+git clone https://github.com/sriramramnath/omniscout.git
+cd omniscout/cli
+pip install -e .
+omniscout install --skill
+```
+
+### In a project venv
+
+```bash
+pip install omniscout
+omniscout install
+```
+
+If Chrome isn't installed, add `--bundled` to download Playwright's
+Chromium (~190MB).
+
+### Optional: Chrome extension
+
+For OmniScout to drive your *real* Chrome (with your real logins and
+extensions), load the unpacked extension from `extension/` in
+`chrome://extensions` → Developer mode → Load unpacked. Verify with:
+
+```bash
+omniscout daemon status   # extension_connected: true
+```
+
+## Hello world
+
+```bash
+omniscout daemon start
+omniscout browser navigate https://news.ycombinator.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/hn.png
+omniscout browser close --all
+```
+
+For an AI-agent-first experience, see
+[Using OmniScout with AI agents](/cli/agents).
+
+## Data layout
+
+| Path | Purpose |
+|---|---|
+| `profiles/` | Persistent Chrome user-data-dirs |
+| `qdrant/` | Embedded vector index for semantic search |
+| `sessions.sqlite` | Registry of long-lived browser sessions |
+| `cache/pages/` | Content-hashed HTML cache |
+| `cache.sqlite` | URL → SHA256 cache metadata |
+| `daemon.pid`, `daemon.port`, `daemon.log` | Daemon lifecycle files |
+
+Base path:
+
+- macOS — `~/Library/Application Support/omniscout/`
+- Linux — `$XDG_DATA_HOME/omniscout/` (typically `~/.local/share/omniscout/`)
+
+Override with `OMNISCOUT_DATA_DIR`, `OMNISCOUT_CONFIG_DIR`,
+`OMNISCOUT_CACHE_DIR`.
+
+## Configuration
+
+`~/.config/omniscout/config.toml`:
+
+```toml
+default_source = "ddg"                # ddg | index | hybrid
+search_limit = 10
+research_results = 8
+research_depth = 1
+request_throttle_seconds = 1.0
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+qdrant_collection = "scout_passages"
+summary_sentences = 6
+browser_channel = "chrome"            # chrome | chromium
+# browser_executable = "/path/to/chrome"
+```
+
+## When to use OmniScout vs alternatives
+
+- **Use OmniScout** when you want a local, no-cloud actuator that any
+  shell-capable AI agent can drive without you running a Node MCP
+  server or signing up for a cloud-browser product.
+- **Use Browserbase / Hyperbrowser / Browser-Use Cloud** when you want a
+  hosted browser fleet and don't mind paying per-minute.
+- **Use Claude for Chrome / ChatGPT Atlas / Kimi WebBridge** when you've
+  already picked a single LLM vendor and want them to own the agent
+  loop too.
+
+## Next steps
+
+- [Using OmniScout with AI agents](/cli/agents) — drop-in prompts for
+  Claude Code, Cursor, Codex.
+- [Examples & recipes](/cli/examples) — common workflows.
+- [Commands reference](/cli/commands) — every verb, every flag.
+- [Architecture](/cli/architecture) — daemon, backends, snapshot refs.
+- [Troubleshooting](/cli/troubleshooting) — when things break.

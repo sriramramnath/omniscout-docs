@@ -1,0 +1,391 @@
+---
+title: Examples & recipes
+description: Real workflows for OmniScout — both shell scripts and prompts you can hand to an AI agent.
+---
+
+This page collects copy-paste recipes for the common things people use
+OmniScout for. Each section has two halves:
+
+1. **Prompt for an AI agent** — paste this into Claude Code, Cursor, or
+   Codex and the agent will use OmniScout to do it.
+2. **Equivalent shell** — what the agent (or you) actually runs.
+
+## Quick reference
+
+```bash
+omniscout daemon start                              # 1. start the daemon
+omniscout browser navigate https://example.com      # 2. drive the browser
+omniscout browser snapshot --refs-only              # 3. find @eN refs
+omniscout browser click '@e3'                       # 4. act on them
+omniscout browser screenshot --out /tmp/out.png     # 5. capture state
+omniscout browser close --all                       # 6. clean up
+```
+
+## Ask an AI to research a question
+
+**Prompt:**
+
+```text
+Use OmniScout to research "what's the current state of open-source
+browser-using AI agents in 2026?" Use `omniscout research` with 10 results
+and JSON output, then summarize the top 3 passages with their source
+URLs in a markdown table.
+```
+
+**Equivalent shell:**
+
+```bash
+OMNISCOUT_JSON=1 omniscout research \
+  "current state of open-source browser-using AI agents in 2026" \
+  --results 10 > /tmp/r.json
+
+jq -r '.passages[:3][] | "| \(.source_url) | \(.text[:120])... |"' /tmp/r.json
+```
+
+## Ask an AI to read a page and answer a question
+
+**Prompt:**
+
+```text
+Open https://docs.python.org/3/library/asyncio.html via OmniScout, extract
+the readable content with `omniscout extract`, then answer: "what's the
+difference between asyncio.run and asyncio.gather?" Cite specific
+sentences from the page in your answer.
+```
+
+**Equivalent shell:**
+
+```bash
+URL=https://docs.python.org/3/library/asyncio.html
+omniscout extract "$URL" --format markdown > /tmp/page.md
+# Now your agent reads /tmp/page.md and answers.
+```
+
+## Remember docs and search memory later
+
+**Prompt:**
+
+```text
+Use OmniScout to remember https://docs.python.org and
+https://docs.anthropic.com, then search your memory for "taskgroup" and
+summarize what you find. Use --json throughout.
+```
+
+**Equivalent shell:**
+
+```bash
+omniscout remember https://docs.python.org
+omniscout remember https://docs.anthropic.com --note "API reference"
+OMNISCOUT_JSON=1 omniscout search "taskgroup" --source memory
+omniscout memory stats
+omniscout workflow export --from-context
+```
+
+## Ask an AI to fill a form
+
+**Prompt:**
+
+```text
+Use OmniScout to open https://duckduckgo.com, fill the search box with
+"local-first AI agents", press Enter, wait for results to settle, then
+list the title and URL of the top 5 results.
+```
+
+**Equivalent shell:**
+
+```bash
+omniscout browser navigate https://duckduckgo.com
+omniscout browser snapshot --refs-only > /tmp/snap.json
+SEARCH_REF=$(jq -r '.refs[] | select(.role == "searchbox" or .name | test("search")) | .ref' /tmp/snap.json | head -1)
+omniscout browser fill "$SEARCH_REF" "local-first AI agents"
+omniscout browser key Enter
+omniscout browser wait --idle
+omniscout browser snapshot --refs-only \
+  | jq -r '.refs[] | select(.role == "link") | "\(.name)"' | head -5
+```
+
+## Ask an AI to log in once and reuse the profile
+
+**Prompt:**
+
+```text
+Help me set up a logged-in GitHub profile via OmniScout:
+1. `omniscout profile create work`
+2. `omniscout browser login https://github.com/login --profile work`
+3. Pause for me to authenticate in the browser window.
+4. Once I say "done", run `omniscout browser navigate
+   https://github.com/notifications --profile work --session work` and
+   take a screenshot to /tmp/notifs.png.
+```
+
+**Equivalent shell:**
+
+```bash
+omniscout profile create work
+
+# Terminal A: opens browser, blocks
+omniscout browser login https://github.com/login --profile work
+
+# Terminal B (after you log in in the browser):
+omniscout browser login --done
+
+# Now reuse:
+omniscout browser navigate https://github.com/notifications \
+  --profile work --session work
+omniscout browser screenshot --session work --out /tmp/notifs.png
+```
+
+## Ask an AI to handle a CAPTCHA
+
+**Prompt (local, manual):**
+
+```text
+Open https://example-with-captcha.com via OmniScout. If `omniscout browser
+captcha --detect-only` reports a CAPTCHA, run `omniscout browser captcha`
+without a solver — that will flip the tab headful and block until I
+solve it. Tell me what to do, wait for the block to return, then
+continue with the task.
+```
+
+**Prompt (2Captcha, opt-in):**
+
+```text
+Open https://example-with-captcha.com via OmniScout. If there's a CAPTCHA,
+solve it via 2Captcha — TWOCAPTCHA_API_KEY is set. Use `omniscout browser
+captcha --solver 2captcha`. Continue only after `ok: true`.
+```
+
+**Equivalent shell:**
+
+```bash
+omniscout browser navigate https://example-with-captcha.com
+DET=$(omniscout browser captcha --detect-only)
+if echo "$DET" | jq -e '.detected' >/dev/null; then
+  omniscout browser captcha --solver 2captcha  # opt-in
+fi
+```
+
+## Ask an AI to capture network requests
+
+**Prompt:**
+
+```text
+Use OmniScout to investigate which trackers Vercel's pricing page loads:
+1. Start network capture.
+2. Navigate to https://vercel.com/pricing.
+3. Scroll to the bottom.
+4. Stop capture.
+5. List any requests whose URL matches "stripe|analytics|datadog|posthog".
+6. For each match, run `network detail` and tell me the HTTP status.
+```
+
+**Equivalent shell:**
+
+```bash
+SES=pricing-audit
+omniscout browser network start --session $SES
+omniscout browser navigate https://vercel.com/pricing --session $SES
+omniscout browser scroll down --amount 10 --session $SES
+omniscout browser network stop --session $SES
+
+omniscout browser network list \
+  --filter 'stripe|analytics|datadog|posthog' --session $SES
+```
+
+## Ask an AI to drive a multi-step workflow
+
+**Prompt:**
+
+```text
+End-to-end task:
+1. Use OmniScout to research "vector database benchmarks 2026" (10 results).
+2. From the report, pick the 3 highest-scoring source URLs.
+3. For each one: open it in OmniScout (session=audit), screenshot to
+   /tmp/<i>.png, extract the markdown to /tmp/<i>.md.
+4. Read all 3 markdown files and synthesize a 5-bullet summary of the
+   common themes, attributing each bullet to which source(s) discussed
+   it.
+5. Close all OmniScout sessions when done.
+```
+
+**Equivalent shell:**
+
+```bash
+export OMNISCOUT_JSON=1
+omniscout daemon start
+
+omniscout research "vector database benchmarks 2026" --results 10 > /tmp/r.json
+
+i=1
+for url in $(jq -r '.sources[:3][] | .url' /tmp/r.json); do
+  omniscout browser navigate "$url" --session audit
+  omniscout browser screenshot --session audit --out /tmp/$i.png
+  omniscout extract "$url" > /tmp/$i.md
+  i=$((i+1))
+done
+
+omniscout browser close --all
+```
+
+## Take a screenshot of a page
+
+```bash
+omniscout browser screenshot https://example.com --out /tmp/example.png
+omniscout browser screenshot https://example.com --full-page --out /tmp/full.png
+```
+
+## Generate a PDF of a page
+
+```bash
+omniscout browser pdf https://example.com --paper a4 --out /tmp/example.pdf
+```
+
+## Long-lived sessions with profiles
+
+```bash
+# One-time login
+omniscout profile create work
+omniscout browser login https://app.example.com --profile work
+# ...authenticate, then in another shell:
+omniscout browser login --done
+
+# Now everything else uses the same profile + session
+omniscout browser navigate https://app.example.com/dashboard --profile work --session app
+omniscout browser snapshot --session app
+omniscout browser click '@e7' --session app
+omniscout browser screenshot --session app --out /tmp/dash.png
+```
+
+## Multiple tabs in one session
+
+```bash
+omniscout browser navigate https://example.com --session multi
+omniscout browser navigate https://news.ycombinator.com --new-tab --session multi
+omniscout browser tab list --session multi
+omniscout browser tab switch 0 --session multi   # back to example.com
+omniscout browser tab close --session multi      # closes active tab
+```
+
+## Search → extract → answer
+
+```bash
+URL=$(omniscout search "python contextvars" --limit 1 --json | jq -r '.hits[0].url')
+omniscout extract "$URL" > /tmp/page.md
+# Read /tmp/page.md in your editor or hand to your AI agent.
+```
+
+## Drive OmniScout from Python
+
+```python
+import json, subprocess
+
+def omniscout(*args):
+    r = subprocess.run(
+        ["omniscout", *args, "--json"],
+        capture_output=True, text=True, check=True,
+    )
+    return json.loads(r.stdout)
+
+omniscout("browser", "navigate", "https://example.com")
+snap = omniscout("browser", "snapshot", "--refs-only")
+button = next(r for r in snap["refs"] if r["role"] == "link")
+omniscout("browser", "click", button["ref"])
+omniscout("browser", "screenshot", "--out", "/tmp/out.png")
+```
+
+## Drive OmniScout from a shell script (parallel)
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+omniscout daemon start
+
+urls=(
+  https://example.com
+  https://example.org
+  https://example.net
+)
+
+for url in "${urls[@]}"; do
+  (
+    safe=$(echo "$url" | sed 's|[^a-zA-Z0-9]|_|g')
+    omniscout browser screenshot "$url" --out "/tmp/$safe.png" --session "$safe"
+  ) &
+done
+wait
+
+omniscout browser close --all
+echo "done"
+```
+
+## Use the Chrome extension backend
+
+Want OmniScout to drive your *real* Chrome, with your real logins and
+extensions? Load the unpacked extension from `extension/` in
+`chrome://extensions` (Developer mode → Load unpacked), then:
+
+```bash
+omniscout daemon status   # extension_connected should be true
+omniscout browser navigate https://example.com --backend extension
+```
+
+Every OmniScout-controlled tab gets an `agent:scout` overlay banner so you
+can see at a glance which tabs the agent is touching.
+
+## JSON for AI agents
+
+Set this once at the top of your agent's shell session:
+
+```bash
+export OMNISCOUT_JSON=1
+```
+
+Then *every* command emits structured JSON that your agent can pipe
+through `jq`:
+
+```bash
+omniscout search "topic"          | jq '.hits[] | {title, url}'
+omniscout extract https://...      | jq '{title, word_count, published}'
+omniscout research "topic"         | jq '.passages[0:3]'
+omniscout browser snapshot         | jq '.refs[] | select(.role == "button")'
+omniscout daemon status            | jq '.running'
+```
+
+## Configuration
+
+```bash
+mkdir -p ~/.config/omniscout
+cat > ~/.config/omniscout/config.toml <<'EOF'
+default_source = "hybrid"
+search_limit = 20
+research_results = 12
+research_depth = 2
+request_throttle_seconds = 0.5
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+browser_channel = "chrome"
+summary_sentences = 8
+EOF
+```
+
+## Cleanup
+
+```bash
+omniscout browser close --all          # close all browser sessions
+omniscout daemon stop                   # stop the daemon
+rm -rf ~/Library/Application\ Support/omniscout/cache/pages/*
+rm ~/Library/Application\ Support/omniscout/cache.sqlite
+rm -rf ~/Library/Application\ Support/omniscout/qdrant/
+```
+
+## Performance tips
+
+1. **One daemon, many calls.** The daemon holds Playwright open — every
+   per-action cold start saved is real wall-clock you don't pay.
+2. **Use sessions, not flags.** Pass `--session NAME` instead of
+   `--profile` on every call; the session caches the page and refs.
+3. **Re-snapshot only after `navigate`.** `@eN` refs are stable until the
+   next navigation.
+4. **Don't `wait --idle` on infinite-scroll pages.** Use `wait --ms 1000`
+   instead.
+5. **Stream `network list --filter REGEX`** rather than pulling the
+   whole capture into the agent's context.

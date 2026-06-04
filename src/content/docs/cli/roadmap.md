@@ -1,0 +1,49 @@
+---
+title: Roadmap
+description: Planned OmniScout features — design stubs for upcoming releases.
+---
+
+This page describes features **not yet implemented**. See the [commands reference](/cli/commands/) for what ships today.
+
+## Multi-provider search
+
+Today search uses DuckDuckGo (`--source ddg`) plus optional local indexes.
+
+Planned:
+
+```bash
+omniscout search "query" --provider brave
+omniscout search "query" --provider auto   # first provider with a configured API key
+```
+
+Candidate providers: Brave, Exa, Tavily, SearxNG.
+
+## Smart extraction
+
+Today `omniscout extract @eN` resolves a ref to the active page URL and fetches readable content.
+
+Planned natural-language targets:
+
+```bash
+omniscout extract "pricing table"
+omniscout extract "main article"
+omniscout extract "documentation examples"
+```
+
+Resolution would combine snapshot ref scoring with DOM heuristics (tables, `article`, code blocks).
+
+## Page summaries
+
+```bash
+omniscout summarize              # current page
+omniscout summarize --extract  # last extracted content
+omniscout summarize --search     # latest search results
+```
+
+Would reuse the existing `sumy`-based summarization stack from research.
+
+## MCP server (deferred)
+
+No MCP server ships today. Agents use the CLI (`--json`) and the local daemon at `127.0.0.1:7720`.
+
+A future MCP surface would expose tools such as `search`, `open`, `snapshot`, `extract`, `click`, and `fill` over stdio for Claude Desktop, Cursor, and other MCP hosts.
