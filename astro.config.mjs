@@ -50,6 +50,7 @@ export default defineConfig({
 				ThemeSelect: './src/components/ThemeSelect.astro',
 			},
 			head: [
+				{ tag: 'link', attrs: { rel: 'sitemap', href: '/sitemap.xml', type: 'application/xml' } },
 				{ tag: 'meta', attrs: { property: 'og:type', content: 'website' } },
 				{ tag: 'meta', attrs: { property: 'og:site_name', content: 'OmniScout Docs' } },
 				{ tag: 'meta', attrs: { property: 'og:image', content: OG_IMAGE } },
