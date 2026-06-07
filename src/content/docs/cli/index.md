@@ -27,6 +27,7 @@ from a human shell.
 # Install from PyPI
 pip install omniscout
 omniscout install --skill          # first-run setup + agent skill files
+omniscout settings browsers        # optional: see installed Chromium browsers
 
 # Start the daemon (idempotent)
 omniscout daemon start
@@ -44,17 +45,19 @@ omniscout browser close --all
 |---|---|
 | `omniscout daemon ...` | Long-lived daemon: browser backends, warm embed model, trace/replay/watch |
 | `omniscout browser ...` | Atomic browser actions (navigate, click, fill, snapshot, screenshot, login, captcha, network, tab, …) |
-| `omniscout search` | DuckDuckGo + local embedding rerank; sources `ddg`, `index`, `memory`, `hybrid`; `--answer` modes |
+| `omniscout search` | DuckDuckGo + local embedding rerank; sources `ddg`, `index`, `memory`, `hybrid` |
+| `omniscout answer` | Direct DDG answers → extractive → local LLM → crawl; who-is, capital, height, math |
 | `omniscout remember` / `memory ...` | Browser memory — visit, note, semantic search over history |
 | `omniscout extract` | Fetch a URL and return clean Markdown / text / JSON |
 | `omniscout research` | Multi-step: search → crawl → extract → embed → rerank → summarize |
 | `omniscout open`, `snapshot`, `context` | Workflow shortcuts for agents |
 | `omniscout replay`, `workflow export` | Replay daemon actions; export workflow JSON |
-| `omniscout warmup` | Optional: preload embed model in daemon before a search batch |
+| `omniscout warmup` | Optional: preload embed + answer models in daemon before a batch |
 | `omniscout benchmark ...` | Answer-mode latency/quality and startup benchmarks |
 | `omniscout profile ...` | Persistent Chrome profiles for cookies/logins |
 | `omniscout session ...` | Long-lived browser sessions (CDP attach) |
-| `omniscout install` | Chrome check, model prefetch, optional `--skill` for agent discovery |
+| `omniscout settings ...` | Browser selection and config.toml helpers |
+| `omniscout install` | Browser picker, model prefetch, optional `--skill` for agent discovery |
 
 CLI: primary command `omniscout`; short alias `scout`; legacy dev alias `harness`.
 

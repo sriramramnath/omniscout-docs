@@ -2,8 +2,35 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
+const DOCS_SITE = 'https://docs.omniscout.xyz';
+const OG_IMAGE = `${DOCS_SITE}/og/docs-home.jpg`;
+
+const softwareJsonLd = JSON.stringify({
+	'@context': 'https://schema.org',
+	'@type': 'SoftwareApplication',
+	name: 'OmniScout',
+	applicationCategory: 'DeveloperApplication',
+	operatingSystem: 'macOS, Linux, Windows',
+	description:
+		'Local-first browser control, semantic search, and research for AI agents. Install with pip install omniscout.',
+	url: DOCS_SITE,
+	downloadUrl: 'https://pypi.org/project/omniscout/',
+	softwareHelp: `${DOCS_SITE}/cli/overview/`,
+	sameAs: [
+		'https://omniscout.xyz',
+		'https://github.com/sriramramnath/omniscout',
+		'https://pypi.org/project/omniscout/',
+	],
+	offers: {
+		'@type': 'Offer',
+		price: '0',
+		priceCurrency: 'USD',
+	},
+});
+
 // https://astro.build/config
 export default defineConfig({
+	site: DOCS_SITE,
 	integrations: [
 		starlight({
 			title: 'OmniScout Docs',
@@ -22,7 +49,28 @@ export default defineConfig({
 				ThemeProvider: './src/components/ThemeProvider.astro',
 				ThemeSelect: './src/components/ThemeSelect.astro',
 			},
+			head: [
+				{ tag: 'meta', attrs: { property: 'og:type', content: 'website' } },
+				{ tag: 'meta', attrs: { property: 'og:site_name', content: 'OmniScout Docs' } },
+				{ tag: 'meta', attrs: { property: 'og:image', content: OG_IMAGE } },
+				{ tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+				{ tag: 'meta', attrs: { property: 'og:image:type', content: 'image/jpeg' } },
+				{ tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+				{ tag: 'meta', attrs: { name: 'twitter:image', content: OG_IMAGE } },
+				{ tag: 'script', attrs: { type: 'application/ld+json' }, content: softwareJsonLd },
+			],
 			social: [
+				{
+					icon: 'external',
+					label: 'Website',
+					href: 'https://omniscout.xyz',
+				},
+				{
+					icon: 'external',
+					label: 'llms.txt',
+					href: `${DOCS_SITE}/llms.txt`,
+				},
 				{
 					icon: 'external',
 					label: 'PyPI',

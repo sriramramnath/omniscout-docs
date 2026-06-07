@@ -1,0 +1,4962 @@
+# OmniScout Docs — full context
+
+> Generated from source. Site: https://docs.omniscout.xyz
+
+---
+
+## https://docs.omniscout.xyz/cli/agents/
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+OmniScout is built **for AI agents to drive**. This page collects everything you
+need to make Claude Code, Cursor, Codex, Kimi, or any other shell-capable
+agent productive with OmniScout in under a minute.
+
+## 0. Install OmniScout
+
+```bash
+pip install omniscout
+```
+
+## 1. Install the skill
+
+```bash
+omniscout install --skill
+```
+
+This copies `SKILL.md` (the agent-facing instructions) plus
+`references/operations.md` into the well-known agent skill locations:
+
+| Agent | Skill location |
+|---|---|
+| Claude Code | `~/.claude/skills/scout/SKILL.md` |
+| Cursor | `~/.cursor/skills-cursor/scout/SKILL.md` |
+| Codex | `~/.codex/skills/scout/SKILL.md` |
+| Antigravity | `~/.gemini/config/skills/scout/SKILL.md` |
+
+The agent picks it up automatically on next session — no manual config.
+
+<Aside type="tip">
+You can also just paste the contents of [docs/agent-skill.md](https://github.com/sriramramnath/omniscout/blob/main/docs/agent-skill.md) into any agent's system prompt if it doesn't have a skill mechanism.
+</Aside>
+
+## 2. Start the daemon (once)
+
+```bash
+omniscout daemon start
+```
+
+It's idempotent — running it again is a no-op. The daemon survives between
+agent sessions. Verify with `omniscout daemon status`.
+
+## 3. Drop a prompt
+
+These prompts assume the skill is installed. Pick the closest match to your
+task; the agent will translate it into the right sequence of `omniscout
+browser ...` commands.
+
+### Ask an AI to **research a question**
+
+<Tabs syncKey="agent">
+<TabItem label="Claude Code">
+
+```text
+Research "state of open-source browser-using AI agents in 2026" using
+OmniScout. Run `omniscout research` with at least 8 results, then summarize the
+findings in 3-5 bullet points with citations to source URLs.
+```
+
+</TabItem>
+<TabItem label="Cursor">
+
+```text
+@omniscout Use OmniScout to research the question: "what's the practical
+difference between Browserbase, Browser-Use, and Stagehand?"
+Compare them in a table covering pricing model, runtime, element
+addressing strategy, and best-fit use case.
+```
+
+</TabItem>
+<TabItem label="Codex">
+
+```text
+You have access to OmniScout via the `omniscout` CLI. Research "FedRAMP-ready
+LLM hosting providers" using `omniscout research --results 10 --json`,
+extract the top 5 sources, and write a concise report to /tmp/report.md.
+```
+
+</TabItem>
+<TabItem label="Plain shell prompt">
+
+```text
+You have the `omniscout` CLI available. Use it to research a topic the user
+gives you. Use `omniscout research "<topic>" --json` and summarize the
+returned `summary` plus the top 3 passages.
+
+Topic: <YOUR TOPIC HERE>
+```
+
+</TabItem>
+</Tabs>
+
+### Ask an AI to **navigate and click**
+
+<Tabs syncKey="agent">
+<TabItem label="Claude Code">
+
+```text
+Use OmniScout to open https://news.ycombinator.com, snapshot the page, and
+click the top story link. Then take a screenshot saved to /tmp/hn-top.png
+and tell me the page title of the article that loaded.
+```
+
+</TabItem>
+<TabItem label="Cursor">
+
+```text
+@omniscout Open the GitHub trending page in OmniScout, snapshot the page, click
+the first repo link, and read me the README using `omniscout extract` on
+the resulting URL.
+```
+
+</TabItem>
+<TabItem label="Codex">
+
+```text
+Use the OmniScout CLI to:
+1. Navigate to https://hn.algolia.com
+2. Fill the search box with "browser agents"
+3. Click search
+4. Take a screenshot to /tmp/results.png
+5. Use `omniscout browser snapshot --refs-only` and list the first 5 link
+   refs you see.
+```
+
+</TabItem>
+</Tabs>
+
+### Ask an AI to **log in once and reuse**
+
+<Tabs syncKey="agent">
+<TabItem label="Claude Code">
+
+```text
+Help me set up a logged-in profile for GitHub via OmniScout. Run
+`omniscout browser login https://github.com/login --profile work` to open a
+headful window. Wait for me to authenticate in the browser, then I'll
+tell you "done". After that, prove the profile works by running
+`omniscout browser navigate https://github.com/settings --profile work` and
+showing me the resulting page title.
+```
+
+</TabItem>
+<TabItem label="Cursor">
+
+```text
+@omniscout I want to scrape my private GitHub starred repos. First create a
+profile via `omniscout profile create work`. Then run
+`omniscout browser login https://github.com/login --profile work`. Pause
+for me to log in. Then navigate to https://github.com/?tab=stars and
+snapshot the page. Loop over the @eN refs whose role is "link" and
+extract their titles.
+```
+
+</TabItem>
+</Tabs>
+
+### Ask an AI to **fill a form and submit**
+
+<Tabs syncKey="agent">
+<TabItem label="Claude Code">
+
+```text
+Use OmniScout to:
+1. Open https://duckduckgo.com
+2. Snapshot the page
+3. Fill the search textbox with "local first AI agents"
+4. Press Enter
+5. Wait for the results to load (wait --idle)
+6. Snapshot again and list the title of the first 5 results.
+```
+
+</TabItem>
+<TabItem label="Cursor">
+
+```text
+@omniscout Open https://google.com/forms/example, fill the visible form
+fields in order with these values: name="Test User",
+email="test@example.com", message="Hello from OmniScout". Then take a
+screenshot and tell me which fields you filled.
+```
+
+</TabItem>
+</Tabs>
+
+### Ask an AI to **capture network traffic**
+
+<Tabs syncKey="agent">
+<TabItem label="Claude Code">
+
+```text
+Use OmniScout to investigate what tracking calls a site makes. Start network
+capture, navigate to https://example.com, scroll to the bottom, stop
+capture, then list any captured requests whose URL matches
+"analytics|google|facebook|stripe". For the matching ones, run `network
+detail` and tell me the response status code.
+```
+
+</TabItem>
+<TabItem label="Codex">
+
+```text
+Profile the network behavior of https://vercel.com/pricing using OmniScout:
+- `omniscout browser network start`
+- `omniscout browser navigate https://vercel.com/pricing`
+- `omniscout browser scroll down --amount 10`
+- `omniscout browser network stop`
+- `omniscout browser network list --filter "stripe|payment"`
+Return the result as JSON.
+```
+
+</TabItem>
+</Tabs>
+
+### Ask an AI to **handle a CAPTCHA**
+
+<Tabs syncKey="agent">
+<TabItem label="Default (local, manual)">
+
+```text
+Open https://site-with-captcha.example using OmniScout. If you detect a
+CAPTCHA, run `omniscout browser captcha --detect-only` and tell me the
+type. Then run `omniscout browser captcha` (no solver flag) so the tab
+flips headful and pauses. I'll solve it manually; you continue once
+detection comes back clean.
+```
+
+</TabItem>
+<TabItem label="With 2Captcha API key">
+
+```text
+Open https://site-with-captcha.example using OmniScout. If there's a CAPTCHA,
+solve it via 2Captcha — `TWOCAPTCHA_API_KEY` is set in my env. Run
+`omniscout browser captcha --solver 2captcha` and continue once it returns
+solved=true.
+```
+
+</TabItem>
+</Tabs>
+
+<Aside type="caution">
+The default `--solver none` is the only mode that's truly local-first. The
+third-party solvers (`2captcha`, `capsolver`) send the sitekey + page URL
+to those services, which costs money and leaves your machine. Opt in
+explicitly.
+</Aside>
+
+## 4. Multi-step agent loop (the killer use case)
+
+Most useful agent loops combine *all* of the above in a single task. Here's
+a complete worked example you can hand to Claude Code verbatim:
+
+```text
+You have OmniScout available via the `omniscout` CLI. Carry out this task end
+to end:
+
+1. Start the daemon if it isn't running.
+2. Create a profile "research" if it doesn't exist.
+3. Use OmniScout to research "vector databases benchmark 2026" with at least
+   10 results. Save the report JSON to /tmp/research.json.
+4. From the report, pick the 3 source URLs with the highest passage
+   scores. For each one:
+     a. Open it in OmniScout (profile=research).
+     b. Take a screenshot to /tmp/<i>.png.
+     c. Use `omniscout extract <url>` to get the clean Markdown.
+     d. Save the markdown to /tmp/<i>.md.
+5. Tell me the 3 source URLs and the path to each screenshot/markdown
+   pair. Then summarize the *common* themes across the 3 articles in 5
+   bullet points, citing which article each theme came from.
+6. Close all OmniScout sessions when done.
+```
+
+The agent will run something like:
+
+```bash
+omniscout daemon status
+omniscout profile create research
+OMNISCOUT_JSON=1 omniscout research "vector databases benchmark 2026" --results 10 > /tmp/research.json
+URLS=$(jq -r '.sources[] | .url' /tmp/research.json | head -3)
+i=1
+for url in $URLS; do
+  omniscout browser navigate "$url" --profile research --session research
+  omniscout browser screenshot --session research --out /tmp/$i.png
+  omniscout extract "$url" > /tmp/$i.md
+  i=$((i+1))
+done
+omniscout browser close --all
+```
+
+## 5. JSON contract for agents
+
+Every command supports `--json` (or env `OMNISCOUT_JSON=1`). Output is
+deterministic, with logs separated to stderr. Agents should:
+
+1. Set `OMNISCOUT_JSON=1` once at the start of a session.
+2. Pipe stdout through `jq` for structured access.
+3. Treat any response with `ok: false` as recoverable; use `error_kind`
+   to decide whether to retry, re-snapshot, or surface to the user.
+
+```bash
+OMNISCOUT_JSON=1 omniscout browser snapshot 2>/dev/null | jq '.refs[] | select(.role == "button")'
+```
+
+Two fields you should always pay attention to:
+
+| Field | Where | What it means |
+|---|---|---|
+| `snapshot_generation` | every response's `data` | Monotonic per session. If it changed since your last `snapshot`, re-snapshot before re-using `@eN` refs. |
+| `action_id` | every response (top level) | Stable hex ID for this exact invocation. Use it to call `omniscout daemon trace <action_id>` or `omniscout daemon replay <action_id>`. |
+
+## 6. Trace, replay, watch (the agent debugging loop)
+
+```bash
+# What did OmniScout just do?
+omniscout daemon trace -n 5 --session demo
+
+# Re-run a single call by ID (skips interactive verbs like login).
+omniscout daemon replay 8f3a7c9e1b2d4e5f
+
+# Re-run every replayable action for a session in the last minute.
+omniscout daemon replay --session demo --since 60
+
+# Tail live events (use --json-lines for machine-readable output).
+omniscout daemon watch
+```
+
+When an agent fails halfway through a task, an agentic prompt like
+"replay the last 30 seconds against session `demo`" tends to recover
+state faster than asking the agent to remember each step itself.
+
+## 7. Stable `error_kind` values agents can branch on
+
+| `error_kind` | Meaning | Recommended action |
+|---|---|---|
+| `timeout` | Operation exceeded its budget | Retry with `--timeout-ms` larger, or `wait --idle` first |
+| `no_such_session` | Session doesn't exist | Re-`navigate` to recreate it |
+| `no_such_ref` | `@eN` ref expired or page changed | Re-run `snapshot` and use the new refs |
+| `backend_unavailable` | Extension backend not connected | Drop `--backend extension` to fall back to Playwright |
+| `invalid_args` | Bad CLI arguments | Surface to user; don't retry blindly |
+| `internal` | Unhandled daemon error | Check `omniscout daemon logs -n 100` |
+| `requires_user` | CAPTCHA / login needs human | Tell the user what to do and pause |
+| `unsupported` | Backend can't do this verb | Switch to Playwright (e.g. `pdf`, `upload`) |
+
+## 8. Skill template for any new agent
+
+If you're integrating OmniScout into an agent without a skill mechanism, paste
+this into the agent's system prompt:
+
+```text
+You have access to OmniScout via the `omniscout` CLI. OmniScout drives a browser
+locally — it can navigate, click, fill, scroll, take screenshots, capture
+network traffic, detect CAPTCHAs, and run multi-step research pipelines.
+
+Always:
+- Set OMNISCOUT_JSON=1 for structured output.
+- Run `omniscout browser snapshot --refs-only` to find elements; use the
+  returned @eN refs for click/fill rather than guessing CSS selectors.
+- After EVERY response, check data.snapshot_generation. If it differs
+  from the value your last `snapshot` returned, re-snapshot before re-
+  using cached @eN refs.
+- Save the top-level `action_id` from each response — you can replay or
+  trace by ID later if something goes sideways.
+- Close sessions with `omniscout browser close --all` at the end of a task.
+- Screenshots go to disk; read them via your file-read tool, never embed
+  base64 in your reply.
+
+Available verbs:
+navigate, snapshot, click, fill, scroll, key, hover, upload, screenshot,
+pdf, eval, wait, tab list|close|switch, network start|stop|list|detail,
+login, captcha, close.
+
+Diagnostics: omniscout daemon trace, replay, watch, status, logs.
+
+Run `omniscout <verb> --help` if unsure of arguments.
+```
+
+## More
+
+<CardGrid>
+<LinkCard title="Examples & recipes" description="Real workflows: search→extract→summarize, multi-tab, parallel scraping." href="/cli/examples/" />
+<LinkCard title="Commands reference" description="Every verb, every flag, every JSON field." href="/cli/commands/" />
+<LinkCard title="Troubleshooting" description="When the agent gets stuck — fix it fast." href="/cli/troubleshooting/" />
+</CardGrid>
+
+---
+
+## https://docs.omniscout.xyz/cli/architecture/
+
+# OmniScout architecture
+
+OmniScout is built around three architectural decisions:
+
+1. **A long-lived local daemon** holds Playwright (or a WebSocket
+   connection to the Chrome extension) open so per-action latency is
+   sub-second. The CLI is a thin HTTP client into the daemon.
+2. **Two interchangeable backends** sit behind the same JSON action
+   vocabulary — `Playwright` (default, launches its own Chrome) and
+   `Extension` (opt-in, drives the user's real Chrome via the MV3
+   extension and `chrome.debugger`).
+3. **Stable element refs** (`@e1`, `@e2`, ...) come from the
+   accessibility tree, not CSS selectors — so an agent can re-use refs
+   across calls without re-snapshotting after every click.
+
+The rest of this page walks through the layers and the data flow.
+
+## System Overview
+
+```mermaid
+flowchart TD
+
+    CLI["CLI Commands Layer<br/>(search, extract, research, browser, profile, session)"]
+
+    subgraph ENGINES["Engines Layer"]
+        direction TB
+
+        subgraph CORE[" "]
+            direction LR
+            BROWSER["Browser Engine"]
+            EXTRACTOR["Extractor Engine"]
+            CRAWLER["Crawler Engine"]
+        end
+
+        subgraph RESEARCH_STACK[" "]
+            direction LR
+
+            RESEARCH["Research Engine"]
+
+            subgraph SEARCH["Search Engines"]
+                direction TB
+
+                subgraph TOOLS[" "]
+                    direction LR
+                    DDG["DDG"]
+                    EMBED["Embed"]
+                    RERANK["Rerank"]
+                end
+
+                QINDEX["Qdrant Vector Index"]
+            end
+        end
+    end
+
+    subgraph DAEMON["Daemon Layer"]
+        direction TB
+
+        subgraph SERVER["HTTP Server"]
+            direction TB
+
+            API["POST /command<br/>GET /status<br/>WS /ext"]
+
+            DISPATCH["Command Dispatcher &amp; Protocol Handler"]
+
+            BACKENDS["Backends<br/>(Playwright, Extension)"]
+        end
+    end
+
+    subgraph STORAGE["Storage Layer"]
+        direction TB
+
+        subgraph STORES[" "]
+            direction LR
+
+            CACHE["Page Cache<br/>(SQLite + HTML)"]
+
+            SESSIONS["Sessions Registry<br/>(SQLite)"]
+
+            PROFILES["Profiles<br/>(Chrome user-data)"]
+        end
+
+        QDB["Qdrant Vector Database<br/>(on-disk)"]
+    end
+
+    CLI --> ENGINES
+    ENGINES --> DAEMON
+    DAEMON --> STORAGE
+```
+
+## Action vocabulary
+
+Every action a browser-using agent needs maps to exactly one CLI verb.
+The same vocabulary is implemented by both backends.
+
+| Verb | What it does |
+|---|---|
+| `navigate` | Open a URL in the active (or new) tab. |
+| `snapshot` | Return the accessibility tree with stable `@eN` refs. |
+| `click` | Click a `@eN` ref, CSS selector, or `(x, y)`. |
+| `fill` | Set a textbox / `contenteditable` value. |
+| `scroll` | Scroll page or an element. |
+| `key` | Press a keyboard combo. |
+| `hover` | Hover an element or coordinate. |
+| `upload` | Attach files to an `<input type=file>`. |
+| `screenshot` | Save a PNG/JPEG of the viewport or element. |
+| `pdf` | Render the page to a PDF. |
+| `eval` | Run JS in the active page. |
+| `wait` | Wait for ref / URL pattern / network idle / N ms. |
+| `tab list|close|switch` | Multi-tab in a single session. |
+| `network start|stop|list|detail` | CDP-based request capture with filtering. |
+| `login` | Headful interactive login with URL-pattern polling. |
+| `captcha` | Detect (default) or solve via opt-in third-party API. |
+| `close` | Close session or all sessions. |
+
+## The two backends
+
+Both backends implement the same `Backend` Python ABC, so the daemon
+dispatcher is identical regardless of which one a session uses.
+
+| | Playwright backend (default) | Extension backend (opt-in) |
+|---|---|---|
+| What it drives | OmniScout-launched Chrome | The user's running Chrome |
+| Profile | Persistent dir in `profiles/` | The user's own profile |
+| Logins | Per-OmniScout-profile cookies | Real logins from the user's browser |
+| Setup | Nothing | Load unpacked `extension/` once |
+| Visible to user? | Off-screen by default, headful with `--headful` | Always — overlay banner on controlled tabs |
+| Best for | Headless CI, server-side agents, isolated profiles | Local dev agents needing real auth and real extensions |
+| Doesn't support | — | `pdf`, `upload` |
+
+The daemon resolves which backend to use per-session: the first
+`navigate` call binds the session, and every subsequent action with the
+same `--session NAME` routes there. Add `--backend extension` to a
+session's first call to opt into the extension explicitly; otherwise the
+daemon uses Playwright.
+
+## Snapshot & `@eN` refs
+
+OmniScout's snapshot model is the same idea as Kimi WebBridge's: instead of
+asking agents to write CSS selectors (which break the moment a Tailwind
+class hash changes), expose the page as its accessibility tree and give
+every interactive element a short stable ref.
+
+The flow on each `snapshot`:
+
+1. Daemon calls `Accessibility.getFullAXTree` over CDP on the active
+   page.
+2. `_ax_node_to_snapshot` walks the tree and mints `@e1`, `@e2`, ... in
+   document order for any node whose role is *not* in `SKIP_REF_ROLES`
+   (skips `statictext`, `inlinetextbox`, `none`, `presentation`,
+   `generic`, `linebreak`, `ignored`).
+3. The `RefRegistry` caches each ref → CDP `backendDOMNodeId` mapping
+   per session, with a configurable TTL.
+4. `click`, `fill`, `hover`, etc. resolve refs back to Playwright
+   locators via `get_by_role(role, name=...)`, falling back to CDP
+   node-ID dispatch when role+name aren't unique.
+
+Refs survive across calls until the next `navigate`. After a navigation
+the registry is reset and the next `snapshot` mints fresh refs.
+
+## Action queue
+
+Two concurrent calls hitting the same session would race over the same
+Playwright `Page` (or the same extension-controlled tab). OmniScout serialises
+them with a per-session `asyncio.Lock`:
+
+```python
+state = await self._ensure_session(session)
+async with state.action_lock:
+    # ... verb body
+```
+
+Calls to **different** sessions still run in parallel — the lock is per
+session, not per backend. Three verbs are carved out and run **without**
+the lock by design:
+
+| Verb | Why it's carved out |
+|---|---|
+| `close_session` | Tears down the state that owns the lock. |
+| `login` | Blocks for minutes waiting for a human; holding the lock would deadlock `login_done`. |
+| `login_done` | Signalling counterpart to `login`; must run while `login` is still polling. |
+
+For agents, this means: it's safe to pipeline actions against the same
+session. They won't interleave.
+
+## Snapshot generations
+
+Every session carries a monotonically increasing
+`snapshot_generation` counter. It's bumped whenever something invalidates
+the cached `@eN` refs:
+
+- `snapshot` (the obvious one — a new ref set is minted)
+- `navigate` (URL change wipes the page DOM)
+- `switch_tab` / `close_tab`-of-active (active page changes)
+
+Every action response carries the current value in `data.snapshot_generation`.
+The contract for agents is simple:
+
+> If `snapshot_generation` in the response differs from the value your
+> last `snapshot` call returned, re-snapshot before using any `@eN` ref.
+
+This is documented on the agent skill page and on the `SnapshotResult`
+Pydantic model. It eliminates the "I clicked a ref and got `no_such_ref`"
+class of agent bug.
+
+## Action history
+
+Every command the daemon handles (success or failure) writes one row to a
+JSONL ring buffer at `$OMNISCOUT_DATA_DIR/daemon/actions.jsonl`. When the
+file crosses 10,000 rows it's rotated atomically to `actions.prev.jsonl`.
+
+Each row:
+
+```json
+{
+  "action_id": "8f3a7c9e1b2d4e5f",
+  "ts": "2026-05-26T19:00:42.123456Z",
+  "elapsed_ms": 42,
+  "ok": true,
+  "session": "default",
+  "action": "click",
+  "args": {"selector": "@e3"},
+  "snapshot_generation": 18,
+  "error_kind": null,
+  "error": null,
+  "backend": "playwright"
+}
+```
+
+The `action_id` is also returned on the `Response` envelope so agents and
+tests can correlate. Two commands surface this log:
+
+- `omniscout daemon trace [-n N] [--session NAME] [--action VERB] [--since SECONDS] [--prev]`
+  prints a Rich table (or `--json` array) of recent rows.
+- `omniscout daemon trace last` is a shorthand for "give me the most recent
+  row as JSON".
+
+And one command reads from it to re-run actions:
+
+- `omniscout daemon replay <action_id>` re-POSTs that single row to the
+  daemon.
+- `omniscout daemon replay --session NAME --since 60` re-runs every
+  replayable action for NAME inside a time window. Interactive verbs
+  (`login`, `login_done`, `captcha_solve`, `upload`) are skipped unless
+  you pass `--include-interactive`.
+
+Replays go through the normal `/command` path so they're logged again —
+the original `action_id` is preserved in the result under
+`source_action_id` so you can trace the lineage.
+
+## Session restore
+
+Sessions used to live only in `PlaywrightBackend._sessions` (an in-memory
+dict). Restart the daemon and every agent's session evaporated.
+
+Today the daemon persists `{session_name → {profile, last_url, backend,
+headful}}` to `$OMNISCOUT_DATA_DIR/daemon/sessions.json` whenever a session
+successfully navigates or is explicitly closed:
+
+```json
+{
+  "version": 1,
+  "sessions": {
+    "work": {
+      "profile": "work-profile",
+      "backend": "playwright",
+      "headful": true,
+      "last_url": "https://news.ycombinator.com",
+      "updated_at": 1748286042.123
+    }
+  }
+}
+```
+
+On `PlaywrightBackend.start()` the daemon reads the file and marks each
+session as **dormant**. We deliberately do NOT eagerly re-launch every
+context — a user with 20 stored sessions wouldn't want 20 Chromium
+processes spawned at boot. Instead, the first verb that targets a dormant
+session triggers a lazy restore: the context is launched, the previous
+URL is re-loaded, then the verb runs. The agent sees a bumped
+`snapshot_generation` so any stale refs are obviously invalid.
+
+Extension-backed sessions are inherently tied to live Chrome tabs and
+aren't restored automatically. The daemon remembers their name but errors
+with `backend_unavailable` if you reference one before the extension has
+reconnected.
+
+## Event stream
+
+`GET /events` is a Server-Sent Events channel. Subscribers see live
+notifications about everything the daemon does:
+
+| Event type | Emitted when |
+|---|---|
+| `action.start` | `POST /command` accepted, before dispatch |
+| `action.finish` | After dispatch, with `ok`, `elapsed_ms`, `snapshot_generation` |
+| `session.opened` | First time the daemon sees a new session name |
+| `session.closed` | Session torn down by `close_session` |
+| `extension.connected` | MV3 extension finished the WS handshake |
+| `extension.disconnected` | Extension WS closed (e.g. browser quit) |
+
+Each frame is a single JSON object:
+
+```text
+data: {"type":"action.start","ts":"2026-05-26T19:00:42.123Z","data":{"action_id":"8f3a7c9e...","session":"default","action":"click"}}
+```
+
+`omniscout daemon watch [--filter TYPE]` is a small CLI that subscribes
+and pretty-prints (or `--json-lines` for one JSON object per line). The
+extension popup uses the same channel to mirror live activity.
+
+The bus is in-memory and per-daemon — there's no persistence layer. If
+you want durable records, use the action history (above); if you want
+live updates, use `/events`.
+
+## Core Layers
+
+### 1. Commands Layer (`omniscout/commands/` — internal Python package)
+
+Thin CLI wrappers that delegate to engines. Each command:
+- Parses CLI arguments via Typer
+- Calls appropriate engine function
+- Formats output (JSON or rich console)
+- Handles errors and logging
+
+**Command Modules:**
+- `search.py` - Query DuckDuckGo with optional reranking
+- `extract.py` - Fetch and extract URL content
+- `research.py` - Multi-step research pipeline
+- `browser.py` - Browser automation (navigate, click, fill, etc.)
+- `profile.py` - Manage persistent browser profiles
+- `session.py` - Manage long-lived browser sessions
+- `daemon.py` - Start/stop/manage daemon
+
+### 2. Engines Layer (`omniscout/engines/` — internal Python package)
+
+Core processing logic, independent of CLI. Engines are reusable and can be called from Python code.
+
+#### Browser Engine (`browser.py`)
+
+Wraps Playwright for browser automation with two operational modes:
+
+**One-Shot Mode:**
+- Open persistent context
+- Perform action (navigate, screenshot, etc.)
+- Close context
+- Profiles stored at `~/.config/omniscout/profiles/<name>/`
+- Cookies and login state persist across invocations
+
+**Long-Lived Session Mode:**
+- Launch Chromium with remote debugging port
+- Record PID and CDP WebSocket endpoint
+- Return immediately
+- Other tools can attach via WS endpoint
+- Session registry in SQLite
+
+**Key Features:**
+- Automatic Chrome detection (system Chrome → bundled Chromium fallback)
+- Profile management with persistent storage
+- Session lifecycle management
+- Headful/headless modes
+
+#### Extractor Engine (`extractor.py`)
+
+Fetches URLs and extracts clean, readable content:
+
+1. **Fetch HTML**
+   - Try httpx (fast, no JS rendering)
+   - Fall back to Chrome for JS-heavy sites
+   - Check on-disk cache first (by content hash)
+
+2. **Extract Content**
+   - Use trafilatura to remove boilerplate
+   - Convert to markdown/text/JSON
+   - Extract metadata (title, author, published date)
+   - Collect links
+
+3. **Cache Result**
+   - Store HTML by SHA256 hash
+   - Metadata in SQLite (URL → SHA256 mapping)
+   - Avoid re-fetching same content
+
+#### Crawler Engine (`crawler.py`)
+
+Async HTTP crawler with intelligent fallbacks:
+
+**Features:**
+- Async httpx for concurrent fetching
+- Per-host throttling (configurable delay)
+- robots.txt respect (cached per-origin)
+- Chrome fallback for JS-shell pages
+- URL deduplication in-memory
+- Configurable concurrency and timeouts
+
+**Usage:**
+```python
+from omniscout.engines.crawler import crawl_many
+
+results = await crawl_many(
+    urls=["https://example.com", ...],
+    max_concurrent=5,
+    throttle_seconds=1.0
+)
+```
+
+#### Research Engine (`research.py`)
+
+Orchestrates full research pipeline:
+
+1. **Search** - Query DuckDuckGo for top URLs
+2. **Crawl** - Fetch all URLs (async, with throttling)
+3. **Extract** - Extract readable content from each URL
+4. **Chunk** - Split documents into ~220-word passages
+5. **Embed** - Generate embeddings using sentence-transformers
+6. **Index** - Upsert passages to Qdrant vector database
+7. **Rerank** - Score passages by cosine similarity to topic
+8. **Summarize** - Extract summary using TextRank
+
+**Output:** Structured `ResearchReport` with sources and passages
+
+#### Search Engines (`engines/search/`)
+
+**DDG Search** (`ddg.py`):
+- Fetch DuckDuckGo HTML results
+- Parse and unwrap redirect URLs
+- Extract title, snippet, URL
+
+**Embeddings** (`embed.py`):
+- Use sentence-transformers (all-MiniLM-L6-v2)
+- L2-normalize vectors
+- Batch processing for efficiency
+
+**Vector Index** (`index.py`):
+- Embedded Qdrant (no external server)
+- On-disk storage at `~/.local/share/omniscout/qdrant/`
+- Upsert passages with metadata
+- Similarity search
+
+**Reranking** (`rerank.py`):
+- Cosine similarity scoring
+- Sort results by relevance
+- Optional threshold filtering
+
+**Pipeline** (`pipeline.py`):
+- Combine sources: DDG-only, index-only, or hybrid
+- Deduplication across sources
+- Unified result format
+
+### 3. Daemon Layer (`omniscout/daemon/` — internal Python package)
+
+Long-lived HTTP+WebSocket server for stateful browser control.
+
+#### Server (`server.py`)
+
+**Endpoints:**
+- `POST /command` - Agent-facing command channel
+- `GET /status` - Health check and introspection
+- `GET /healthz` - Cheap liveness check
+- `WS /extension` - Chrome MV3 extension bridge
+
+**Command Dispatch:**
+```
+Command envelope → _dispatch() → Backend method → Response envelope
+```
+
+**Supported Actions:**
+- `navigate` - Go to URL
+- `click` - Click element
+- `fill` - Fill form field
+- `scroll` - Scroll page
+- `key` - Press keyboard combo
+- `hover` - Hover element
+- `upload` - Upload files
+- `screenshot` - Take screenshot
+- `pdf` - Generate PDF
+- `snapshot` - Get interactive elements
+
+#### Protocol (`protocol.py`)
+
+Versioned wire format for CLI ↔ Daemon communication:
+
+```python
+class Command(BaseModel):
+    action: str              # e.g., "click"
+    args: dict[str, Any]     # Action-specific arguments
+    session: str             # Session ID (default: "default")
+    timeout_ms: int | None   # Per-call timeout
+
+class Response(BaseModel):
+    ok: bool                 # Success flag
+    action: str              # Echo of action
+    data: dict | None        # Result data
+    error: str | None        # Error message
+    error_kind: str | None   # Machine-readable error category
+    elapsed_ms: int | None   # Execution time
+```
+
+**Protocol Version:** "1" (versioned for compatibility)
+
+#### Backends (`daemon/backends/`)
+
+**Playwright Backend** (`playwright.py`):
+- Default backend for browser control
+- Uses Playwright's Chromium or system Chrome
+- Manages page contexts and sessions
+
+**Extension Backend** (`extension.py`):
+- Optional Chrome MV3 extension integration
+- Allows extension-driven browser control
+- WebSocket bridge for extension communication
+
+#### Lifecycle (`lifecycle.py`)
+
+Manages daemon process:
+- Auto-start on first CLI invocation (lazy)
+- Port detection and storage
+- Health checks
+- Graceful shutdown
+
+### 4. Storage Layer (`omniscout/store/` — internal Python package)
+
+Persistent data management.
+
+#### Page Cache (`store/cache.py`)
+
+**Design:**
+- Content-hashed storage (SHA256 of HTML body)
+- Handles redirects transparently
+- Metadata in SQLite
+
+**Schema:**
+```sql
+CREATE TABLE pages (
+    url TEXT PRIMARY KEY,
+    sha256 TEXT NOT NULL,
+    status INTEGER,
+    content_type TEXT,
+    fetched_at TEXT NOT NULL
+);
+```
+
+**Usage:**
+```python
+cache = PageCache()
+cached = cache.get("https://example.com")
+if cached:
+    html = cached.body
+else:
+    html = fetch_html("https://example.com")
+    cache.put("https://example.com", html, status=200)
+```
+
+#### Session Registry (`store/sessions.py`)
+
+**Design:**
+- SQLite registry of long-lived browser sessions
+- Tracks PID, CDP WebSocket endpoint, profile, status
+
+**Schema:**
+```sql
+CREATE TABLE sessions (
+    id TEXT PRIMARY KEY,
+    profile TEXT,
+    pid INTEGER,
+    ws_endpoint TEXT,
+    headful INTEGER NOT NULL DEFAULT 0,
+    started_at TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'running'
+);
+```
+
+**Usage:**
+```python
+store = SessionStore()
+session = store.register(
+    profile="default",
+    pid=12345,
+    ws_endpoint="ws://127.0.0.1:9222/...",
+    headful=False
+)
+```
+
+### 5. Configuration (`config.py`)
+
+XDG-compliant paths and settings.
+
+**Paths:**
+```python
+@dataclass
+class Paths:
+    data: Path              # ~/.local/share/omniscout/
+    config: Path            # ~/.config/omniscout/
+    cache: Path             # ~/.cache/omniscout/
+    profiles: Path          # data/profiles/
+    qdrant: Path            # data/qdrant/
+    page_cache: Path        # cache/pages/
+    cache_db: Path          # cache/cache.sqlite
+    sessions_db: Path       # data/sessions.sqlite
+```
+
+**Settings (from config.toml):**
+```python
+@dataclass
+class Settings:
+    default_source: str = "ddg"
+    search_limit: int = 10
+    research_results: int = 8
+    research_depth: int = 1
+    request_throttle_seconds: float = 1.0
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    qdrant_collection: str = "scout_passages"
+    summary_sentences: int = 6
+    browser: str = "chrome"  # chrome | edge | brave | vivaldi | opera | arc | dia | thorium | chromium | custom
+    browser_channel: str = "chrome"  # legacy alias
+    browser_executable: str | None = None
+```
+
+### 6. Models (`models.py`)
+
+Pydantic result types define the JSON contract:
+
+**Search:**
+- `SearchHit` - Single result
+- `SearchResponse` - Collection of hits
+
+**Extraction:**
+- `ExtractResult` - Extracted content with metadata
+
+**Research:**
+- `ResearchReport` - Full research output
+- `ResearchSource` - Source URL
+- `ResearchPassage` - Ranked passage
+
+**Browser:**
+- `BrowserActionResult` - Action result
+- `SnapshotResult` - Interactive elements
+- `ScreenshotResult` - Screenshot metadata
+- `PdfResult` - PDF generation result
+
+**Sessions:**
+- `SessionInfo` - Session metadata
+- `ProfileInfo` - Profile metadata
+- `TabInfo` - Tab information
+
+**Daemon:**
+- `DaemonStatus` - Daemon health and status
+
+## Data Flow Patterns
+
+### Search Flow
+
+```
+CLI (search.py)
+  ↓
+search_pipeline()
+  ├─ ddg.search(query)
+  │   ├─ httpx.get(duckduckgo.com)
+  │   ├─ parse HTML
+  │   └─ return SearchHit[]
+  ├─ [optional] rerank.rerank(query, hits)
+  │   ├─ embed_texts([query] + snippets)
+  │   ├─ cosine_similarity()
+  │   └─ sort by score
+  └─ return SearchResponse
+  ↓
+Output (JSON or rich table)
+```
+
+### Extract Flow
+
+```
+CLI (extract.py)
+  ↓
+extract_url(url)
+  ├─ PageCache.get(url)
+  │   └─ [if cached] return CachedPage
+  ├─ [if not cached] _fetch_html(url)
+  │   ├─ httpx.get(url)
+  │   └─ [on JS-heavy] BrowserEngine.render(url)
+  ├─ PageCache.put(url, html)
+  ├─ extract_html(html)
+  │   ├─ trafilatura.extract()
+  │   ├─ markdownify()
+  │   └─ extract metadata
+  └─ return ExtractResult
+  ↓
+Output (Markdown, text, or JSON)
+```
+
+### Research Flow
+
+```
+CLI (research.py)
+  ↓
+run_research(topic)
+  ├─ ddg.search(topic)
+  │   └─ return top URLs
+  ├─ crawl_many(urls)
+  │   ├─ async httpx.get() per URL
+  │   ├─ [on JS-heavy] Chrome fallback
+  │   └─ return HTML[]
+  ├─ extract_html() per URL
+  │   └─ return ExtractResult[]
+  ├─ _chunk() per document
+  │   └─ split at paragraph/sentence boundaries
+  ├─ embed_texts(chunks)
+  │   ├─ sentence-transformers
+  │   └─ return embeddings[]
+  ├─ index.upsert(passages)
+  │   └─ Qdrant.upsert()
+  ├─ rerank passages
+  │   ├─ embed(topic)
+  │   ├─ cosine_similarity()
+  │   └─ sort by score
+  ├─ _extract_summary(top_passages)
+  │   └─ sumy TextRank
+  └─ return ResearchReport
+  ↓
+Output (JSON or rich panel)
+```
+
+### Browser Control Flow
+
+```
+CLI (browser.py)
+  ↓
+DaemonClient.post(action, args, session)
+  ├─ lifecycle.ensure_running()
+  │   └─ [if not running] start daemon
+  ├─ httpx.post(http://127.0.0.1:7720/command)
+  │   └─ send Command envelope
+  ↓
+Daemon (server.py)
+  ├─ handle_command()
+  ├─ _dispatch(backend, cmd)
+  │   ├─ backend.navigate/click/fill/etc()
+  │   └─ return result dict
+  └─ send Response envelope
+  ↓
+CLI
+  ├─ parse Response
+  └─ output (JSON or rich)
+```
+
+### Session Lifecycle
+
+```
+CLI (session.py)
+  ↓
+BrowserEngine.session_start()
+  ├─ subprocess.Popen([chrome, --remote-debugging-port=PORT])
+  ├─ _wait_for_ws()
+  │   └─ poll /json/version until CDP endpoint available
+  ├─ SessionStore.register()
+  │   └─ INSERT into sessions.sqlite
+  └─ return SessionInfo
+  ↓
+Later: DaemonClient.post(..., session=ID)
+  ├─ SessionStore.get(ID)
+  ├─ connect via ws_endpoint
+  └─ execute action
+```
+
+## Key Design Patterns
+
+### 1. Lazy Initialization
+- Daemon auto-starts on first browser command
+- Embedding model loaded on first search
+- Qdrant index created on first research
+
+### 2. Fallback Chains
+- **Fetching:** httpx (fast) → Chrome (JS rendering)
+- **Browser:** system Chrome → bundled Chromium
+- **Search:** DDG → local index → hybrid
+
+### 3. Content Hashing
+- Cache by SHA256 of HTML body, not URL
+- Handles redirects transparently
+- Deduplicates identical content
+
+### 4. Per-Host Throttling
+- Async crawler respects rate limits
+- Configurable delay between requests
+- Prevents overwhelming target servers
+
+### 5. Stateless CLI
+- All state lives in daemon or persistent storage
+- CLI is thin, reusable wrapper
+- Multiple CLI invocations can share daemon
+
+### 6. Pydantic Models
+- Single source of truth for JSON contract
+- Type-safe result handling
+- Automatic validation and serialization
+
+### 7. XDG Compliance
+- Respects platform-specific data/config/cache directories
+- Portable across macOS, Linux, Windows
+- User-configurable via environment variables
+
+### 8. Process-Wide Singletons
+- Embedding model (amortized loading)
+- Qdrant client (persistent connection)
+- Playwright browser instance (reused across commands)
+
+### 9. Versioned Protocol
+- Command/Response envelopes with protocol_version
+- Clients refuse to talk to incompatible daemons
+- Enables safe upgrades
+
+## Extension Points
+
+### Adding a New Search Source
+
+1. Create `engines/search/newsource.py`
+2. Implement `search(query: str) -> list[SearchHit]`
+3. Update `pipeline.py` to include new source
+4. Add CLI option `--source newsource`
+
+### Adding a New Browser Backend
+
+1. Create `daemon/backends/newbackend.py`
+2. Implement `Backend` interface
+3. Update `server.py` to instantiate backend
+4. Add backend detection logic
+
+### Adding a New Command
+
+1. Create `commands/newcommand.py`
+2. Define Typer app with subcommands
+3. Call appropriate engine function
+4. Add to `app.py` via `app.add_typer()`
+
+## Performance Considerations
+
+- **Caching:** Page cache reduces network calls
+- **Async:** Crawler uses asyncio for concurrent fetching
+- **Lazy Loading:** Models and indices loaded on-demand
+- **Batch Processing:** Embeddings computed in batches
+- **Connection Pooling:** httpx and Playwright reuse connections
+- **Local Processing:** No network round-trips for search/rerank
+
+## Security Considerations
+
+- **No Cloud APIs:** All data stays local
+- **User-Agent Spoofing:** Realistic user-agent to avoid detection
+- **robots.txt Respect:** Ethical crawling
+- **Timeout Protection:** Prevents hanging on slow servers
+- **Input Validation:** Pydantic models validate all inputs
+- **Process Isolation:** Daemon runs as separate process
+
+---
+
+## https://docs.omniscout.xyz/cli/commands/
+
+OmniScout is organized into command groups. Use `omniscout --help` to see all of
+them, or `omniscout <command> --help` for command-specific options.
+
+## Global options
+
+All commands support:
+
+- `--json` — emit machine-readable JSON to stdout. Logs go to stderr.
+- `--verbose`, `-v` — verbose stderr logging.
+- `--version` — print version and exit.
+
+You can also set `OMNISCOUT_JSON=1` in the environment to make JSON output
+the default for every command in a session — the typical setup for an AI
+agent.
+
+## Daemon (`omniscout daemon ...`)
+
+The daemon is a long-lived process that holds Playwright (and optionally a
+WebSocket bridge to the Chrome extension) open. Every `omniscout browser ...`
+command is a thin HTTP client into the daemon.
+
+### `omniscout daemon start`
+
+```bash
+omniscout daemon start [--port N]
+```
+
+Idempotent. If a daemon is already up it returns the existing status. If
+not, it spawns a background process and waits for `/healthz`.
+
+```json
+{
+  "running": true,
+  "port": 7720,
+  "version": "0.1.0",
+  "protocol_version": "1",
+  "extension_connected": false,
+  "extension_id": null,
+  "uptime_seconds": 0,
+  "sessions": [],
+  "backends": ["playwright"],
+  "pid": 12345
+}
+```
+
+### `omniscout daemon stop`
+
+SIGTERM, then SIGKILL after 5 seconds.
+
+### `omniscout daemon restart`
+
+`stop` followed by `start`.
+
+### `omniscout daemon status`
+
+Same JSON shape as `start`. Returns `{ "running": false }` when down.
+
+### `omniscout daemon logs`
+
+```bash
+omniscout daemon logs [-n LINES] [-f] [--prev]
+```
+
+- `-n N` — tail the last N lines (default 100).
+- `-f` — follow the log live (Ctrl-C to exit).
+- `--prev` — read the previous run's log (rotated on each `start`).
+
+### `omniscout daemon trace`
+
+Show recent rows from the structured action history (one JSONL row per
+command the daemon has handled, capped at 10,000 rows then rotated).
+
+```bash
+omniscout daemon trace [-n N] [--session NAME] [--action VERB] [--since SECONDS] [--prev]
+omniscout daemon trace last     # shorthand: print the most recent row as JSON
+```
+
+Each row looks like:
+
+```json
+{
+  "action_id": "8f3a7c9e1b2d4e5f",
+  "ts": "2026-05-26T19:00:42.123456Z",
+  "elapsed_ms": 42,
+  "ok": true,
+  "session": "default",
+  "action": "click",
+  "args": {"selector": "@e3"},
+  "snapshot_generation": 18,
+  "error_kind": null,
+  "error": null,
+  "backend": "playwright"
+}
+```
+
+`--prev` also includes the rotated `actions.prev.jsonl`.
+
+### `omniscout daemon replay`
+
+Re-run actions from the history without retyping them.
+
+```bash
+omniscout daemon replay <action_id>                        # single action
+omniscout daemon replay --session NAME [--since SECONDS]   # everything in a window
+omniscout daemon replay --session NAME --dry-run           # list, don't run
+```
+
+Interactive verbs (`login`, `login_done`, `captcha_solve`, `upload`) are
+skipped by default. Pass `--include-interactive` to replay them too. The
+replayed call's response includes a `source_action_id` field pointing
+back to the original row for traceability.
+
+### `omniscout daemon watch`
+
+Subscribe to the daemon's live event stream (Server-Sent Events).
+
+```bash
+omniscout daemon watch [--filter TYPE]... [--json-lines]
+```
+
+Events you'll see: `action.start`, `action.finish`, `session.opened`,
+`session.closed`, `extension.connected`, `extension.disconnected`. Use
+`--filter action.finish` to narrow down, and `--json-lines` to emit one
+JSON object per line for piping into another tool.
+
+## Browser action vocabulary
+
+These are the verbs an AI agent will use most. Same JSON shape regardless
+of which backend (Playwright or extension) handles the session.
+
+All accept `--session NAME` (default `default`) to isolate parallel tasks.
+
+### `omniscout browser navigate`
+
+```bash
+omniscout browser navigate <url> [--new-tab] [--profile NAME] [--headful] \
+                                [--wait-until {load,domcontentloaded,networkidle}] \
+                                [--session NAME]
+```
+
+First call binds the session to a backend. Without `--new-tab`, navigates
+the active tab.
+
+```json
+{
+  "action": "navigate",
+  "url": "https://example.com",
+  "title": "Example Domain",
+  "tab_id": "0",
+  "status": 200
+}
+```
+
+`omniscout browser open` is a backwards-compatible alias.
+
+### `omniscout browser snapshot`
+
+```bash
+omniscout browser snapshot [--refs-only] [--session NAME]
+```
+
+Returns the accessibility tree of the active page with stable `@eN` refs
+on every focusable / semantic element. The primary way to address
+elements — refs survive across calls until the next `navigate`.
+
+```json
+{
+  "action": "snapshot",
+  "url": "https://example.com",
+  "title": "Example",
+  "refs": [
+    { "ref": "@e1", "role": "heading", "name": "Example Domain", "value": "" },
+    { "ref": "@e2", "role": "link", "name": "More information...", "value": "" }
+  ],
+  "tree": { /* full nested tree, suppressed with --refs-only */ }
+}
+```
+
+### `omniscout browser click`
+
+```bash
+omniscout browser click <ref-or-selector> [--button {left,right,middle}] \
+                                        [--mod cmd|ctrl|alt|shift]... \
+                                        [--clicks N] [--session NAME]
+omniscout browser click --coord X Y [--session NAME]
+```
+
+`<ref-or-selector>` is an `@eN` ref from `snapshot` (preferred), any CSS
+selector, or omitted if you pass `--coord`. Coordinates are the
+vision-agent escape hatch.
+
+```json
+{ "action": "click", "mode": "selector", "tag": "BUTTON", "text": "Submit" }
+```
+
+### `omniscout browser fill`
+
+```bash
+omniscout browser fill <ref-or-selector> <value> [--session NAME]
+```
+
+Replaces existing content. Works on `<input>` / `<textarea>` *and*
+`[contenteditable]` (ProseMirror, Lexical, Slate, TipTap, Quill) via
+`execCommand('insertText')`.
+
+```json
+{ "action": "fill", "mode": "value", "tag": "input" }
+```
+
+`mode` is `"value"` for native inputs, `"contenteditable"` for rich-text.
+
+### `omniscout browser type`
+
+```bash
+omniscout browser type <ref-or-selector> <text> [--session NAME]
+```
+
+Appends keystrokes without clearing the field (unlike `fill`).
+
+### `omniscout browser paste`
+
+```bash
+omniscout browser paste <ref-or-selector> <text> [--session NAME]
+```
+
+Inserts text at the cursor (clipboard-style paste into the focused element).
+
+### `omniscout browser select`
+
+```bash
+omniscout browser select <ref-or-selector> <value> [--session NAME]
+```
+
+Selects an option on a native `<select>` by value or visible label.
+
+### `omniscout browser scroll`
+
+```bash
+omniscout browser scroll [up|down|left|right] [--amount N] [--ref REF] [--session NAME]
+```
+
+`--amount` is in 100px ticks (default 3). `--ref` scrolls *within* an
+element instead of the page.
+
+### `omniscout browser key`
+
+```bash
+omniscout browser key <combo> [--session NAME]
+```
+
+`combo` is e.g. `cmd+a`, `Escape`, `Enter`, `ctrl+shift+t`. Aliases:
+`cmd`/`command`→`Meta`, `option`→`Alt`, `return`→`Enter`, `esc`→`Escape`.
+
+### `omniscout browser back` / `forward` / `reload`
+
+```bash
+omniscout browser back [--session NAME]
+omniscout browser forward [--session NAME]
+omniscout browser reload [--session NAME]
+```
+
+History navigation on the active tab.
+
+### `omniscout browser hover`
+
+```bash
+omniscout browser hover <ref-or-selector> [--session NAME]
+omniscout browser hover --coord X Y [--session NAME]
+```
+
+### `omniscout browser upload`
+
+```bash
+omniscout browser upload <ref-or-selector> <file>... [--session NAME]
+```
+
+Attaches files to an `<input type="file">`. Playwright backend only.
+
+### `omniscout browser screenshot`
+
+```bash
+omniscout browser screenshot [URL] [-o PATH] [--ref REF] [--full-page] \
+                            [--format {png,jpeg}] [--quality 0-100] \
+                            [--profile NAME] [--session NAME]
+```
+
+If `URL` is given, navigates first. The daemon writes the file to disk
+and returns the path — agents read the file via their file-read tool.
+
+```json
+{
+  "action": "screenshot",
+  "format": "png",
+  "path": "/tmp/state.png",
+  "size_bytes": 7275,
+  "mime_type": "image/png"
+}
+```
+
+### `omniscout browser pdf`
+
+```bash
+omniscout browser pdf [URL] [-o PATH] [--paper {letter,a4,legal,a3,tabloid}] \
+                    [--landscape] [--scale 0.1-2.0] [--session NAME]
+```
+
+Playwright backend only (requires headless Chrome's print pipeline).
+
+### `omniscout browser eval`
+
+```bash
+omniscout browser eval <js> [--session NAME]
+```
+
+Evaluates JavaScript in the active page. `async`/`await` supported.
+
+```bash
+omniscout browser eval "document.title"
+# {"action":"evaluate","type":"str","value":"Example"}
+```
+
+### `omniscout browser get`
+
+```bash
+omniscout browser get title [--session NAME]
+omniscout browser get url [--session NAME]
+omniscout browser get text [--session NAME]
+omniscout browser get html [--session NAME]
+```
+
+Lightweight page inspection without a full snapshot.
+
+### `omniscout browser is`
+
+```bash
+omniscout browser is <ref-or-selector> <state> [--session NAME]
+```
+
+`state` is one of `visible`, `hidden`, `enabled`, `disabled`, `checked`,
+`editable`.
+
+### `omniscout browser wait`
+
+```bash
+# Subcommands (preferred)
+omniscout browser wait text <substring> [--timeout-ms 30000]
+omniscout browser wait selector <ref-or-css> [--timeout-ms 30000]
+omniscout browser wait networkidle [--timeout-ms 30000]
+omniscout browser wait url <glob-pattern> [--timeout-ms 30000]
+
+# Legacy flags (still supported)
+omniscout browser wait [--ref REF] [--url PATTERN] [--idle] [--ms N] [--timeout-ms 30000]
+```
+
+For legacy mode, exactly one of `--ref`, `--url`, `--idle`, or `--ms` must be
+set. `--url` takes a regex; the `wait url` subcommand takes a glob.
+
+### `omniscout browser mouse`
+
+```bash
+omniscout browser mouse scroll --coord X Y --delta DX DY [--session NAME]
+omniscout browser mouse move --coord X Y [--session NAME]
+```
+
+Raw wheel and pointer moves at pixel coordinates (vision-agent escape hatch).
+
+### `omniscout browser login`
+
+```bash
+omniscout browser login <url> [--profile NAME] [--success-pattern REGEX] \
+                            [--timeout-ms 300000] [--session NAME]
+
+# In a second shell once you've authenticated:
+omniscout browser login --done [--session NAME]
+```
+
+Opens headful Chrome on `<url>`, then *blocks* until either the URL
+matches `--success-pattern` OR you call `omniscout browser login --done`
+from another shell. Cookies persist in the profile, so subsequent
+commands with the same `--profile` are already logged in.
+
+```json
+{ "action": "login", "logged_in": true, "final_url": "https://github.com/" }
+```
+
+### `omniscout browser captcha`
+
+```bash
+omniscout browser captcha [--detect-only] [--solver {none,2captcha,capsolver,manual}] \
+                        [--api-key KEY] [--timeout-ms 120000] [--session NAME]
+```
+
+Detects reCAPTCHA v2/v3, hCaptcha, and Cloudflare Turnstile.
+
+- `--detect-only` returns `{ detected, type, sitekey, frame_url }` and
+  exits.
+- Default `--solver none` flips the tab headful and **blocks** the
+  calling CLI until the page is captcha-free (typically because you
+  solved it manually).
+- `--solver 2captcha` / `--solver capsolver` sends the sitekey + page URL
+  to the third-party API. API key from `--api-key` or env
+  (`TWOCAPTCHA_API_KEY` / `CAPSOLVER_API_KEY`).
+
+### `omniscout browser close`
+
+```bash
+omniscout browser close [--session NAME] [--all]
+```
+
+Always call at the end of a task.
+
+## Tab management (`omniscout browser tab ...`)
+
+```bash
+omniscout browser tab list                 # show all tabs in the session
+omniscout browser tab close [TAB_ID]       # default = active tab
+omniscout browser tab switch <TAB_ID>      # make TAB_ID active
+```
+
+`tab list` JSON:
+
+```json
+{
+  "action": "list_tabs",
+  "tabs": [
+    { "tab_id": "0", "url": "https://...", "title": "...", "active": true }
+  ]
+}
+```
+
+## Network capture (`omniscout browser network ...`)
+
+```bash
+omniscout browser network start            # begin capturing requests + responses
+omniscout browser network stop             # stop and return count
+omniscout browser network list [--filter REGEX]
+omniscout browser network tail [--since ID] [--filter REGEX]
+omniscout browser network detail <REQUEST_ID>
+```
+
+`network tail` returns incremental entries since `--since` (for polling loops).
+
+```json
+{
+  "action": "network.list",
+  "entries": [
+    { "id": 12345, "url": "https://api.example.com/track", "method": "POST",
+      "status": null, "kind": "request", "ts": 1716796020.34 }
+  ],
+  "count": 1
+}
+```
+
+## Console capture (`omniscout browser console ...`)
+
+```bash
+omniscout browser console start
+omniscout browser console stop
+omniscout browser console list [--filter REGEX]
+omniscout browser console tail [--since ID] [--filter REGEX]
+```
+
+Captures `console.*` messages and uncaught JS errors without screenshots.
+Use `tail` for incremental polling like `network tail`.
+
+## Search, extract, research
+
+These existed before OmniScout's daemon work and still operate directly
+(no daemon round-trip).
+
+## Stateful Workflow Commands
+
+These top-level commands provide deterministic workflow continuity for agents:
+
+```bash
+omniscout search "OpenAI operator"
+omniscout open 1
+omniscout snapshot --refs-only
+omniscout extract @e42
+omniscout context
+```
+
+Deterministic shorthand rules:
+
+- `omniscout open 1` means index `1` from the **latest search result set only**.
+- Numeric `open` targets never map to tabs, snapshots, or mixed contexts.
+- `omniscout extract @eN` resolves through the latest snapshot lineage.
+- If refs are stale, re-run `omniscout snapshot` before retrying extraction.
+
+### `omniscout open`
+
+```bash
+omniscout open <url-or-index> [--session NAME] [--profile NAME] [--new-tab]
+```
+
+Opens a URL directly, or resolves an integer index from the most recent search.
+
+### `omniscout snapshot`
+
+```bash
+omniscout snapshot [--session NAME] [--refs-only] [--overlay]
+```
+
+Top-level alias for browser snapshot with `@eN` ref output.
+
+### `omniscout context`
+
+```bash
+omniscout context
+```
+
+Shows persisted workflow state: active session/page/tab, latest snapshot
+generation, latest search set, and tracked refs.
+
+### `omniscout reset`
+
+```bash
+omniscout reset
+```
+
+Clears workflow continuity state (`open` index mappings, snapshot ref lineage,
+active workflow context) without force-closing browser sessions.
+
+### `omniscout remember`
+
+```bash
+omniscout remember <url> [--note TEXT] [--session NAME] [--cache/--no-cache]
+```
+
+Fetches and extracts a URL, then indexes it into **browser memory** as a
+`visit` record. Optional `--note` adds a linked `note` record. Memory is
+explicit only — normal `navigate` / `extract` / `snapshot` do not auto-index.
+
+### `omniscout memory ...`
+
+```bash
+omniscout memory list [--kind visit|note] [--limit N]
+omniscout memory show <id>
+omniscout memory note "text" [--session NAME]
+omniscout memory delete <id>
+omniscout memory delete --url <url>
+omniscout memory clear --yes
+omniscout memory stats
+```
+
+Memory lives in `$OMNISCOUT_DATA_DIR/memory.sqlite` with vectors in the
+`omniscout_memory` Qdrant collection. Deletion removes both SQLite rows and
+matching vectors. `stats` reports record counts, vector count, and storage hints.
+
+### `omniscout workflow export`
+
+```bash
+omniscout workflow export [--session NAME] [--since SECONDS] [--from-context] [--include-interactive]
+```
+
+Exports agent-friendly JSON steps:
+
+```json
+{
+  "steps": [
+    { "search": "OpenAI pricing" },
+    { "open": 1 },
+    { "snapshot": true },
+    { "extract": "@e12" }
+  ]
+}
+```
+
+Sources: persisted `workflow_state.json` plus replayable rows from
+`daemon/actions.jsonl`. Pass `--from-context` to export only current workflow
+state without reading action history.
+
+### `omniscout replay`
+
+Top-level alias for daemon replay:
+
+```bash
+omniscout replay action-<action_id>
+omniscout replay session-<name> [--since SECONDS] [--dry-run] [--include-interactive]
+```
+
+Also accepts a bare 16-character hex `action_id`. See `omniscout daemon replay`.
+
+### `omniscout search`
+
+```bash
+omniscout search <query> [--limit N] [--source {ddg,index,memory,hybrid}] [--rerank/--no-rerank] [--data]
+```
+
+| Source | Meaning |
+|--------|---------|
+| `ddg` | Live DuckDuckGo HTML results |
+| `index` | Local Qdrant crawl corpus from research |
+| `memory` | Remembered visits and notes (`omniscout remember`) |
+| `hybrid` | Memory + DDG, deduplicated by URL |
+
+```json
+{ "query": "...", "source": "ddg", "count": 10, "hits": [ { "url": "...", "title": "...", "snippet": "...", "score": 0.92, "rank": 1 } ] }
+```
+
+For one-sentence factual answers, use [`omniscout answer "your question"`](#omniscout-answer).
+Search returns ranked hits only; it does not synthesize an answer sentence.
+
+### `omniscout answer`
+
+```bash
+omniscout answer <query> [--limit N] [--depth {auto,fast,balanced,deep}] [--data] [--no-llm]
+```
+
+Grounded answers from web retrieval plus a small local LLM (SmolLM2-360M,
+cached on disk). The pipeline tries **direct DuckDuckGo answers first**
+(HTML instant box, ranked snippets, Search Assist), then extractive synthesis
+from filtered hits, then the local LLM, then a limited crawl for hard
+who-is queries. Falls back to extractive-only when the model is unavailable
+(`--no-llm` forces extractive only).
+
+```bash
+# Classifier-routed (default)
+omniscout answer "who is the prime minister of india"
+
+# Snippets-first (fast)
+omniscout answer "who is the pm of singapore" --depth fast
+
+# Factual lookups (capital, height, math)
+omniscout answer "what is the capital of france"
+omniscout answer "how tall is mount everest"
+omniscout answer "what is 2+2"
+
+# Crawl top sources when snippets are weak (slow)
+omniscout answer "FedRAMP LLM hosting requirements" --depth deep
+
+# Sources, timing, llm_backend
+omniscout answer "..." --data
+```
+
+| Flag | Default | Meaning |
+|------|---------|---------|
+| `--depth` | `auto` | `fast` (snippets + direct), `balanced` (same + refined retry), `deep` (crawl) |
+| `--limit`, `-n` | 10 | Max search hits to consider |
+| `--data` | off | Rich UI + diagnostics (`elapsed_ms`, `llm_backend`, supports) |
+| `--no-llm` | off | Skip local LLM; extractive fallback only |
+
+With `--data`, `retrieval` and `llm_backend` show how the answer was produced:
+
+| Label | Meaning |
+|-------|---------|
+| `direct+snippet` | Named entity or factual value from a DDG snippet |
+| `direct+assist` | DuckDuckGo Search Assist box |
+| `direct+zci` | DuckDuckGo HTML instant/ZCI box |
+| `direct+calc` | Local arithmetic (simple math queries) |
+| `direct+instant` | DuckDuckGo Instant API (when populated and validated) |
+| `extractive+ddg` | Pattern extraction from ranked snippets |
+| `llm+ddg` | Local LLM over snippet sources |
+| `extractive+crawl` / `llm+crawl` | Crawled page chunks (deep mode or escalation) |
+
+Without `--data`, stdout is **plain text** (just the answer sentence).
+
+Prefetch the answer model:
+
+```bash
+omniscout install --answer-model
+omniscout warmup   # embedding + answer LLM in daemon
+```
+
+### `omniscout warmup`
+
+```bash
+omniscout warmup [--answer-model/--no-answer-model]
+```
+
+Preloads the embedding model and (by default) the small answer LLM in the
+**daemon** (not a throwaway CLI process). Models stay hot for subsequent
+`search`, `answer`, `research`, and `remember` calls. Search commands
+auto-start the daemon and route embeds through it by default, so `warmup` is
+optional — use it when you want to pay the first-load cost before a batch.
+
+Set `OMNISCOUT_EMBED_DAEMON=0` to load the model in-process instead (tests,
+debugging).
+
+### `omniscout benchmark answers`
+
+```bash
+omniscout benchmark answers [--queries 100] [--modes fast,balanced,deep] [--dataset PATH]
+```
+
+Runs a full matrix over answer modes with:
+
+- cold + warm runs
+- cache enabled + cache bypassed
+- per-query correctness against the gold dataset
+- persisted metrics (`p50`, `p95`, success rate, cache hit rate, fallback frequency)
+
+### `omniscout benchmark startup`
+
+```bash
+omniscout benchmark startup [--iterations 10]
+```
+
+Profiles Python CLI startup overhead for critical commands and appends metrics
+to the benchmark metrics log.
+
+### Embed model in the daemon
+
+Search, research, and memory commands route embedding through the same
+long-lived daemon that powers browser automation (`127.0.0.1:7720`). The
+sentence-transformers model loads once into daemon RAM (~80MB, ~2s) and stays
+warm across CLI invocations.
+
+- `omniscout daemon status` reports `embed_model_loaded`, `embed_model`, and
+  `embed_model_dim`.
+- `OMNISCOUT_EMBED_DAEMON=1` (default) — embed via daemon; auto-starts if needed.
+- `OMNISCOUT_EMBED_DAEMON=0` — in-process load (legacy behavior).
+- Model files are prefetched to disk by `omniscout install` (default). If
+  missing, the first embed attempt downloads them automatically.
+
+### `omniscout extract`
+
+```bash
+omniscout extract <url> [--format {markdown,text,json,structured}] [--cache/--no-cache]
+omniscout extract <url> --format structured
+omniscout extract <url> --format json --fields company,pricing,founder,description
+omniscout extract <url> --format structured --data
+```
+
+**Formats**
+
+- `markdown` / `text` — readable body content (default: markdown).
+- `json` — full `ExtractResult` metadata plus `content` / `text`.
+- `structured` — flat JSON with extracted fields (fast NLP heuristics, no LLM).
+  Without `--fields`, extracts everything it can: company metadata, pricing,
+  founder, contact info, social links (Twitter/X, LinkedIn, GitHub, YouTube,
+  etc.), important page URLs (docs, blog, careers, community, status, …), and
+  any `Label: value` lines on the page. Use `--fields` to limit output.
+
+When `pricing` is missing on the page, OmniScout follows a `/pricing` link
+from the extracted link list (one extra fetch, cached like normal extract).
+
+Structured output example (auto, fields only):
+
+```json
+{
+  "company": "Acme Inc",
+  "description": "Acme builds local-first AI tools.",
+  "pricing": "$99/mo",
+  "title": "Acme — Home",
+  "site_name": "Acme"
+}
+```
+
+With explicit fields:
+
+```bash
+omniscout extract https://example.com --format structured --fields company,pricing
+```
+
+Add `--data` to include the full `ExtractResult` (`cached`, `structured_ms`,
+`content`, etc.) and stderr diagnostic logs. Without `--data`, structured mode
+emits only the extracted fields JSON on stdout.
+
+### `omniscout research`
+
+```bash
+omniscout research <topic> [--depth N] [--results K] [--summarize/--no-summarize]
+```
+
+Multi-step: search → crawl → extract → embed → rerank → summarize.
+
+## Profiles (`omniscout profile ...`)
+
+```bash
+omniscout profile create <name>
+omniscout profile list
+omniscout profile delete <name>
+```
+
+Persistent Chrome user-data-dirs under
+`~/Library/Application Support/omniscout/profiles/<name>/`. Login state and
+cookies persist across runs.
+
+## Legacy sessions (`omniscout session ...`)
+
+The pre-daemon long-lived browser session model. Still supported for
+direct CDP attach from other tools.
+
+```bash
+omniscout session start [--profile NAME] [--headful]
+omniscout session list
+omniscout session attach <SESSION_ID>
+omniscout session kill [--id ID] [--all]
+```
+
+For agents, prefer the daemon model (`--session NAME` on every browser
+command) over these.
+
+## Settings (`omniscout settings ...`)
+
+View and change user settings in `config.toml`.
+
+```bash
+omniscout settings show
+omniscout settings browsers
+omniscout settings set browser <id> [--executable PATH]
+```
+
+Supported browser ids: `chrome`, `edge`, `brave`, `vivaldi`, `opera`, `arc`,
+`dia`, `thorium`, `chromium`, `custom`. The `custom` id requires
+`--executable`. `settings browsers` marks which ids are installed on this
+machine and which one is current.
+
+Environment override: `OMNISCOUT_BROWSER=brave`.
+
+## Install helper
+
+```bash
+omniscout install [--bundled] [--skill] [--browser ID] [--browser-executable PATH] [--print-data-dir]
+```
+
+- `--browser` — write browser choice to `config.toml` without prompting.
+- `--browser-executable` — custom binary path (with `--browser custom`).
+- `--bundled` — download Playwright's Chromium even if another browser
+  exists.
+- `--skill` — copy `SKILL.md` + `references/operations.md` into
+  `~/.claude/skills/scout/`, `~/.cursor/skills-cursor/scout/`,
+  `~/.codex/skills/scout/`, and `~/.gemini/config/skills/scout/`.
+- `--print-data-dir` — print the resolved data directory and exit.
+
+## Response envelope
+
+Every command returns the same envelope. On success:
+
+```json
+{
+  "ok": true,
+  "action": "click",
+  "data": {
+    "mode": "selector",
+    "tag": "BUTTON",
+    "text": "Sign in",
+    "snapshot_generation": 18
+  },
+  "elapsed_ms": 42,
+  "action_id": "8f3a7c9e1b2d4e5f"
+}
+```
+
+The two cross-cutting fields agents should treat specially:
+
+- **`action_id`** is a stable hex ID for this exact invocation. Pass it
+  to `daemon trace`, `daemon replay`, or correlate against
+  `daemon watch` events.
+- **`data.snapshot_generation`** is a monotonic per-session counter that
+  bumps whenever cached `@eN` refs become invalid (`snapshot`,
+  `navigate`, `switch_tab`, `close_tab` of the active tab). Re-snapshot
+  if it differs from what your last `snapshot` returned.
+
+On failure:
+
+```json
+{
+  "ok": false,
+  "action": "click",
+  "error": "ref @e9 not found (re-snapshot the page)",
+  "error_kind": "no_such_ref",
+  "elapsed_ms": 42,
+  "action_id": "8f3a7c9e1b2d4e5f"
+}
+```
+
+Stable `error_kind` values agents can branch on:
+
+| Kind | Meaning |
+|---|---|
+| `timeout` | Operation exceeded its budget |
+| `no_such_session` | Session doesn't exist |
+| `no_such_ref` | `@eN` ref expired — re-snapshot |
+| `backend_unavailable` | Extension backend not connected |
+| `invalid_args` | Bad arguments |
+| `internal` | Unhandled error in the daemon |
+| `requires_user` | Human needed (captcha/login) |
+| `unsupported` | Backend doesn't implement this verb |
+
+## Environment variables
+
+| Var | Purpose |
+|---|---|
+| `OMNISCOUT_JSON=1` | Force JSON output on every command |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | Don't auto-start the daemon on first call |
+| `OMNISCOUT_DAEMON_PORT` | Override the daemon's port (default 7720) |
+| `OMNISCOUT_DATA_DIR` | Override data dir (default `~/Library/Application Support/omniscout/`) |
+| `OMNISCOUT_CONFIG_DIR` | Override config dir |
+| `OMNISCOUT_CACHE_DIR` | Override cache dir |
+| `OMNISCOUT_EMBED_DAEMON=1` | Route embeds through daemon (default on) |
+| `OMNISCOUT_EMBED_LOCAL_ONLY=0` | Allow runtime Hugging Face model fetches |
+| `TWOCAPTCHA_API_KEY` | API key for `--solver 2captcha` |
+| `CAPSOLVER_API_KEY` | API key for `--solver capsolver` |
+
+Legacy `OMNISCOUT_*` names are accepted for all `OMNISCOUT_*` variables above.
+
+---
+
+## https://docs.omniscout.xyz/cli/examples/
+
+This page collects copy-paste recipes for the common things people use
+OmniScout for. Each section has two halves:
+
+1. **Prompt for an AI agent** — paste this into Claude Code, Cursor, or
+   Codex and the agent will use OmniScout to do it.
+2. **Equivalent shell** — what the agent (or you) actually runs.
+
+## Quick reference
+
+```bash
+omniscout daemon start                              # 1. start the daemon
+omniscout browser navigate https://example.com      # 2. drive the browser
+omniscout browser snapshot --refs-only              # 3. find @eN refs
+omniscout browser click '@e3'                       # 4. act on them
+omniscout browser screenshot --out /tmp/out.png     # 5. capture state
+omniscout browser close --all                       # 6. clean up
+```
+
+## Ask an AI to research a question
+
+**Prompt:**
+
+```text
+Use OmniScout to research "what's the current state of open-source
+browser-using AI agents in 2026?" Use `omniscout research` with 10 results
+and JSON output, then summarize the top 3 passages with their source
+URLs in a markdown table.
+```
+
+**Equivalent shell:**
+
+```bash
+OMNISCOUT_JSON=1 omniscout research \
+  "current state of open-source browser-using AI agents in 2026" \
+  --results 10 > /tmp/r.json
+
+jq -r '.passages[:3][] | "| \(.source_url) | \(.text[:120])... |"' /tmp/r.json
+```
+
+## Ask an AI to read a page and answer a question
+
+**Prompt:**
+
+```text
+Open https://docs.python.org/3/library/asyncio.html via OmniScout, extract
+the readable content with `omniscout extract`, then answer: "what's the
+difference between asyncio.run and asyncio.gather?" Cite specific
+sentences from the page in your answer.
+```
+
+**Equivalent shell:**
+
+```bash
+URL=https://docs.python.org/3/library/asyncio.html
+omniscout extract "$URL" --format markdown > /tmp/page.md
+# Now your agent reads /tmp/page.md and answers.
+```
+
+## Remember docs and search memory later
+
+**Prompt:**
+
+```text
+Use OmniScout to remember https://docs.python.org and
+https://docs.anthropic.com, then search your memory for "taskgroup" and
+summarize what you find. Use --json throughout.
+```
+
+**Equivalent shell:**
+
+```bash
+omniscout remember https://docs.python.org
+omniscout remember https://docs.anthropic.com --note "API reference"
+OMNISCOUT_JSON=1 omniscout search "taskgroup" --source memory
+omniscout memory stats
+omniscout workflow export --from-context
+```
+
+## Ask an AI to fill a form
+
+**Prompt:**
+
+```text
+Use OmniScout to open https://duckduckgo.com, fill the search box with
+"local-first AI agents", press Enter, wait for results to settle, then
+list the title and URL of the top 5 results.
+```
+
+**Equivalent shell:**
+
+```bash
+omniscout browser navigate https://duckduckgo.com
+omniscout browser snapshot --refs-only > /tmp/snap.json
+SEARCH_REF=$(jq -r '.refs[] | select(.role == "searchbox" or .name | test("search")) | .ref' /tmp/snap.json | head -1)
+omniscout browser fill "$SEARCH_REF" "local-first AI agents"
+omniscout browser key Enter
+omniscout browser wait --idle
+omniscout browser snapshot --refs-only \
+  | jq -r '.refs[] | select(.role == "link") | "\(.name)"' | head -5
+```
+
+## Ask an AI to log in once and reuse the profile
+
+**Prompt:**
+
+```text
+Help me set up a logged-in GitHub profile via OmniScout:
+1. `omniscout profile create work`
+2. `omniscout browser login https://github.com/login --profile work`
+3. Pause for me to authenticate in the browser window.
+4. Once I say "done", run `omniscout browser navigate
+   https://github.com/notifications --profile work --session work` and
+   take a screenshot to /tmp/notifs.png.
+```
+
+**Equivalent shell:**
+
+```bash
+omniscout profile create work
+
+# Terminal A: opens browser, blocks
+omniscout browser login https://github.com/login --profile work
+
+# Terminal B (after you log in in the browser):
+omniscout browser login --done
+
+# Now reuse:
+omniscout browser navigate https://github.com/notifications \
+  --profile work --session work
+omniscout browser screenshot --session work --out /tmp/notifs.png
+```
+
+## Ask an AI to handle a CAPTCHA
+
+**Prompt (local, manual):**
+
+```text
+Open https://example-with-captcha.com via OmniScout. If `omniscout browser
+captcha --detect-only` reports a CAPTCHA, run `omniscout browser captcha`
+without a solver — that will flip the tab headful and block until I
+solve it. Tell me what to do, wait for the block to return, then
+continue with the task.
+```
+
+**Prompt (2Captcha, opt-in):**
+
+```text
+Open https://example-with-captcha.com via OmniScout. If there's a CAPTCHA,
+solve it via 2Captcha — TWOCAPTCHA_API_KEY is set. Use `omniscout browser
+captcha --solver 2captcha`. Continue only after `ok: true`.
+```
+
+**Equivalent shell:**
+
+```bash
+omniscout browser navigate https://example-with-captcha.com
+DET=$(omniscout browser captcha --detect-only)
+if echo "$DET" | jq -e '.detected' >/dev/null; then
+  omniscout browser captcha --solver 2captcha  # opt-in
+fi
+```
+
+## Ask an AI to capture network requests
+
+**Prompt:**
+
+```text
+Use OmniScout to investigate which trackers Vercel's pricing page loads:
+1. Start network capture.
+2. Navigate to https://vercel.com/pricing.
+3. Scroll to the bottom.
+4. Stop capture.
+5. List any requests whose URL matches "stripe|analytics|datadog|posthog".
+6. For each match, run `network detail` and tell me the HTTP status.
+```
+
+**Equivalent shell:**
+
+```bash
+SES=pricing-audit
+omniscout browser network start --session $SES
+omniscout browser navigate https://vercel.com/pricing --session $SES
+omniscout browser scroll down --amount 10 --session $SES
+omniscout browser network stop --session $SES
+
+omniscout browser network list \
+  --filter 'stripe|analytics|datadog|posthog' --session $SES
+```
+
+## Ask an AI to drive a multi-step workflow
+
+**Prompt:**
+
+```text
+End-to-end task:
+1. Use OmniScout to research "vector database benchmarks 2026" (10 results).
+2. From the report, pick the 3 highest-scoring source URLs.
+3. For each one: open it in OmniScout (session=audit), screenshot to
+   /tmp/<i>.png, extract the markdown to /tmp/<i>.md.
+4. Read all 3 markdown files and synthesize a 5-bullet summary of the
+   common themes, attributing each bullet to which source(s) discussed
+   it.
+5. Close all OmniScout sessions when done.
+```
+
+**Equivalent shell:**
+
+```bash
+export OMNISCOUT_JSON=1
+omniscout daemon start
+
+omniscout research "vector database benchmarks 2026" --results 10 > /tmp/r.json
+
+i=1
+for url in $(jq -r '.sources[:3][] | .url' /tmp/r.json); do
+  omniscout browser navigate "$url" --session audit
+  omniscout browser screenshot --session audit --out /tmp/$i.png
+  omniscout extract "$url" > /tmp/$i.md
+  i=$((i+1))
+done
+
+omniscout browser close --all
+```
+
+## Take a screenshot of a page
+
+```bash
+omniscout browser screenshot https://example.com --out /tmp/example.png
+omniscout browser screenshot https://example.com --full-page --out /tmp/full.png
+```
+
+## Generate a PDF of a page
+
+```bash
+omniscout browser pdf https://example.com --paper a4 --out /tmp/example.pdf
+```
+
+## Long-lived sessions with profiles
+
+```bash
+# One-time login
+omniscout profile create work
+omniscout browser login https://app.example.com --profile work
+# ...authenticate, then in another shell:
+omniscout browser login --done
+
+# Now everything else uses the same profile + session
+omniscout browser navigate https://app.example.com/dashboard --profile work --session app
+omniscout browser snapshot --session app
+omniscout browser click '@e7' --session app
+omniscout browser screenshot --session app --out /tmp/dash.png
+```
+
+## Multiple tabs in one session
+
+```bash
+omniscout browser navigate https://example.com --session multi
+omniscout browser navigate https://news.ycombinator.com --new-tab --session multi
+omniscout browser tab list --session multi
+omniscout browser tab switch 0 --session multi   # back to example.com
+omniscout browser tab close --session multi      # closes active tab
+```
+
+## Search → extract → answer
+
+For a one-line factual answer (who-is, capital, height, simple math), use
+`omniscout answer` instead of hand-rolling search + extract:
+
+```bash
+omniscout answer "who is the prime minister of india"
+omniscout answer "what is the capital of france"
+omniscout answer "how tall is mount everest" --data   # sources + retrieval path
+```
+
+For open-ended reading from a top hit:
+
+```bash
+URL=$(omniscout search "python contextvars" --limit 1 --json | jq -r '.hits[0].url')
+omniscout extract "$URL" > /tmp/page.md
+# Read /tmp/page.md in your editor or hand to your AI agent.
+```
+
+## Drive OmniScout from Python
+
+```python
+import json, subprocess
+
+def omniscout(*args):
+    r = subprocess.run(
+        ["omniscout", *args, "--json"],
+        capture_output=True, text=True, check=True,
+    )
+    return json.loads(r.stdout)
+
+omniscout("browser", "navigate", "https://example.com")
+snap = omniscout("browser", "snapshot", "--refs-only")
+button = next(r for r in snap["refs"] if r["role"] == "link")
+omniscout("browser", "click", button["ref"])
+omniscout("browser", "screenshot", "--out", "/tmp/out.png")
+```
+
+## Drive OmniScout from a shell script (parallel)
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+omniscout daemon start
+
+urls=(
+  https://example.com
+  https://example.org
+  https://example.net
+)
+
+for url in "${urls[@]}"; do
+  (
+    safe=$(echo "$url" | sed 's|[^a-zA-Z0-9]|_|g')
+    omniscout browser screenshot "$url" --out "/tmp/$safe.png" --session "$safe"
+  ) &
+done
+wait
+
+omniscout browser close --all
+echo "done"
+```
+
+## Use the Chrome extension backend
+
+Want OmniScout to drive your *real* Chrome, with your real logins and
+extensions? Load the unpacked extension from `extension/` in
+`chrome://extensions` (Developer mode → Load unpacked), then:
+
+```bash
+omniscout daemon status   # extension_connected should be true
+omniscout browser navigate https://example.com --backend extension
+```
+
+Every OmniScout-controlled tab gets an `agent:scout` overlay banner so you
+can see at a glance which tabs the agent is touching.
+
+## JSON for AI agents
+
+Set this once at the top of your agent's shell session:
+
+```bash
+export OMNISCOUT_JSON=1
+```
+
+Then *every* command emits structured JSON that your agent can pipe
+through `jq`:
+
+```bash
+omniscout search "topic"          | jq '.hits[] | {title, url}'
+omniscout extract https://...      | jq '{title, word_count, published}'
+omniscout extract https://... --format structured | jq '{company, pricing, twitter, docs}'
+omniscout research "topic"         | jq '.passages[0:3]'
+omniscout browser snapshot         | jq '.refs[] | select(.role == "button")'
+omniscout daemon status            | jq '.running'
+```
+
+## Configuration
+
+```bash
+mkdir -p ~/.config/omniscout
+cat > ~/.config/omniscout/config.toml <<'EOF'
+default_source = "hybrid"
+search_limit = 20
+research_results = 12
+research_depth = 2
+request_throttle_seconds = 0.5
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+browser = "chrome"
+summary_sentences = 8
+EOF
+```
+
+Pick a different browser without editing the file:
+
+```bash
+omniscout settings set browser brave
+omniscout settings show
+```
+
+## Cleanup
+
+```bash
+omniscout browser close --all          # close all browser sessions
+omniscout daemon stop                   # stop the daemon
+rm -rf ~/Library/Application\ Support/omniscout/cache/pages/*
+rm ~/Library/Application\ Support/omniscout/cache.sqlite
+rm -rf ~/Library/Application\ Support/omniscout/qdrant/
+```
+
+## Performance tips
+
+1. **One daemon, many calls.** The daemon holds Playwright open — every
+   per-action cold start saved is real wall-clock you don't pay.
+2. **Use sessions, not flags.** Pass `--session NAME` instead of
+   `--profile` on every call; the session caches the page and refs.
+3. **Re-snapshot only after `navigate`.** `@eN` refs are stable until the
+   next navigation.
+4. **Don't `wait --idle` on infinite-scroll pages.** Use `wait --ms 1000`
+   instead.
+5. **Stream `network list --filter REGEX`** rather than pulling the
+   whole capture into the agent's context.
+
+---
+
+## https://docs.omniscout.xyz/cli/
+
+The OmniScout CLI (`omniscout`) is the public interface for everything OmniScout
+does. It's designed to be driven by AI agents, but it works just as well
+from a human shell.
+
+## Where to start
+
+- **New here?** Read [What is OmniScout?](/cli/overview) for a 5-minute
+  orientation.
+- **Wiring this up to an AI agent?** Go to
+  [Using OmniScout with AI agents](/cli/agents) — it has copy-paste
+  prompts for Claude Code, Cursor, and Codex.
+- **Looking for a specific command?** Jump to
+  [Commands reference](/cli/commands).
+- **Want recipes?** [Examples & recipes](/cli/examples) has worked
+  workflows like "research → screenshot → summarize".
+- **Debugging?** [Troubleshooting](/cli/troubleshooting) covers the
+  common failure modes.
+
+## Quick start
+
+```bash
+# Install from PyPI
+pip install omniscout
+omniscout install --skill          # first-run setup + agent skill files
+omniscout settings browsers        # optional: see installed Chromium browsers
+
+# Start the daemon (idempotent)
+omniscout daemon start
+
+# Drive a browser
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser screenshot --out /tmp/out.png
+omniscout browser close --all
+```
+
+## What's in the box
+
+| Group | Purpose |
+|---|---|
+| `omniscout daemon ...` | Long-lived daemon: browser backends, warm embed model, trace/replay/watch |
+| `omniscout browser ...` | Atomic browser actions (navigate, click, fill, snapshot, screenshot, login, captcha, network, tab, …) |
+| `omniscout search` | DuckDuckGo + local embedding rerank; sources `ddg`, `index`, `memory`, `hybrid` |
+| `omniscout answer` | Direct DDG answers → extractive → local LLM → crawl; who-is, capital, height, math |
+| `omniscout remember` / `memory ...` | Browser memory — visit, note, semantic search over history |
+| `omniscout extract` | Fetch a URL and return clean Markdown / text / JSON |
+| `omniscout research` | Multi-step: search → crawl → extract → embed → rerank → summarize |
+| `omniscout open`, `snapshot`, `context` | Workflow shortcuts for agents |
+| `omniscout replay`, `workflow export` | Replay daemon actions; export workflow JSON |
+| `omniscout warmup` | Optional: preload embed + answer models in daemon before a batch |
+| `omniscout benchmark ...` | Answer-mode latency/quality and startup benchmarks |
+| `omniscout profile ...` | Persistent Chrome profiles for cookies/logins |
+| `omniscout session ...` | Long-lived browser sessions (CDP attach) |
+| `omniscout settings ...` | Browser selection and config.toml helpers |
+| `omniscout install` | Browser picker, model prefetch, optional `--skill` for agent discovery |
+
+CLI: primary command `omniscout`; short alias `scout`; legacy dev alias `harness`.
+
+## JSON output
+
+Every command supports `--json`. The typical AI-agent setup is to set
+this once for the session:
+
+```bash
+export OMNISCOUT_JSON=1
+```
+
+After that, all stdout is structured JSON that your agent can pipe
+through `jq`. Logs go to stderr.
+
+## Local-first promise
+
+Nothing about OmniScout's normal operation requires a cloud account, an API
+key, or a hosted server. The only outbound traffic is:
+
+- DuckDuckGo search results (when you run `omniscout search` /
+  `omniscout research`).
+- The URLs you explicitly tell it to fetch.
+- A one-time download of the sentence-transformers embedding model
+  (cached locally forever).
+
+Third-party CAPTCHA solvers are opt-in via an explicit
+`--solver 2captcha|capsolver` flag.
+
+---
+
+## https://docs.omniscout.xyz/cli/overview/
+
+OmniScout (CLI binary: `omniscout`) is a **local-first browser-control, semantic-
+search, and research tool built for AI agents**. It gives Claude Code,
+Cursor, Codex, Kimi, and any shell-capable agent the same kind of
+browser-actuator surface you'd get from Kimi WebBridge, Claude for Chrome,
+or ChatGPT Atlas — but it runs entirely on your machine, with no cloud
+APIs, no hosted browser session, and no MCP server.
+
+**Website:** [omniscout.xyz](https://omniscout.xyz) · **Docs:** [docs.omniscout.xyz](https://docs.omniscout.xyz)
+
+## What you get
+
+- A long-lived **daemon** that holds a browser open so per-action latency
+  is sub-second.
+- Two interchangeable backends behind the same JSON vocabulary:
+  - **Playwright** (default) — OmniScout launches its own Chrome with a
+    persistent profile.
+  - **Chrome extension** (opt-in) — OmniScout drives your real running
+    Chrome, with your real logins, via the `chrome.debugger` API and a
+    WebSocket bridge.
+- An **atomic action vocabulary**: `navigate`, `snapshot`, `click`,
+  `fill`, `scroll`, `key`, `hover`, `upload`, `screenshot`, `pdf`,
+  `eval`, `wait`, `tab`, `network`, `login`, `captcha`, `close`.
+- **`@eN` element refs** generated from the accessibility tree —
+  stable across CSS-class churn, the same convention Kimi uses.
+- **Persistent profiles** for cookies, logins, and extensions.
+- **Search + extract + research** engines that work offline-after-fetch
+  (DuckDuckGo + local embeddings + Qdrant).
+- A **skill file** the install command drops into Claude Code, Cursor,
+  and Codex's well-known skill directories — so agents auto-discover
+  OmniScout the next time they boot.
+
+## Design principles
+
+- **No cloud APIs.** Search hits DDG; everything else stays local.
+- **No SDK to learn.** The CLI is the public interface.
+- **JSON in, JSON out.** Every command supports `--json` (and
+  `OMNISCOUT_JSON=1` is the typical agent default).
+- **Stable contract.** The `Command` / `Response` envelope is versioned
+  (`protocol_version: "1"`) so an agent can refuse to talk to an
+  incompatible daemon.
+- **Persistent across invocations.** Profiles, sessions, and caches
+  survive between calls.
+
+## Architecture in one diagram
+
+```
+AI agent (Claude Code / Cursor / Codex)
+        │
+        ▼
+   omniscout CLI ─── HTTP POST /command ──▶  omniscout daemon
+        │                                       │
+        │                                       ├─ Playwright backend
+        │                                       │   └─ persistent Chrome profile
+        │                                       │
+        │                                       └─ Extension backend (opt-in)
+        │                                           └─ WebSocket ─▶ Chrome MV3
+        │                                                             └─ chrome.debugger
+        │                                                                 (your real Chrome)
+        │
+        └── Search / Extract / Research engines (embed via daemon when enabled)
+```
+
+See [Architecture](/cli/architecture) for the full picture.
+
+## Installation
+
+### Prerequisites
+
+- Python 3.11+
+- A Chromium-based browser (Chrome recommended; Edge, Brave, Vivaldi, Arc, and
+  others supported via `omniscout settings`)
+
+### Install from PyPI (recommended)
+
+```bash
+pip install omniscout
+omniscout install                    # pick a browser + prefetch models
+omniscout install --browser brave    # non-interactive browser choice
+omniscout install --skill            # optional: install agent skill files
+omniscout settings browsers          # list supported / installed browsers
+```
+
+`omniscout install` detects installed Chromium browsers (interactive picker in
+a TTY), writes your choice to `config.toml`, prefetches the local embedding
+model to disk (~80MB), and optionally drops the agent skill into Claude Code,
+Cursor, and Codex's well-known skill directories. Search commands auto-start
+the daemon and keep the embed model loaded in RAM — no separate warm-up step.
+
+`scout` is a short CLI alias for `omniscout`. The `harness` command name is a legacy dev alias.
+
+### From source (contributors)
+
+```bash
+git clone https://github.com/sriramramnath/omniscout.git
+cd omniscout/cli
+pip install -e .
+omniscout install --skill
+```
+
+### In a project venv
+
+```bash
+pip install omniscout
+omniscout install
+```
+
+If no Chromium browser is installed, add `--bundled` to download Playwright's
+Chromium (~190MB).
+
+### Optional: Chrome extension
+
+For OmniScout to drive your *real* Chrome (with your real logins and
+extensions), load the unpacked extension from `extension/` in
+`chrome://extensions` → Developer mode → Load unpacked. Verify with:
+
+```bash
+omniscout daemon status   # extension_connected: true
+```
+
+## Hello world
+
+```bash
+omniscout daemon start
+omniscout browser navigate https://news.ycombinator.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/hn.png
+omniscout browser close --all
+```
+
+For an AI-agent-first experience, see
+[Using OmniScout with AI agents](/cli/agents).
+
+## Data layout
+
+| Path | Purpose |
+|---|---|
+| `profiles/` | Persistent Chrome user-data-dirs |
+| `qdrant/` | Embedded vector index for semantic search |
+| `sessions.sqlite` | Registry of long-lived browser sessions |
+| `cache/pages/` | Content-hashed HTML cache |
+| `cache.sqlite` | URL → SHA256 cache metadata |
+| `daemon.pid`, `daemon.port`, `daemon.log` | Daemon lifecycle files |
+
+Base path:
+
+- macOS — `~/Library/Application Support/omniscout/`
+- Linux — `$XDG_DATA_HOME/omniscout/` (typically `~/.local/share/omniscout/`)
+
+Override with `OMNISCOUT_DATA_DIR`, `OMNISCOUT_CONFIG_DIR`,
+`OMNISCOUT_CACHE_DIR`.
+
+## Configuration
+
+`~/.config/omniscout/config.toml`:
+
+```toml
+default_source = "ddg"                # ddg | index | hybrid
+search_limit = 10
+research_results = 8
+research_depth = 1
+request_throttle_seconds = 1.0
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+qdrant_collection = "scout_passages"
+summary_sentences = 6
+browser = "chrome"                    # chrome | edge | brave | vivaldi | opera | arc | dia | thorium | chromium | custom
+# browser_executable = "/path/to/binary"  # optional override or required for custom
+```
+
+Or change the browser from the CLI:
+
+```bash
+omniscout settings browsers
+omniscout settings set browser edge
+omniscout settings show
+```
+
+Legacy `browser_channel = "chrome"` is still read when `browser` is omitted.
+
+## When to use OmniScout vs alternatives
+
+- **Use OmniScout** when you want a local, no-cloud actuator that any
+  shell-capable AI agent can drive without you running a Node MCP
+  server or signing up for a cloud-browser product.
+- **Use Browserbase / Hyperbrowser / Browser-Use Cloud** when you want a
+  hosted browser fleet and don't mind paying per-minute.
+- **Use Claude for Chrome / ChatGPT Atlas / Kimi WebBridge** when you've
+  already picked a single LLM vendor and want them to own the agent
+  loop too.
+
+## Next steps
+
+- [Using OmniScout with AI agents](/cli/agents) — drop-in prompts for
+  Claude Code, Cursor, Codex.
+- [Examples & recipes](/cli/examples) — common workflows.
+- [Commands reference](/cli/commands) — every verb, every flag.
+- [Architecture](/cli/architecture) — daemon, backends, snapshot refs.
+- [Troubleshooting](/cli/troubleshooting) — when things break.
+
+---
+
+## https://docs.omniscout.xyz/cli/roadmap/
+
+This page describes features **not yet implemented**. See the [commands reference](/cli/commands/) for what ships today.
+
+## Multi-provider search
+
+Today search uses DuckDuckGo (`--source ddg`) plus optional local indexes.
+
+Planned:
+
+```bash
+omniscout search "query" --provider brave
+omniscout search "query" --provider auto   # first provider with a configured API key
+```
+
+Candidate providers: Brave, Exa, Tavily, SearxNG.
+
+## Smart extraction
+
+Today `omniscout extract @eN` resolves a ref to the active page URL and fetches readable content.
+
+Planned natural-language targets:
+
+```bash
+omniscout extract "pricing table"
+omniscout extract "main article"
+omniscout extract "documentation examples"
+```
+
+Resolution would combine snapshot ref scoring with DOM heuristics (tables, `article`, code blocks).
+
+## Page summaries
+
+```bash
+omniscout summarize              # current page
+omniscout summarize --extract  # last extracted content
+omniscout summarize --search     # latest search results
+```
+
+Would reuse the existing `sumy`-based summarization stack from research.
+
+## MCP server (deferred)
+
+No MCP server ships today. Agents use the CLI (`--json`) and the local daemon at `127.0.0.1:7720`.
+
+A future MCP surface would expose tools such as `search`, `open`, `snapshot`, `extract`, `click`, and `fill` over stdio for Claude Desktop, Cursor, and other MCP hosts.
+
+---
+
+## https://docs.omniscout.xyz/cli/troubleshooting/
+
+# Troubleshooting & FAQ
+
+This page is organized into two halves:
+
+1. **Things agents hit** — `@eN` refs, login, captcha, extension. Read
+   these first if you're debugging an AI-agent loop.
+2. **Classic installation / runtime issues** — Python, Chrome, daemon
+   crashes, performance.
+
+## Things agents hit most
+
+### `@eN` ref not found (`no_such_ref`)
+
+**What it means:** The ref was minted by a previous `snapshot`, but the
+page has changed (navigation, virtual-DOM rerender, modal open/close) or
+the ref's TTL expired.
+
+**Fix:** Re-snapshot, then use the new ref.
+
+```bash
+omniscout browser snapshot --refs-only --session mine
+omniscout browser click '@e7' --session mine
+```
+
+In an agent prompt, add: *"After every `navigate` and every `wait
+--idle`, re-snapshot before clicking."*
+
+### Login `--success-pattern` never matches
+
+**What it means:** The site redirects to a URL your pattern doesn't
+cover, or it sticks on the same URL after auth (single-page apps).
+
+**Fix:** Use the `--done` signal from another shell:
+
+```bash
+# shell A:
+omniscout browser login https://app.example.com --profile work
+
+# shell B (once you've authenticated in the browser):
+omniscout browser login --done
+```
+
+### CAPTCHA detected but blocks forever
+
+**What it means:** Default `--solver none` waits for the page to be
+captcha-free. If you closed the headful window without solving, it
+won't ever clear.
+
+**Fix:** Either solve in the headful window (recommended), or opt into
+a third-party solver:
+
+```bash
+export TWOCAPTCHA_API_KEY=...
+omniscout browser captcha --solver 2captcha
+```
+
+### Extension backend says `backend_unavailable`
+
+**What it means:** The Chrome extension isn't connected to the daemon's
+`/extension` WebSocket.
+
+**Fix:**
+
+```bash
+omniscout daemon status   # extension_connected: false?
+```
+
+1. Open `chrome://extensions` — confirm the extension is loaded and
+   enabled.
+2. Click the extension's icon — the popup shows its WS status. If
+   "disconnected", click reconnect.
+3. If the daemon was restarted, the extension reconnects automatically
+   with a few seconds of backoff. Wait, then retry.
+
+Or just fall through to Playwright by dropping the `--backend extension`
+flag.
+
+### Agent picked the wrong element
+
+**Symptom:** `click '@e3'` succeeded but did the wrong thing.
+
+**Fix:** Tell the agent to inspect `name` + `role` rather than picking
+the lowest-numbered link. The full snapshot (without `--refs-only`)
+includes the surrounding tree so the agent can match on context.
+
+```bash
+omniscout browser snapshot --session mine \
+  | jq '.refs[] | select(.role == "link" and (.name | test("docs"; "i")))'
+```
+
+---
+
+## Installation Issues
+
+### Python Version Error
+
+**Error:** `Python 3.11+ required`
+
+**Solution:**
+```bash
+# Check Python version
+python --version
+
+# Install Python 3.11+
+# macOS with Homebrew
+brew install python@3.11
+
+# Or use pyenv
+pyenv install 3.11.0
+pyenv local 3.11.0
+```
+
+### Chrome Not Found
+
+**Error:** `Chrome not found. Install Chrome or use --bundled`
+
+**Solution:**
+
+Option 1: Pick another installed browser
+
+```bash
+omniscout settings browsers
+omniscout settings set browser edge    # or brave, vivaldi, chromium, etc.
+```
+
+Option 2: Install Chrome
+
+```bash
+# macOS
+brew install --cask google-chrome
+
+# Linux
+sudo apt-get install google-chrome-stable
+
+# Windows
+# Download from https://www.google.com/chrome/
+```
+
+Option 3: Use bundled Chromium
+
+```bash
+omniscout install --bundled
+```
+
+Option 4: Specify a custom binary
+
+```bash
+omniscout settings set browser custom --executable "/path/to/chromium"
+
+# Or in config.toml
+browser = "custom"
+browser_executable = "/path/to/chromium"
+```
+
+### Permission Denied
+
+**Error:** `Permission denied: omniscout`
+
+**Solution:**
+```bash
+# Ensure ~/.local/bin is on your PATH (where pip installs scripts)
+export PATH="$HOME/.local/bin:$PATH"
+
+# Or reinstall
+pip install --upgrade --force-reinstall omniscout
+```
+
+### Module Not Found
+
+**Error:** `ModuleNotFoundError: No module named 'omniscout'`
+
+**Solution:**
+```bash
+pip install --upgrade omniscout
+
+# Or, from a git checkout:
+# Or, from a git checkout:
+# pip install -e cli/
+```
+
+## Runtime Issues
+
+### Daemon Connection Failed
+
+**Error:** `Failed to connect to daemon on port 7720`
+
+**Solution:**
+
+```bash
+# Check daemon status
+omniscout daemon status
+
+# Restart daemon
+omniscout daemon stop
+omniscout daemon start
+
+# Check if port is in use
+lsof -i :7720
+
+# Use different port
+omniscout daemon start --port 7721
+```
+
+### Timeout Errors
+
+**Error:** `Timeout waiting for page to load`
+
+**Solution:**
+
+```bash
+# Increase timeout
+omniscout browser navigate https://slow-site.com --timeout 120
+
+# Or in config.toml
+request_timeout_seconds = 120
+
+# For research
+omniscout research "topic" --timeout 300
+```
+
+### Chrome Crash
+
+**Error:** `Chrome process crashed`
+
+**Solution:**
+
+```bash
+# Kill all Chrome processes
+pkill -f "Google Chrome"
+
+# Clear Chrome cache
+rm -rf ~/Library/Application\ Support/Google/Chrome/Default/Cache
+
+# Try again
+omniscout browser screenshot https://example.com
+```
+
+### Out of Memory
+
+**Error:** `MemoryError` or `Killed`
+
+**Solution:**
+
+```bash
+# Reduce concurrent operations
+export OMNISCOUT_CRAWLER_CONCURRENCY=2
+
+# Reduce research results
+omniscout research "topic" --results 5
+
+# Clear cache
+rm -rf ~/.local/share/omniscout/cache/pages/*
+
+# Restart daemon
+omniscout daemon stop
+omniscout daemon start
+```
+
+## Search Issues
+
+### No Results
+
+**Error:** `No results found`
+
+**Solution:**
+
+```bash
+# Try different query
+omniscout search "more specific query"
+
+# Try different source
+omniscout search "query" --source ddg
+omniscout search "query" --source index
+omniscout search "query" --source hybrid
+
+# Check internet connection
+ping google.com
+```
+
+### Slow Search
+
+**Issue:** Search takes too long
+
+**Solution:**
+
+```bash
+# Reduce limit
+omniscout search "query" --limit 5
+
+# Disable reranking
+omniscout search "query" --no-rerank
+
+# Check network
+ping duckduckgo.com
+```
+
+### Reranking Not Working
+
+**Error:** `Embedding model download failed`
+
+**Solution:**
+
+```bash
+# Pre-download model
+python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
+# Check disk space
+df -h
+
+# Try again
+omniscout search "query" --rerank
+```
+
+If you want to guarantee zero runtime Hugging Face traffic, keep local-only mode enabled
+(default) and prefetch once:
+
+```bash
+omniscout install --model
+```
+
+If you intentionally want runtime fetches, disable local-only mode:
+
+```bash
+export OMNISCOUT_EMBED_LOCAL_ONLY=0
+```
+
+## Extraction Issues
+
+### Extraction Returns Empty
+
+**Issue:** Extracted content is empty or minimal
+
+**Solution:**
+
+```bash
+# Try with browser rendering
+omniscout extract https://example.com --browser
+
+# Check if site is JavaScript-heavy
+# If so, use --browser flag
+
+# Try different format
+omniscout extract https://example.com --format text
+omniscout extract https://example.com --format json
+```
+
+### Extraction Timeout
+
+**Error:** `Timeout extracting URL`
+
+**Solution:**
+
+```bash
+# Use browser rendering (might be faster)
+omniscout extract https://example.com --browser
+
+# Increase timeout
+export OMNISCOUT_REQUEST_TIMEOUT=60
+
+# Try again
+omniscout extract https://example.com
+```
+
+### Extraction Returns Boilerplate
+
+**Issue:** Extracted content includes ads, navigation, etc.
+
+**Solution:**
+
+```bash
+# This is a trafilatura limitation
+# Try different URL or site
+
+# Check extracted JSON for metadata
+omniscout extract https://example.com --format json | jq '.content'
+
+# Report issue if consistently failing
+```
+
+## Research Issues
+
+### Research Takes Too Long
+
+**Issue:** Research pipeline is slow
+
+**Solution:**
+
+```bash
+# Reduce results
+omniscout research "topic" --results 5
+
+# Reduce depth
+omniscout research "topic" --depth 1
+
+# Disable browser fallback
+export OMNISCOUT_CRAWLER_USE_BROWSER=0
+
+# Increase concurrency
+export OMNISCOUT_CRAWLER_CONCURRENCY=10
+```
+
+### Research Returns Poor Results
+
+**Issue:** Summary or passages are not relevant
+
+**Solution:**
+
+```bash
+# Try more results
+omniscout research "topic" --results 15
+
+# Try deeper research
+omniscout research "topic" --depth 2
+
+# Check individual sources
+omniscout research "topic" --json | jq '.sources[] | .url' | while read url; do
+  echo "=== $url ==="
+  omniscout extract "$url" | head -20
+done
+```
+
+### Vector Index Issues
+
+**Error:** `Qdrant connection failed`
+
+**Solution:**
+
+```bash
+# Clear vector index
+rm -rf ~/.local/share/omniscout/qdrant/
+
+# Rebuild index
+omniscout research "topic"
+
+# Check disk space
+df -h
+```
+
+## Browser Automation Issues
+
+### Screenshot Blank
+
+**Issue:** Screenshot is blank or shows error
+
+**Solution:**
+
+```bash
+# Try with headful mode to see what's happening
+omniscout browser screenshot https://example.com --headful
+
+# Increase wait time
+omniscout browser navigate https://example.com --wait-until networkidle
+
+# Try different wait condition
+omniscout browser navigate https://example.com --wait-until load
+```
+
+### Click Not Working
+
+**Error:** `Element not found` or click has no effect
+
+**Solution:**
+
+```bash
+# Get interactive elements
+omniscout browser snapshot --session default --json | jq '.refs[]'
+
+# Use correct selector
+omniscout browser click --selector "button.submit" --session default
+
+# Try coordinates instead
+omniscout browser click --coord 100 200 --session default
+
+# Wait for element to appear
+omniscout browser navigate https://example.com --wait-until networkidle
+omniscout browser click --selector "button" --session default
+```
+
+### Form Fill Not Working
+
+**Error:** `Fill failed` or text not appearing
+
+**Solution:**
+
+```bash
+# Check selector
+omniscout browser snapshot --session default --json | jq '.refs[] | select(.role == "textbox")'
+
+# Try clearing first
+omniscout browser fill "input[name=search]" "" --session default
+omniscout browser fill "input[name=search]" "text" --session default
+
+# Try keyboard input instead
+omniscout browser key "ctrl+a" --session default
+omniscout browser key "Delete" --session default
+omniscout browser key "t e x t" --session default
+```
+
+### Session Not Found
+
+**Error:** `Session not found` or `No such session`
+
+**Solution:**
+
+```bash
+# List active sessions
+omniscout session list
+
+# Use correct session ID
+omniscout browser navigate https://example.com --session correct-id
+
+# Start new session if needed
+SESSION=$(omniscout session start --json | jq -r '.id')
+omniscout browser navigate https://example.com --session $SESSION
+```
+
+### PDF Generation Failed
+
+**Error:** `PDF generation failed`
+
+**Solution:**
+
+```bash
+# Check disk space
+df -h
+
+# Try screenshot instead
+omniscout browser screenshot https://example.com --out page.png
+
+# Try different URL
+omniscout browser pdf https://other.com --out page.pdf
+
+# Check Chrome version
+google-chrome --version
+```
+
+## Profile Issues
+
+### Profile Not Found
+
+**Error:** `Profile not found`
+
+**Solution:**
+
+```bash
+# List profiles
+omniscout profile list
+
+# Create profile
+omniscout profile create work
+
+# Use correct profile name
+omniscout browser screenshot https://example.com --profile work
+```
+
+### Profile Corrupted
+
+**Issue:** Profile causes crashes or errors
+
+**Solution:**
+
+```bash
+# Delete corrupted profile
+omniscout profile delete work
+
+# Recreate profile
+omniscout profile create work
+
+# Or manually delete
+rm -rf ~/.local/share/omniscout/profiles/work
+```
+
+### Login State Not Persisting
+
+**Issue:** Profile doesn't remember login
+
+**Solution:**
+
+```bash
+# Use headful mode to login
+omniscout browser open https://github.com --profile work --headful
+
+# Wait for login to complete
+# Close browser window
+
+# Later, profile should have login state
+omniscout browser screenshot https://github.com --profile work
+```
+
+## Daemon Issues
+
+### Daemon Won't Start
+
+**Error:** `Failed to start daemon`
+
+**Solution:**
+
+```bash
+# Check logs
+OMNISCOUT_VERBOSE=1 omniscout daemon start
+
+# Kill existing daemon
+pkill -f "omniscout daemon"
+
+# Try different port
+omniscout daemon start --port 7721
+
+# Check port availability
+lsof -i :7720
+```
+
+### Daemon Crashes
+
+**Error:** `Daemon crashed` or `Connection lost`
+
+**Solution:**
+
+```bash
+# Inspect the actual daemon log
+omniscout daemon logs -n 200
+omniscout daemon logs -f                 # follow live
+
+# Restart
+omniscout daemon restart
+
+# Check system resources
+top
+df -h
+```
+
+### Daemon Auto-Start Disabled
+
+**Issue:** Daemon doesn't auto-start
+
+**Solution:**
+
+```bash
+# Enable auto-start
+export OMNISCOUT_DAEMON_AUTO_START=1
+
+# Or manually start
+omniscout daemon start
+
+# Check setting
+echo $OMNISCOUT_DAEMON_AUTO_START
+```
+
+## Performance Issues
+
+### Slow Searches
+
+**Solution:**
+
+```bash
+# Reduce limit
+omniscout search "query" --limit 5
+
+# Disable reranking
+omniscout search "query" --no-rerank
+
+# Check network
+ping duckduckgo.com
+```
+
+### Slow Extraction
+
+**Solution:**
+
+```bash
+# Use httpx instead of browser
+omniscout extract https://example.com
+
+# Reduce timeout
+export OMNISCOUT_REQUEST_TIMEOUT=10
+
+# Check network
+ping example.com
+```
+
+### Slow Research
+
+**Solution:**
+
+```bash
+# Reduce results
+omniscout research "topic" --results 5
+
+# Reduce depth
+omniscout research "topic" --depth 1
+
+# Increase concurrency
+export OMNISCOUT_CRAWLER_CONCURRENCY=10
+
+# Disable browser fallback
+export OMNISCOUT_CRAWLER_USE_BROWSER=0
+```
+
+## Cache Issues
+
+### Cache Corruption
+
+**Error:** `Cache corrupted` or `Invalid cache entry`
+
+**Solution:**
+
+```bash
+# Clear page cache
+rm -rf ~/.local/share/omniscout/cache/pages/*
+rm ~/.local/share/omniscout/cache.sqlite
+
+# Clear vector index
+rm -rf ~/.local/share/omniscout/qdrant/
+
+# Clear sessions
+omniscout session kill --all
+
+# Rebuild cache
+omniscout search "query"
+```
+
+### Cache Too Large
+
+**Issue:** Cache directory is taking too much space
+
+**Solution:**
+
+```bash
+# Check cache size
+du -sh ~/.local/share/omniscout/cache/
+
+# Clear old cache entries
+find ~/.local/share/omniscout/cache/pages/ -mtime +30 -delete
+
+# Or clear all
+rm -rf ~/.local/share/omniscout/cache/pages/*
+```
+
+## JSON Output Issues
+
+### Invalid JSON
+
+**Error:** `Invalid JSON output`
+
+**Solution:**
+
+```bash
+# Check for errors in stderr
+omniscout search "query" --json 2>&1 | head
+
+# Disable verbose logging
+unset OMNISCOUT_VERBOSE
+
+# Try again
+omniscout search "query" --json
+```
+
+### Missing Fields
+
+**Issue:** JSON output missing expected fields
+
+**Solution:**
+
+```bash
+# Check JSON schema
+omniscout search "query" --json | jq 'keys'
+
+# Check for errors
+omniscout search "query" --json | jq '.error'
+
+# Use jq with defaults
+omniscout search "query" --json | jq '.hits[] | {title: .title, url: .url}'
+```
+
+## Configuration Issues
+
+### Config File Not Found
+
+**Error:** `Config file not found`
+
+**Solution:**
+
+```bash
+# Create config directory
+mkdir -p ~/.config/omniscout
+
+# Create config file
+cat > ~/.config/omniscout/config.toml << EOF
+default_source = "ddg"
+search_limit = 10
+EOF
+
+# Verify
+cat ~/.config/omniscout/config.toml
+```
+
+### Invalid Config
+
+**Error:** `Invalid configuration`
+
+**Solution:**
+
+```bash
+# Check config syntax
+cat ~/.config/omniscout/config.toml
+
+# Validate TOML
+python -c "import tomllib; tomllib.loads(open('~/.config/omniscout/config.toml').read())"
+
+# Fix syntax errors
+# TOML format: key = value
+```
+
+### Environment Variables Not Working
+
+**Issue:** Environment variables not being used
+
+**Solution:**
+
+```bash
+# Check variable is set
+echo $OMNISCOUT_DATA_DIR
+
+# Export variable
+export OMNISCOUT_DATA_DIR=/custom/path
+
+# Verify
+omniscout search "query" --verbose 2>&1 | grep "data_dir"
+```
+
+## Logging & Debugging
+
+### Enable Verbose Logging
+
+```bash
+# Global verbose flag
+omniscout search "query" --verbose
+
+# Environment variable
+export OMNISCOUT_VERBOSE=1
+omniscout search "query"
+
+# Check logs
+OMNISCOUT_VERBOSE=1 omniscout search "query" 2>&1 | grep -i error
+```
+
+### Check System Information
+
+```bash
+# Python version
+python --version
+
+# Chrome version
+google-chrome --version
+
+# Disk space
+df -h
+
+# Memory usage
+free -h
+
+# Network
+ping google.com
+```
+
+### Collect Debug Information
+
+```bash
+#!/bin/bash
+
+echo "=== System Info ==="
+uname -a
+python --version
+google-chrome --version
+
+echo -e "\n=== OmniScout Info ==="
+omniscout --version
+omniscout daemon status
+
+echo -e "\n=== Disk Space ==="
+df -h ~/.local/share/omniscout/
+
+echo -e "\n=== Network ==="
+ping -c 1 google.com
+ping -c 1 duckduckgo.com
+```
+
+## FAQ
+
+### Q: Is my data sent to the cloud?
+
+**A:** No. OmniScout is local-first. All processing happens on your machine. The only outbound traffic is:
+- DuckDuckGo search queries (when you call `omniscout search` / `omniscout research`).
+- The URLs you explicitly tell it to fetch.
+- A one-time download of the sentence-transformers embedding model (cached locally forever).
+
+Third-party CAPTCHA solvers are *opt-in* — you have to explicitly pass `--solver 2captcha|capsolver`, at which point OmniScout sends the sitekey + page URL to that vendor's API. The default `--solver none` keeps everything local and asks the human.
+
+### Q: Can I use OmniScout CLI with an AI agent?
+
+**A:** Yes — that's the primary use case. Run `omniscout install --skill` once to drop the skill file into Claude Code's, Cursor's, and Codex's well-known skill directories. After that, those agents auto-discover OmniScout's vocabulary and route browser tasks through it. See [Using OmniScout with AI agents](/cli/agents) for drop-in prompts.
+
+### Q: What's the difference between the Playwright backend and the Chrome extension backend?
+
+**A:**
+
+- **Playwright** (default): OmniScout launches its own Chrome with a persistent profile under `~/Library/Application Support/omniscout/profiles/<name>/`. Logins are scoped per OmniScout profile. Great for CI and server-side agents.
+- **Chrome extension** (opt-in): OmniScout drives your *real* running Chrome via `chrome.debugger`. Real logins, real extensions, real fingerprint. Great for local dev agents that need access to your live session. Load the unpacked `extension/` in `chrome://extensions`, then add `--backend extension` to a session's first call.
+
+### Q: What are `@eN` refs?
+
+**A:** Stable element identifiers OmniScout mints from the accessibility tree on each `snapshot`. They survive across calls (until the next `navigate`) and are far more robust than CSS selectors against Tailwind/CSS-Modules class hashes. See [Architecture](/cli/architecture#snapshot--en-refs).
+
+### Q: How do I use OmniScout CLI with my own Chrome profile?
+
+**A:** OmniScout CLI creates isolated profiles in `~/.local/share/omniscout/profiles/`. To use your existing Chrome profile:
+
+```bash
+# Copy your profile
+cp -r ~/Library/Application\ Support/Google/Chrome/Default ~/.local/share/omniscout/profiles/my-profile
+
+# Use it
+omniscout browser screenshot https://example.com --profile my-profile
+```
+
+### Q: Can I run OmniScout CLI in Docker?
+
+**A:** Yes. See the Docker example in the Examples guide.
+
+### Q: How do I contribute?
+
+**A:** OmniScout CLI is open source. See the main README for contribution guidelines.
+
+### Q: What's the difference between `--browser` and `--no-browser`?
+
+**A:** 
+- `--browser`: Use Chrome for rendering (slower, handles JavaScript)
+- `--no-browser`: Use httpx only (faster, no JavaScript)
+
+Default is to try httpx first, then fall back to Chrome.
+
+### Q: Can I use OmniScout CLI with a proxy?
+
+**A:** Set HTTP proxy environment variables:
+
+```bash
+export HTTP_PROXY=http://proxy.example.com:8080
+export HTTPS_PROXY=http://proxy.example.com:8080
+omniscout search "query"
+```
+
+### Q: How do I clear all data?
+
+**A:** 
+
+```bash
+# Clear everything
+rm -rf ~/.local/share/omniscout/
+rm -rf ~/.cache/omniscout/
+rm -rf ~/.config/omniscout/
+
+# Or selectively
+rm -rf ~/.local/share/omniscout/cache/pages/  # Clear page cache
+rm -rf ~/.local/share/omniscout/qdrant/       # Clear vector index
+omniscout session kill --all                   # Kill sessions
+```
+
+### Q: Can I use OmniScout CLI on Windows?
+
+**A:** OmniScout CLI is designed for macOS and Linux. Windows support is not officially tested, but it should work with WSL2.
+
+### Q: How do I update OmniScout CLI?
+
+**A:**
+
+```bash
+pip install --upgrade omniscout
+```
+
+### Q: Can I use OmniScout CLI without Chrome?
+
+**A:** Yes, use Playwright's bundled Chromium:
+
+```bash
+omniscout install --bundled
+export OMNISCOUT_BROWSER_CHANNEL=chromium
+```
+
+### Q: How do I report a bug?
+
+**A:** Open an issue on GitHub with:
+- Error message
+- Command that failed
+- System information (OS, Python version, Chrome version)
+- Verbose output (`--verbose` flag)
+
+## Getting Help
+
+- **Documentation:** Check the [CLI Overview](/cli/overview)
+- **Examples:** See [Examples & Guides](/cli/examples)
+- **API Reference:** Check [Python API](/sdk/api)
+- **Architecture:** See [Architecture](/cli/architecture)
+- **Issues:** Open an issue on GitHub
+- **Discussions:** Start a discussion on GitHub
+
+---
+
+## https://docs.omniscout.xyz/
+
+import { Card, CardGrid, Tabs, TabItem, LinkCard, Aside } from '@astrojs/starlight/components';
+
+<div class="install-banner">
+
+```bash
+# Install and set up in two commands
+pip install omniscout
+omniscout install --skill
+```
+
+</div>
+
+## What OmniScout does
+
+OmniScout is a local daemon + CLI that gives Claude Code, Cursor, Codex, or any LLM agent real browser control — navigate, click, fill, screenshot, scrape — all through JSON-in, JSON-out commands that run entirely on your machine.
+
+It exposes the same browser-control surface that products like **Kimi WebBridge**, **Claude for Chrome**, and **ChatGPT Atlas** ship with their models — but deliberately without the reasoning loop. Bring whatever LLM you want; OmniScout just exposes the actuator side as a CLI.
+
+<CardGrid stagger>
+	<Card title="One atomic CLI per action" icon="rocket">
+		`navigate`, `snapshot`, `click`, `fill`, `scroll`, `key`, `screenshot`,
+		`eval`, `wait`, `tab`, `network`, `login`, `captcha`. Every command
+		returns structured JSON your agent can act on immediately.
+	</Card>
+	<Card title="Sub-second calls" icon="approve-check">
+		A long-lived `omniscout daemon` keeps Playwright warm. Your agent never
+		pays cold-start cost on every browser action.
+	</Card>
+	<Card title="Two backends, one vocabulary" icon="puzzle">
+		Use headless Playwright by default, or flip to the Chrome extension to
+		drive your *real* running browser — with its real cookies and logins.
+	</Card>
+	<Card title="Stable element refs" icon="pencil">
+		`snapshot` returns accessibility-tree refs (`@eN`) that survive CSS
+		class-hash churn. No brittle selectors. Same shape Kimi WebBridge uses.
+	</Card>
+	<Card title="Fully local" icon="laptop">
+		No cloud API. No hosted browser. No MCP server to babysit. The CLI is
+		the interface — your data never leaves your machine.
+	</Card>
+	<Card title="Agent-native output" icon="seti:json">
+		Skill files install into `~/.claude/skills/`, `~/.cursor/skills-cursor/`,
+		`~/.codex/skills/`, and `~/.gemini/config/skills/` so your agent learns OmniScout's vocabulary
+		automatically after `omniscout install --skill`.
+	</Card>
+</CardGrid>
+
+## Try it in 60 seconds
+
+```bash
+# 1. Install from PyPI
+pip install omniscout
+
+# 2. First-run setup + agent skill
+omniscout install --skill
+
+# 3. Start the daemon (idempotent)
+omniscout daemon start
+
+# 4. Drive a browser
+omniscout browser navigate https://news.ycombinator.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/hn.png
+```
+
+<Aside type="tip" title="Working from a git checkout?">
+Clone the repo and run `pip install -e cli/` for an editable install instead of
+installing from PyPI.
+</Aside>
+
+## Drop these prompts into any agent
+
+After `omniscout install --skill`, your agent reads `SKILL.md` and learns OmniScout's
+command vocabulary. From then on, paste any of the following and it routes
+browser tasks through OmniScout automatically.
+
+<Tabs>
+<TabItem label="Research a topic">
+
+```text
+Use OmniScout to research "open-source browser agents in 2026" and summarize
+the top 5 passages with their source URLs.
+```
+
+</TabItem>
+<TabItem label="Navigate & act">
+
+```text
+Open https://news.ycombinator.com using OmniScout, get a snapshot of the
+interactive elements, click the top story link, and screenshot the
+resulting page to /tmp/hn-top.png.
+```
+
+</TabItem>
+<TabItem label="Persistent login">
+
+```text
+Run `omniscout browser login https://github.com --profile work` and pause
+for me to authenticate. Then use that profile to screenshot my
+notifications page.
+```
+
+</TabItem>
+<TabItem label="Fill a form">
+
+```text
+Use OmniScout to open https://duckduckgo.com, fill the search box with
+"local-first AI agents", press Enter, wait for results, and return
+the titles of the first 3 results.
+```
+
+</TabItem>
+<TabItem label="Inspect network">
+
+```text
+Open the Vercel pricing page with OmniScout, start network capture, scroll
+through the page, then stop capture and list any requests matching
+"stripe|payment|checkout" with their response status codes.
+```
+
+</TabItem>
+</Tabs>
+
+## Prior art, and where OmniScout sits
+
+| Product | Where it runs | What OmniScout borrows |
+|---|---|---|
+| Kimi WebBridge | Local daemon + Chrome extension | `@eN` refs, `/status` shape, optional extension backend |
+| Claude for Chrome | MV3 side panel | Hybrid `@eN` + coordinates, click/key/scroll vocabulary |
+| ChatGPT Atlas | Forked Chromium | Per-session tab groups, persistent login |
+| browser-use | Playwright in-process | Backend-agnostic action surface, persistent profiles |
+
+All of those products ship the reasoning model alongside the actuator. OmniScout's
+deliberate non-goal is to own the reasoning loop — bring whatever LLM you want,
+OmniScout just exposes the actuator side as a CLI.
+
+## Where to go next
+
+<LinkCard title="Website" description="Install guide, use cases, and product overview." href="https://omniscout.xyz/" />
+<LinkCard title="CLI Overview" description="Install, configure, and run your first commands." href="/cli/overview/" />
+<LinkCard title="Command reference" description="Every verb in the action vocabulary, with JSON shapes." href="/cli/commands/" />
+<LinkCard title="Using OmniScout with AI agents" description="Drop-in prompts for Claude Code, Cursor, and Codex." href="/cli/agents/" />
+<LinkCard title="Examples & recipes" description="Common workflows: research, login, captcha, multi-tab automation." href="/cli/examples/" />
+<LinkCard title="Architecture" description="Daemon, backends, snapshot refs, lifecycle." href="/cli/architecture/" />
+<LinkCard title="Python SDK" description="Use OmniScout engines directly from Python." href="/sdk/" />
+
+---
+
+## https://docs.omniscout.xyz/sdk/api/
+
+# Python API Reference
+
+OmniScout CLI engines can be used programmatically from Python code. This guide covers the main APIs.
+
+## Installation
+
+```bash
+pip install omniscout
+```
+
+The Python package namespace is `omniscout`. Example: `from omniscout.client import DaemonClient`.
+
+## Search API
+
+### Basic Search
+
+```python
+from omniscout.engines.search import ddg
+
+# Search DuckDuckGo
+results = ddg.search("python async patterns", limit=10)
+
+for hit in results:
+    print(f"{hit.title}: {hit.url}")
+    print(f"  {hit.snippet}\n")
+```
+
+### Search with Reranking
+
+```python
+from omniscout.engines.search import ddg, embed, rerank
+
+# Search
+query = "machine learning"
+hits = ddg.search(query, limit=20)
+
+# Embed query and results
+query_embedding = embed.embed_texts([query])[0]
+hit_embeddings = embed.embed_texts([h.snippet for h in hits])
+
+# Rerank by similarity
+ranked = rerank.rerank(query_embedding, hit_embeddings, hits)
+
+for hit in ranked[:5]:
+    print(f"{hit.title} (score: {hit.score:.2f})")
+```
+
+### Hybrid Search (Web + Local Index)
+
+```python
+from omniscout.engines.search import pipeline
+
+# Search combining DDG and local vector index
+results = pipeline.search_hybrid(
+    query="robotics",
+    limit=10,
+    rerank=True
+)
+
+for hit in results:
+    print(f"{hit.title}: {hit.url}")
+```
+
+## Extraction API
+
+### Extract URL
+
+```python
+from omniscout.engines.extractor import extract_url
+
+# Extract content from URL
+result = extract_url("https://example.com")
+
+print(f"Title: {result.title}")
+print(f"Author: {result.author}")
+print(f"Published: {result.published}")
+print(f"Word count: {result.word_count}")
+print(f"\n{result.content}")  # Markdown content
+```
+
+### Extract with Browser Rendering
+
+```python
+from omniscout.engines.extractor import extract_url
+
+# Use Chrome for JS-heavy sites
+result = extract_url(
+    "https://example.com",
+    use_browser=True
+)
+
+print(result.content)
+```
+
+### Extract HTML
+
+```python
+from omniscout.engines.extractor import extract_html
+
+html = """
+<html>
+  <head><title>Example</title></head>
+  <body>
+    <article>
+      <h1>Article Title</h1>
+      <p>Article content...</p>
+    </article>
+  </body>
+</html>
+"""
+
+result = extract_html(html, format="markdown")
+print(result.content)
+```
+
+## Crawler API
+
+### Crawl Multiple URLs
+
+```python
+import asyncio
+from omniscout.engines.crawler import crawl_many
+
+async def main():
+    urls = [
+        "https://example.com/page1",
+        "https://example.com/page2",
+        "https://example.com/page3",
+    ]
+    
+    results = await crawl_many(
+        urls=urls,
+        max_concurrent=5,
+        throttle_seconds=1.0
+    )
+    
+    for url, html in results.items():
+        print(f"{url}: {len(html)} bytes")
+
+asyncio.run(main())
+```
+
+### Crawl with Options
+
+```python
+from omniscout.engines.crawler import crawl_many, CrawlOptions
+
+async def main():
+    options = CrawlOptions(
+        max_concurrent=10,
+        throttle_seconds=0.5,
+        timeout_seconds=30,
+        use_browser_fallback=True
+    )
+    
+    results = await crawl_many(
+        urls=["https://example.com", ...],
+        options=options
+    )
+
+asyncio.run(main())
+```
+
+## Research API
+
+### Run Research Pipeline
+
+```python
+from omniscout.engines.research import run_research
+
+# Run full research pipeline
+report = run_research(
+    topic="state of local AI agents in 2026",
+    depth=1,
+    results=8
+)
+
+print(f"Topic: {report.topic}")
+print(f"Summary: {report.summary}\n")
+
+print("Sources:")
+for source in report.sources:
+    print(f"  - {source.title}: {source.url}")
+
+print("\nTop Passages:")
+for passage in report.passages[:5]:
+    print(f"  {passage.text[:100]}...")
+    print(f"    (from {passage.source_url}, score: {passage.score:.2f})\n")
+```
+
+## Browser API
+
+### One-Shot Browser Operations
+
+```python
+from omniscout.engines.browser import BrowserEngine
+
+engine = BrowserEngine()
+
+# Take screenshot
+result = engine.screenshot(
+    url="https://example.com",
+    output_path="screenshot.png"
+)
+print(f"Screenshot saved: {result.output_path}")
+
+# Generate PDF
+result = engine.pdf(
+    url="https://example.com",
+    output_path="page.pdf"
+)
+print(f"PDF saved: {result.output_path}")
+```
+
+### Persistent Browser Profiles
+
+```python
+from omniscout.engines.browser import BrowserEngine
+
+engine = BrowserEngine()
+
+# Create profile
+engine.create_profile("work")
+
+# Use profile (cookies/login state persist)
+result = engine.screenshot(
+    url="https://news.ycombinator.com",
+    profile="work",
+    headful=True  # Show browser window
+)
+```
+
+### Long-Lived Sessions
+
+```python
+from omniscout.engines.browser import BrowserEngine
+from omniscout.store.sessions import SessionStore
+
+engine = BrowserEngine()
+store = SessionStore()
+
+# Start session
+session_info = engine.session_start(profile="default", headful=False)
+print(f"Session ID: {session_info.id}")
+print(f"CDP endpoint: {session_info.ws_endpoint}")
+
+# Later, attach to session via daemon client
+from omniscout.client import DaemonClient
+
+client = DaemonClient()
+result = client.navigate(
+    url="https://example.com",
+    session=session_info.id
+)
+```
+
+## Daemon Client API
+
+### Basic Commands
+
+```python
+from omniscout.client import DaemonClient
+
+client = DaemonClient()
+
+# Navigate
+result = client.navigate(
+    url="https://example.com",
+    session="default"
+)
+
+# Click element
+result = client.click(
+    selector="button.submit",
+    session="default"
+)
+
+# Fill form
+result = client.fill(
+    selector="input[name=search]",
+    value="query text",
+    session="default"
+)
+
+# Take screenshot
+result = client.screenshot(
+    session="default",
+    output_path="screenshot.png"
+)
+
+# Get interactive elements
+result = client.snapshot(session="default")
+for ref in result.refs:
+    print(f"{ref.ref}: {ref.role} - {ref.name}")
+```
+
+### Error Handling
+
+```python
+from omniscout.client import DaemonClient, DaemonError
+
+client = DaemonClient()
+
+try:
+    result = client.navigate(
+        url="https://example.com",
+        session="nonexistent"
+    )
+except DaemonError as e:
+    print(f"Error: {e}")
+    print(f"Kind: {e.kind}")
+    print(f"Action: {e.action}")
+```
+
+### Custom Timeout
+
+```python
+from omniscout.client import DaemonClient
+
+client = DaemonClient(timeout=120.0)  # 120 second timeout
+
+result = client.navigate(
+    url="https://slow-site.com",
+    session="default"
+)
+```
+
+## Configuration API
+
+### Get Paths
+
+```python
+from omniscout.config import get_paths
+
+paths = get_paths()
+
+print(f"Data dir: {paths.data}")
+print(f"Config dir: {paths.config}")
+print(f"Cache dir: {paths.cache}")
+print(f"Profiles dir: {paths.profiles}")
+print(f"Qdrant dir: {paths.qdrant}")
+```
+
+### Get Settings
+
+```python
+from omniscout.config import get_settings
+
+settings = get_settings()
+
+print(f"Default source: {settings.default_source}")
+print(f"Search limit: {settings.search_limit}")
+print(f"Embedding model: {settings.embedding_model}")
+print(f"Browser: {settings.browser}")
+print(f"Browser executable: {settings.browser_executable}")
+```
+
+### Override Settings
+
+```python
+import os
+from omniscout.config import get_settings
+
+# Via environment variables
+os.environ["OMNISCOUT_DATA_DIR"] = "/custom/data"
+os.environ["OMNISCOUT_CONFIG_DIR"] = "/custom/config"
+
+# Settings are cached, so create new instance
+from omniscout.config import _settings_cache
+_settings_cache.clear()
+
+settings = get_settings()
+```
+
+## Models API
+
+### Search Models
+
+```python
+from omniscout.models import SearchHit, SearchResponse
+
+# Create search hit
+hit = SearchHit(
+    url="https://example.com",
+    title="Example",
+    snippet="Example snippet",
+    source="ddg",
+    score=0.95,
+    rank=1
+)
+
+# Create search response
+response = SearchResponse(
+    query="example",
+    source="ddg",
+    count=1,
+    hits=[hit]
+)
+
+# Serialize to JSON
+import json
+print(json.dumps(response.model_dump(), indent=2))
+```
+
+### Extract Models
+
+```python
+from omniscout.models import ExtractResult
+from datetime import datetime
+
+result = ExtractResult(
+    url="https://example.com",
+    title="Example Article",
+    author="John Doe",
+    published="2024-01-15",
+    site_name="Example",
+    content="# Example\n\nContent here...",
+    text="Example\n\nContent here...",
+    links=["https://example.com/related"],
+    word_count=150,
+    format="markdown",
+    cached=False,
+    fetched_at=datetime.utcnow()
+)
+
+print(result.model_dump_json(indent=2))
+```
+
+### Research Models
+
+```python
+from omniscout.models import (
+    ResearchReport,
+    ResearchSource,
+    ResearchPassage
+)
+
+source = ResearchSource(
+    url="https://example.com",
+    title="Example",
+    snippet="Example snippet"
+)
+
+passage = ResearchPassage(
+    text="Passage text here",
+    source_url="https://example.com",
+    score=0.92
+)
+
+report = ResearchReport(
+    topic="example topic",
+    summary="Summary of research",
+    sources=[source],
+    passages=[passage]
+)
+
+print(report.model_dump_json(indent=2))
+```
+
+## Logging API
+
+### Configure Logging
+
+```python
+from omniscout.logging import configure_logging, get_logger
+
+# Configure logging (call once at startup)
+configure_logging(verbose=True)
+
+# Get logger for your module
+log = get_logger("my_module")
+
+log.info("Starting operation")
+log.debug("Debug information")
+log.warning("Warning message")
+log.error("Error message")
+```
+
+## Complete Example: Research Workflow
+
+```python
+import asyncio
+import json
+from omniscout.engines.research import run_research
+from omniscout.engines.extractor import extract_url
+from omniscout.models import ResearchReport
+
+async def research_workflow():
+    # Run research
+    print("Running research...")
+    report = run_research(
+        topic="local AI agents",
+        depth=1,
+        results=5
+    )
+    
+    # Save report
+    with open("research.json", "w") as f:
+        json.dump(report.model_dump(), f, indent=2, default=str)
+    
+    # Extract top source
+    if report.sources:
+        top_source = report.sources[0]
+        print(f"\nExtracting top source: {top_source.url}")
+        
+        extract_result = extract_url(top_source.url)
+        print(f"Title: {extract_result.title}")
+        print(f"Word count: {extract_result.word_count}")
+        
+        # Save extracted content
+        with open("extracted.md", "w") as f:
+            f.write(extract_result.content)
+    
+    # Print summary
+    print(f"\nResearch Summary:")
+    print(report.summary)
+    
+    print(f"\nTop Passages:")
+    for i, passage in enumerate(report.passages[:3], 1):
+        print(f"{i}. {passage.text[:100]}...")
+
+asyncio.run(research_workflow())
+```
+
+## Complete Example: Browser Automation
+
+```python
+from omniscout.client import DaemonClient
+import time
+
+def browser_workflow():
+    client = DaemonClient()
+    
+    # Navigate to page
+    print("Navigating to example.com...")
+    client.navigate(
+        url="https://example.com",
+        session="default",
+        wait_until="networkidle"
+    )
+    
+    # Get interactive elements
+    print("Getting page elements...")
+    snapshot = client.snapshot(session="default")
+    
+    print(f"Found {len(snapshot.refs)} interactive elements:")
+    for ref in snapshot.refs[:5]:
+        print(f"  {ref.ref}: {ref.role} - {ref.name}")
+    
+    # Take screenshot
+    print("Taking screenshot...")
+    client.screenshot(
+        session="default",
+        output_path="page.png"
+    )
+    
+    # Scroll down
+    print("Scrolling...")
+    client.scroll(
+        direction="down",
+        amount=3,
+        session="default"
+    )
+    
+    time.sleep(1)
+    
+    # Take another screenshot
+    client.screenshot(
+        session="default",
+        output_path="page_scrolled.png"
+    )
+    
+    print("Done!")
+
+browser_workflow()
+```
+
+## Type Hints
+
+All APIs use Python type hints for IDE autocomplete and type checking:
+
+```python
+from typing import Optional
+from omniscout.models import SearchResponse, ExtractResult
+
+def process_search(response: SearchResponse) -> None:
+    for hit in response.hits:
+        print(f"{hit.title}: {hit.url}")
+
+def process_extract(result: ExtractResult) -> Optional[str]:
+    if result.word_count > 100:
+        return result.content
+    return None
+```
+
+## Async APIs
+
+Most I/O operations support async:
+
+```python
+import asyncio
+from omniscout.engines.crawler import crawl_many
+
+async def main():
+    # Crawl multiple URLs concurrently
+    results = await crawl_many(
+        urls=["https://example.com/1", "https://example.com/2"],
+        max_concurrent=5
+    )
+    
+    for url, html in results.items():
+        print(f"{url}: {len(html)} bytes")
+
+asyncio.run(main())
+```
+
+## Testing
+
+Use the provided test fixtures for offline testing:
+
+```python
+import pytest
+from pathlib import Path
+
+@pytest.fixture
+def article_html():
+    fixture_path = Path(__file__).parent / "fixtures" / "article.html"
+    return fixture_path.read_text()
+
+def test_extract(article_html):
+    from omniscout.engines.extractor import extract_html
+    
+    result = extract_html(article_html)
+    assert result.title
+    assert result.word_count > 0
+```
+
+## Performance Tips
+
+1. **Reuse Clients:** Create one `DaemonClient` and reuse it
+2. **Batch Operations:** Use `crawl_many()` for concurrent fetching
+3. **Cache Results:** Check `PageCache` before fetching
+4. **Lazy Loading:** Models and indices load on-demand
+5. **Async:** Use async APIs for I/O-bound operations
+6. **Profiles:** Reuse browser profiles to avoid re-login
+
+## Troubleshooting
+
+### Chrome Not Found
+
+```python
+from omniscout.config import get_settings
+
+settings = get_settings()
+print(f"Browser: {settings.browser}")
+print(f"Browser executable: {settings.browser_executable}")
+```
+
+Or from the CLI:
+
+```bash
+omniscout settings browsers
+omniscout settings set browser edge
+```
+
+### Daemon Connection Issues
+
+```python
+from omniscout.client import DaemonClient
+from omniscout.daemon import lifecycle
+
+# Check daemon status
+port = lifecycle.read_port()
+print(f"Daemon port: {port}")
+
+# Force restart
+lifecycle.stop()
+client = DaemonClient()  # Auto-starts daemon
+```
+
+### Embedding Model Download
+
+The first search/research operation downloads the embedding model (~100MB). This is cached locally.
+
+```python
+from omniscout.engines.search import embed
+
+# Pre-download model
+embed.embed_texts(["test"])
+```
+
+---
+
+## https://docs.omniscout.xyz/sdk/
+
+# OmniScout SDK Documentation
+
+The OmniScout SDK provides a Python API for programmatic access to OmniScout CLI functionality. Use the SDK to integrate OmniScout into your Python applications.
+
+## Quick Navigation
+
+- **[Python API Reference](/sdk/api)** - Complete Python API documentation with code examples
+
+## What is the SDK?
+
+The OmniScout SDK is a Python library that exposes OmniScout CLI engines as reusable Python modules. Instead of shelling out to CLI commands, you can import OmniScout directly into your Python code.
+
+## Key Features
+
+- **Search API** - Programmatic web search with local reranking  
+- **Extraction API** - Extract and parse URLs  
+- **Crawler API** - Async crawling with intelligent fallbacks  
+- **Research API** - Full research pipeline orchestration  
+- **Browser API** - Control browsers programmatically  
+- **Configuration API** - Access and override settings  
+- **Type Hints** - Full type hints for IDE autocomplete  
+
+## Installation
+
+```bash
+pip install omniscout
+```
+
+The Python package namespace is `omniscout` (e.g. `from omniscout.client import DaemonClient`).
+
+## Quick Example
+
+```python
+from omniscout.engines.search import ddg
+
+# Search the web
+results = ddg.search("python async patterns", limit=10)
+
+for hit in results:
+    print(f"{hit.title}: {hit.url}")
+```
+
+## Common Use Cases
+
+### Search and Extract
+```python
+from omniscout.engines.search import ddg
+from omniscout.engines.extractor import extract_url
+
+# Search
+results = ddg.search("topic", limit=5)
+
+# Extract top result
+if results:
+    content = extract_url(results[0].url)
+    print(content.content)
+```
+
+### Research Pipeline
+```python
+from omniscout.engines.research import run_research
+
+# Run full research
+report = run_research(
+    topic="AI agents",
+    depth=1,
+    results=8
+)
+
+print(report.summary)
+for passage in report.passages[:5]:
+    print(f"- {passage.text}")
+```
+
+### Browser Automation
+```python
+from omniscout.client import DaemonClient
+
+client = DaemonClient()
+
+# Navigate and interact
+client.navigate(url="https://example.com", session="default")
+client.click(selector="button.submit", session="default")
+client.screenshot(session="default", output_path="result.png")
+```
+
+## API Reference
+
+See [Python API Reference](/sdk/api) for complete documentation.
+
+## Modules
+
+- **`omniscout.engines.search`** - Search engines (DDG, embeddings, reranking)
+- **`omniscout.engines.extractor`** - Content extraction
+- **`omniscout.engines.crawler`** - Async crawling
+- **`omniscout.engines.research`** - Research pipeline
+- **`omniscout.engines.browser`** - Browser automation
+- **`omniscout.client`** - Daemon client
+- **`omniscout.config`** - Configuration and paths
+- **`omniscout.models`** - Pydantic result types
+- **`omniscout.logging`** - Logging utilities
+
+## Type Hints
+
+All APIs use Python type hints for IDE autocomplete:
+
+```python
+from omniscout.models import SearchResponse, ExtractResult
+
+def process_search(response: SearchResponse) -> None:
+    for hit in response.hits:
+        print(f"{hit.title}: {hit.url}")
+```
+
+## Async Support
+
+Most I/O operations support async:
+
+```python
+import asyncio
+from omniscout.engines.crawler import crawl_many
+
+async def main():
+    results = await crawl_many(
+        urls=["https://example.com/1", "https://example.com/2"],
+        max_concurrent=5
+    )
+
+asyncio.run(main())
+```
+
+## Configuration
+
+Access and override settings programmatically:
+
+```python
+from omniscout.config import get_settings, get_paths
+
+settings = get_settings()
+paths = get_paths()
+
+print(f"Data dir: {paths.data}")
+print(f"Search limit: {settings.search_limit}")
+```
+
+## Error Handling
+
+```python
+from omniscout.client import DaemonClient, DaemonError
+
+client = DaemonClient()
+
+try:
+    result = client.navigate(url="https://example.com", session="default")
+except DaemonError as e:
+    print(f"Error: {e}")
+    print(f"Kind: {e.kind}")
+```
+
+## Testing
+
+Use provided test fixtures for offline testing:
+
+```python
+import pytest
+from pathlib import Path
+
+@pytest.fixture
+def article_html():
+    fixture_path = Path(__file__).parent / "fixtures" / "article.html"
+    return fixture_path.read_text()
+
+def test_extract(article_html):
+    from omniscout.engines.extractor import extract_html
+    
+    result = extract_html(article_html)
+    assert result.title
+    assert result.word_count > 0
+```
+
+## Performance Tips
+
+1. **Reuse Clients** - Create one `DaemonClient` and reuse it
+2. **Batch Operations** - Use `crawl_many()` for concurrent fetching
+3. **Cache Results** - Check `PageCache` before fetching
+4. **Lazy Loading** - Models and indices load on-demand
+5. **Async** - Use async APIs for I/O-bound operations
+6. **Profiles** - Reuse browser profiles to avoid re-login
+
+## Next Steps
+
+- **[Python API Reference](/sdk/api)** - Complete API documentation
+- **[CLI Documentation](/cli/overview)** - Learn about the CLI
+- **[Examples](/cli/examples)** - See common workflows
+
+## Support
+
+For issues or questions:
+1. Check the [Python API Reference](/sdk/api)
+2. Review [CLI Examples](/cli/examples) for patterns
+3. Check [CLI Troubleshooting](/cli/troubleshooting) for debugging tips
+
+---
+
+**Ready to get started?** Head to [Python API Reference](/sdk/api).

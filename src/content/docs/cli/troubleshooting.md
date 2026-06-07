@@ -121,7 +121,15 @@ pyenv local 3.11.0
 
 **Solution:**
 
-Option 1: Install Chrome
+Option 1: Pick another installed browser
+
+```bash
+omniscout settings browsers
+omniscout settings set browser edge    # or brave, vivaldi, chromium, etc.
+```
+
+Option 2: Install Chrome
+
 ```bash
 # macOS
 brew install --cask google-chrome
@@ -133,18 +141,20 @@ sudo apt-get install google-chrome-stable
 # Download from https://www.google.com/chrome/
 ```
 
-Option 2: Use bundled Chromium
+Option 3: Use bundled Chromium
+
 ```bash
 omniscout install --bundled
 ```
 
-Option 3: Specify Chrome path
-```bash
-# In config.toml
-browser_executable = "/path/to/chrome"
+Option 4: Specify a custom binary
 
-# Or via environment
-export OMNISCOUT_BROWSER_EXECUTABLE="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+```bash
+omniscout settings set browser custom --executable "/path/to/chromium"
+
+# Or in config.toml
+browser = "custom"
+browser_executable = "/path/to/chromium"
 ```
 
 ### Permission Denied

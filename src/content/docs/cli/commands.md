@@ -214,6 +214,30 @@ Replaces existing content. Works on `<input>` / `<textarea>` *and*
 
 `mode` is `"value"` for native inputs, `"contenteditable"` for rich-text.
 
+### `omniscout browser type`
+
+```bash
+omniscout browser type <ref-or-selector> <text> [--session NAME]
+```
+
+Appends keystrokes without clearing the field (unlike `fill`).
+
+### `omniscout browser paste`
+
+```bash
+omniscout browser paste <ref-or-selector> <text> [--session NAME]
+```
+
+Inserts text at the cursor (clipboard-style paste into the focused element).
+
+### `omniscout browser select`
+
+```bash
+omniscout browser select <ref-or-selector> <value> [--session NAME]
+```
+
+Selects an option on a native `<select>` by value or visible label.
+
 ### `omniscout browser scroll`
 
 ```bash
@@ -231,6 +255,16 @@ omniscout browser key <combo> [--session NAME]
 
 `combo` is e.g. `cmd+a`, `Escape`, `Enter`, `ctrl+shift+t`. Aliases:
 `cmd`/`command`→`Meta`, `option`→`Alt`, `return`→`Enter`, `esc`→`Escape`.
+
+### `omniscout browser back` / `forward` / `reload`
+
+```bash
+omniscout browser back [--session NAME]
+omniscout browser forward [--session NAME]
+omniscout browser reload [--session NAME]
+```
+
+History navigation on the active tab.
 
 ### `omniscout browser hover`
 
@@ -290,14 +324,50 @@ omniscout browser eval "document.title"
 # {"action":"evaluate","type":"str","value":"Example"}
 ```
 
+### `omniscout browser get`
+
+```bash
+omniscout browser get title [--session NAME]
+omniscout browser get url [--session NAME]
+omniscout browser get text [--session NAME]
+omniscout browser get html [--session NAME]
+```
+
+Lightweight page inspection without a full snapshot.
+
+### `omniscout browser is`
+
+```bash
+omniscout browser is <ref-or-selector> <state> [--session NAME]
+```
+
+`state` is one of `visible`, `hidden`, `enabled`, `disabled`, `checked`,
+`editable`.
+
 ### `omniscout browser wait`
 
 ```bash
+# Subcommands (preferred)
+omniscout browser wait text <substring> [--timeout-ms 30000]
+omniscout browser wait selector <ref-or-css> [--timeout-ms 30000]
+omniscout browser wait networkidle [--timeout-ms 30000]
+omniscout browser wait url <glob-pattern> [--timeout-ms 30000]
+
+# Legacy flags (still supported)
 omniscout browser wait [--ref REF] [--url PATTERN] [--idle] [--ms N] [--timeout-ms 30000]
 ```
 
-Exactly one of `--ref`, `--url`, `--idle`, or `--ms` must be set. `--url`
-takes a regex.
+For legacy mode, exactly one of `--ref`, `--url`, `--idle`, or `--ms` must be
+set. `--url` takes a regex; the `wait url` subcommand takes a glob.
+
+### `omniscout browser mouse`
+
+```bash
+omniscout browser mouse scroll --coord X Y --delta DX DY [--session NAME]
+omniscout browser mouse move --coord X Y [--session NAME]
+```
+
+Raw wheel and pointer moves at pixel coordinates (vision-agent escape hatch).
 
 ### `omniscout browser login`
 
@@ -369,8 +439,11 @@ omniscout browser tab switch <TAB_ID>      # make TAB_ID active
 omniscout browser network start            # begin capturing requests + responses
 omniscout browser network stop             # stop and return count
 omniscout browser network list [--filter REGEX]
+omniscout browser network tail [--since ID] [--filter REGEX]
 omniscout browser network detail <REQUEST_ID>
 ```
+
+`network tail` returns incremental entries since `--since` (for polling loops).
 
 ```json
 {
@@ -382,6 +455,18 @@ omniscout browser network detail <REQUEST_ID>
   "count": 1
 }
 ```
+
+## Console capture (`omniscout browser console ...`)
+
+```bash
+omniscout browser console start
+omniscout browser console stop
+omniscout browser console list [--filter REGEX]
+omniscout browser console tail [--since ID] [--filter REGEX]
+```
+
+Captures `console.*` messages and uncaught JS errors without screenshots.
+Use `tail` for incremental polling like `network tail`.
 
 ## Search, extract, research
 
@@ -504,8 +589,7 @@ Also accepts a bare 16-character hex `action_id`. See `omniscout daemon replay`.
 ### `omniscout search`
 
 ```bash
-omniscout search <query> [--limit N] [--source {ddg,index,memory,hybrid}] [--rerank/--no-rerank] \
-  [--answer] [--depth {auto,fast,balanced,deep}] [--data]
+omniscout search <query> [--limit N] [--source {ddg,index,memory,hybrid}] [--rerank/--no-rerank] [--data]
 ```
 
 | Source | Meaning |
@@ -519,48 +603,81 @@ omniscout search <query> [--limit N] [--source {ddg,index,memory,hybrid}] [--rer
 { "query": "...", "source": "ddg", "count": 10, "hits": [ { "url": "...", "title": "...", "snippet": "...", "score": 0.92, "rank": 1 } ] }
 ```
 
-Answer-first mode (`--depth` defaults to **`auto`**, classifier-routed):
+For one-sentence factual answers, use [`omniscout answer "your question"`](#omniscout-answer).
+Search returns ranked hits only; it does not synthesize an answer sentence.
+
+### `omniscout answer`
 
 ```bash
-# Sub-second: live DDG snippets only (no embedding model)
-omniscout search "who is the president of the united states" --answer
-
-# Local index + DDG fallback (may load embedding model on first run)
-omniscout search "..." --answer --depth balanced
-
-# Crawl + extract top sources (slow; own pipeline, not omniscout research)
-omniscout search "..." --answer --depth deep
-
-# Timing breakdown
-omniscout search "..." --answer --data
+omniscout answer <query> [--limit N] [--depth {auto,fast,balanced,deep}] [--data] [--no-llm]
 ```
 
-| Depth | Latency target | What it does |
-|-------|----------------|--------------|
-| `auto` (default) | ~0.3–3s | Query classifier chooses `fast`/`balanced`/`deep` |
-| `fast` | ~0.3–1.5s | DDG snippets only; no embeddings |
-| `balanced` | ~1–3s warm | Local Qdrant index when relevant, else DDG |
-| `deep` | ~5–15s | `deep_answer_pipeline`: search → crawl → extract |
+Grounded answers from web retrieval plus a small local LLM (SmolLM2-360M,
+cached on disk). The pipeline tries **direct DuckDuckGo answers first**
+(HTML instant box, ranked snippets, Search Assist), then extractive synthesis
+from filtered hits, then the local LLM, then a limited crawl for hard
+who-is queries. Falls back to extractive-only when the model is unavailable
+(`--no-llm` forces extractive only).
 
-With `--answer` alone, stdout is **plain text** (just the answer sentence).
-Add `--data` for the full Rich UI plus diagnostics (`elapsed_ms`, `depth`,
-`cache_hit`, `ddg_ms`, `index_ms`, `model_load_ms`, etc.).
+```bash
+# Classifier-routed (default)
+omniscout answer "who is the prime minister of india"
 
-Answers are cached (default TTL 30 minutes; 15 minutes for time-sensitive
-queries like `who is the president`). Cache schema supports future adaptive
-TTL based on source freshness.
+# Snippets-first (fast)
+omniscout answer "who is the pm of singapore" --depth fast
+
+# Factual lookups (capital, height, math)
+omniscout answer "what is the capital of france"
+omniscout answer "how tall is mount everest"
+omniscout answer "what is 2+2"
+
+# Crawl top sources when snippets are weak (slow)
+omniscout answer "FedRAMP LLM hosting requirements" --depth deep
+
+# Sources, timing, llm_backend
+omniscout answer "..." --data
+```
+
+| Flag | Default | Meaning |
+|------|---------|---------|
+| `--depth` | `auto` | `fast` (snippets + direct), `balanced` (same + refined retry), `deep` (crawl) |
+| `--limit`, `-n` | 10 | Max search hits to consider |
+| `--data` | off | Rich UI + diagnostics (`elapsed_ms`, `llm_backend`, supports) |
+| `--no-llm` | off | Skip local LLM; extractive fallback only |
+
+With `--data`, `retrieval` and `llm_backend` show how the answer was produced:
+
+| Label | Meaning |
+|-------|---------|
+| `direct+snippet` | Named entity or factual value from a DDG snippet |
+| `direct+assist` | DuckDuckGo Search Assist box |
+| `direct+zci` | DuckDuckGo HTML instant/ZCI box |
+| `direct+calc` | Local arithmetic (simple math queries) |
+| `direct+instant` | DuckDuckGo Instant API (when populated and validated) |
+| `extractive+ddg` | Pattern extraction from ranked snippets |
+| `llm+ddg` | Local LLM over snippet sources |
+| `extractive+crawl` / `llm+crawl` | Crawled page chunks (deep mode or escalation) |
+
+Without `--data`, stdout is **plain text** (just the answer sentence).
+
+Prefetch the answer model:
+
+```bash
+omniscout install --answer-model
+omniscout warmup   # embedding + answer LLM in daemon
+```
 
 ### `omniscout warmup`
 
 ```bash
-omniscout warmup
+omniscout warmup [--answer-model/--no-answer-model]
 ```
 
-Preloads the embedding model in the **daemon** (not a throwaway CLI process).
-The model stays hot for subsequent `search`, `research`, and `remember` calls.
-Search commands auto-start the daemon and route embeds through it by default, so
-`warmup` is optional — use it when you want to pay the first-load cost (~2s)
-before a batch of queries.
+Preloads the embedding model and (by default) the small answer LLM in the
+**daemon** (not a throwaway CLI process). Models stay hot for subsequent
+`search`, `answer`, `research`, and `remember` calls. Search commands
+auto-start the daemon and route embeds through it by default, so `warmup` is
+optional — use it when you want to pay the first-load cost before a batch.
 
 Set `OMNISCOUT_EMBED_DAEMON=0` to load the model in-process instead (tests,
 debugging).
@@ -604,8 +721,46 @@ warm across CLI invocations.
 ### `omniscout extract`
 
 ```bash
-omniscout extract <url> [--format {markdown,text,json}] [--cache/--no-cache]
+omniscout extract <url> [--format {markdown,text,json,structured}] [--cache/--no-cache]
+omniscout extract <url> --format structured
+omniscout extract <url> --format json --fields company,pricing,founder,description
+omniscout extract <url> --format structured --data
 ```
+
+**Formats**
+
+- `markdown` / `text` — readable body content (default: markdown).
+- `json` — full `ExtractResult` metadata plus `content` / `text`.
+- `structured` — flat JSON with extracted fields (fast NLP heuristics, no LLM).
+  Without `--fields`, extracts everything it can: company metadata, pricing,
+  founder, contact info, social links (Twitter/X, LinkedIn, GitHub, YouTube,
+  etc.), important page URLs (docs, blog, careers, community, status, …), and
+  any `Label: value` lines on the page. Use `--fields` to limit output.
+
+When `pricing` is missing on the page, OmniScout follows a `/pricing` link
+from the extracted link list (one extra fetch, cached like normal extract).
+
+Structured output example (auto, fields only):
+
+```json
+{
+  "company": "Acme Inc",
+  "description": "Acme builds local-first AI tools.",
+  "pricing": "$99/mo",
+  "title": "Acme — Home",
+  "site_name": "Acme"
+}
+```
+
+With explicit fields:
+
+```bash
+omniscout extract https://example.com --format structured --fields company,pricing
+```
+
+Add `--data` to include the full `ExtractResult` (`cached`, `structured_ms`,
+`content`, etc.) and stderr diagnostic logs. Without `--data`, structured mode
+emits only the extracted fields JSON on stdout.
 
 ### `omniscout research`
 
@@ -642,13 +797,32 @@ omniscout session kill [--id ID] [--all]
 For agents, prefer the daemon model (`--session NAME` on every browser
 command) over these.
 
+## Settings (`omniscout settings ...`)
+
+View and change user settings in `config.toml`.
+
+```bash
+omniscout settings show
+omniscout settings browsers
+omniscout settings set browser <id> [--executable PATH]
+```
+
+Supported browser ids: `chrome`, `edge`, `brave`, `vivaldi`, `opera`, `arc`,
+`dia`, `thorium`, `chromium`, `custom`. The `custom` id requires
+`--executable`. `settings browsers` marks which ids are installed on this
+machine and which one is current.
+
+Environment override: `OMNISCOUT_BROWSER=brave`.
+
 ## Install helper
 
 ```bash
-omniscout install [--bundled] [--skill] [--print-data-dir]
+omniscout install [--bundled] [--skill] [--browser ID] [--browser-executable PATH] [--print-data-dir]
 ```
 
-- `--bundled` — download Playwright's Chromium even if system Chrome
+- `--browser` — write browser choice to `config.toml` without prompting.
+- `--browser-executable` — custom binary path (with `--browser custom`).
+- `--bundled` — download Playwright's Chromium even if another browser
   exists.
 - `--skill` — copy `SKILL.md` + `references/operations.md` into
   `~/.claude/skills/scout/`, `~/.cursor/skills-cursor/scout/`,

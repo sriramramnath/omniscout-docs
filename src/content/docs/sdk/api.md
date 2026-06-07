@@ -356,7 +356,8 @@ settings = get_settings()
 print(f"Default source: {settings.default_source}")
 print(f"Search limit: {settings.search_limit}")
 print(f"Embedding model: {settings.embedding_model}")
-print(f"Browser channel: {settings.browser_channel}")
+print(f"Browser: {settings.browser}")
+print(f"Browser executable: {settings.browser_executable}")
 ```
 
 ### Override Settings
@@ -656,8 +657,15 @@ def test_extract(article_html):
 from omniscout.config import get_settings
 
 settings = get_settings()
-print(f"Browser channel: {settings.browser_channel}")
+print(f"Browser: {settings.browser}")
 print(f"Browser executable: {settings.browser_executable}")
+```
+
+Or from the CLI:
+
+```bash
+omniscout settings browsers
+omniscout settings set browser edge
 ```
 
 ### Daemon Connection Issues

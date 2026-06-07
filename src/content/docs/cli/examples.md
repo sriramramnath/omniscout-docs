@@ -268,6 +268,17 @@ omniscout browser tab close --session multi      # closes active tab
 
 ## Search → extract → answer
 
+For a one-line factual answer (who-is, capital, height, simple math), use
+`omniscout answer` instead of hand-rolling search + extract:
+
+```bash
+omniscout answer "who is the prime minister of india"
+omniscout answer "what is the capital of france"
+omniscout answer "how tall is mount everest" --data   # sources + retrieval path
+```
+
+For open-ended reading from a top hit:
+
 ```bash
 URL=$(omniscout search "python contextvars" --limit 1 --json | jq -r '.hits[0].url')
 omniscout extract "$URL" > /tmp/page.md
@@ -346,6 +357,7 @@ through `jq`:
 ```bash
 omniscout search "topic"          | jq '.hits[] | {title, url}'
 omniscout extract https://...      | jq '{title, word_count, published}'
+omniscout extract https://... --format structured | jq '{company, pricing, twitter, docs}'
 omniscout research "topic"         | jq '.passages[0:3]'
 omniscout browser snapshot         | jq '.refs[] | select(.role == "button")'
 omniscout daemon status            | jq '.running'
@@ -362,9 +374,16 @@ research_results = 12
 research_depth = 2
 request_throttle_seconds = 0.5
 embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
-browser_channel = "chrome"
+browser = "chrome"
 summary_sentences = 8
 EOF
+```
+
+Pick a different browser without editing the file:
+
+```bash
+omniscout settings set browser brave
+omniscout settings show
 ```
 
 ## Cleanup

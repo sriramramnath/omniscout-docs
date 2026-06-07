@@ -614,7 +614,8 @@ class Settings:
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     qdrant_collection: str = "scout_passages"
     summary_sentences: int = 6
-    browser_channel: str = "chrome"  # or "chromium"
+    browser: str = "chrome"  # chrome | edge | brave | vivaldi | opera | arc | dia | thorium | chromium | custom
+    browser_channel: str = "chrome"  # legacy alias
     browser_executable: str | None = None
 ```
 

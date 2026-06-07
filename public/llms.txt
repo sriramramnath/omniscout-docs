@@ -1,0 +1,32 @@
+# OmniScout Docs
+
+> Local-first browser control, semantic search, and research for AI agents. Install with `pip install omniscout`, then `omniscout install --skill` to copy the agent skill into Claude, Cursor, Codex, and Gemini.
+
+## Start here
+
+- [What is OmniScout?](https://docs.omniscout.xyz/cli/overview/): Introduction, installation, and quick start
+- [Using OmniScout with AI agents](https://docs.omniscout.xyz/cli/agents/): Skill install, prompts, and agent integration
+- [Examples & recipes](https://docs.omniscout.xyz/cli/examples/): Common workflows and command sequences
+
+## CLI reference
+
+- [Commands reference](https://docs.omniscout.xyz/cli/commands/): Complete CLI command reference
+- [Architecture](https://docs.omniscout.xyz/cli/architecture/): Daemon, backends, and system design
+- [Troubleshooting](https://docs.omniscout.xyz/cli/troubleshooting/): Issues, solutions, and FAQ
+
+## SDK
+
+- [SDK overview](https://docs.omniscout.xyz/sdk/): Python SDK introduction
+- [Python API](https://docs.omniscout.xyz/sdk/api/): Programmatic API reference
+
+## Agent integration
+
+- [Agent skill (SKILL.md)](https://github.com/sriramramnath/omniscout/blob/main/docs/agent-skill.md): Drop-in instructions for AI agents
+- [Full docs context (llms-full.txt)](https://docs.omniscout.xyz/llms-full.txt): Concatenated documentation for LLM context windows
+
+## Optional
+
+- [Roadmap](https://docs.omniscout.xyz/cli/roadmap/): Planned features including MCP support
+- [Marketing site](https://omniscout.xyz/llms.txt): Product overview and feature pages
+- [PyPI package](https://pypi.org/project/omniscout/)
+- [GitHub repository](https://github.com/sriramramnath/omniscout)

@@ -16,6 +16,8 @@ description: |
 Local-first CLI for AI agents. No cloud APIs, no hosted browser sessions.
 Everything runs on the user's machine.
 
+**Website:** [omniscout.xyz](https://omniscout.xyz) · **Docs:** [docs.omniscout.xyz](https://docs.omniscout.xyz)
+
 **The CLI is the interface.** Every command supports `--json` (or env
 `OMNISCOUT_JSON=1`) for structured stdout. Browser commands also have a
 curl-equivalent against `http://127.0.0.1:7720/command`.
@@ -25,9 +27,11 @@ curl-equivalent against `http://127.0.0.1:7720/command`.
 | User intent | Command | Notes |
 |-------------|---------|-------|
 | Quick web lookup, ranked results | `omniscout search "query"` | DDG + optional local rerank |
-| One-sentence factual answer | `omniscout search "query" --answer` | Plain text; add `--data` for sources/timing |
+| One-sentence factual answer | `omniscout answer "query"` | Plain text; add `--data` for sources/timing |
 | Deep multi-source report | `omniscout research "topic"` | Search → crawl → extract → summarize |
 | Clean Markdown from a URL | `omniscout extract https://…` | No browser needed; uses on-disk cache |
+| Structured facts from a page | `omniscout extract https://… --format structured` | Auto-extract all fields it can (NLP, no LLM) |
+| Specific fields only | `omniscout extract https://… --format structured --fields company,pricing,twitter` | Only requested keys |
 | Save a page for later recall | `omniscout remember https://…` | Indexes into semantic memory |
 | Search pages you've saved | `omniscout search "query" --source memory` | Or `--source hybrid` (memory + DDG) |
 | Interact with a live page | `omniscout browser navigate …` | Requires daemon; use `@eN` refs |
@@ -49,6 +53,9 @@ Then act on the result:
 - **`running: true`** — healthy. Proceed.
 - **`running: false`** — start the daemon: `omniscout daemon start`. Idempotent.
 - **command not found** — install: `pip install omniscout && omniscout install`
+- **Wrong browser / need Edge or Brave** — `omniscout settings browsers` then
+  `omniscout settings set browser edge` (or `brave`, `vivaldi`, `arc`, `custom
+  --executable /path/to/binary`). Install also prompts interactively.
 - **`extension_connected: false`** — fine for default Playwright backend; only
   matters if the user wants the Chrome extension backend.
 
@@ -56,7 +63,7 @@ Search, research, and memory commands auto-start the daemon and route embeddings
 through it. Browser commands require it. Optional warm-up before a batch:
 
 ```bash
-omniscout warmup   # preload embedding model (~2s, stays hot in daemon RAM)
+omniscout warmup   # preload embedding + answer LLM (~2s, stays hot in daemon RAM)
 ```
 
 Read [references/operations.md](references/operations.md) when the daemon is
@@ -87,9 +94,7 @@ omniscout search "robotics simulators" --source hybrid --rerank
 | `--source` | `ddg`, `index`, `memory`, `hybrid` | `ddg` |
 | `--limit`, `-n` | int | 10 |
 | `--rerank/--no-rerank` | local embedding rerank | on |
-| `--answer` | one-sentence answer (plain text stdout) | off |
-| `--depth` | `auto`, `fast`, `balanced`, `deep` | `auto` (with `--answer`) |
-| `--data` | timing, sources, diagnostics | off |
+| `--data` | timing and diagnostics on search hits | off |
 
 **Sources:**
 
@@ -98,24 +103,8 @@ omniscout search "robotics simulators" --source hybrid --rerank
 - `memory` — remembered visits and notes (`omniscout remember`)
 - `hybrid` — memory + DDG, deduplicated by URL
 
-**Answer mode** (`--answer`):
-
-```bash
-# Sub-second: DDG snippets only
-omniscout search "who is the president" --answer
-
-# Local index + DDG fallback (may load embedding model)
-omniscout search "vector databases 2026" --answer --depth balanced
-
-# Crawl + extract top sources (slow)
-omniscout search "FedRAMP LLM hosting" --answer --depth deep
-
-# Full diagnostics
-omniscout search "…" --answer --data
-```
-
-With `--answer` alone, stdout is **plain text** (just the sentence). Add
-`--data` for JSON with sources, `elapsed_ms`, `cache_hit`, etc.
+For a one-line factual answer, use [`omniscout answer "query"`](#4-answer). Search
+returns ranked hits only.
 
 After search, use workflow shortcuts:
 
@@ -124,7 +113,45 @@ omniscout open 1          # open first hit in browser
 omniscout context         # see active session, latest search set, refs
 ```
 
-## 4. Research
+## 4. Answer
+
+Grounded one-sentence answers from web retrieval plus a small local LLM
+(SmolLM2-360M, cached on disk). **Direct DuckDuckGo answers are tried first**
+(HTML box, snippets, Search Assist), then extractive parsing from filtered
+hits, then the local LLM, then a limited crawl for difficult who-is queries.
+Falls back to extractive-only when the model is unavailable.
+
+```bash
+omniscout answer "who is the prime minister of india"
+omniscout answer "who is the president of the us" --depth fast
+omniscout answer "what is the capital of france"
+omniscout answer "how tall is mount everest"
+omniscout answer "what is 2+2"
+omniscout answer "vector databases 2026" --depth balanced
+omniscout answer "FedRAMP LLM hosting" --depth deep
+omniscout answer "who is the pm of singapore" --data
+omniscout answer "…" --no-llm   # extractive fallback only
+```
+
+| Flag | Values | Default |
+|------|--------|---------|
+| `--depth` | `auto`, `fast`, `balanced`, `deep` | `auto` |
+| `--limit`, `-n` | int | 10 |
+| `--data` | sources, timing, `llm_backend`, diagnostics | off |
+| `--no-llm` | skip local LLM synthesis | off |
+
+Without `--data`, stdout is **plain text** (just the answer). Add `--data` for
+sources, `elapsed_ms`, and retrieval diagnostics (`direct+snippet`,
+`extractive+ddg`, `llm+crawl`, etc.).
+
+Prefetch on install or warm-up:
+
+```bash
+omniscout install --answer-model
+omniscout warmup
+```
+
+## 5. Research
 
 Multi-step pipeline: search → crawl → extract → embed → rerank → summarize.
 
@@ -141,9 +168,9 @@ omniscout research "topic" --no-summarize   # sources only, skip summary
 | `--summarize/--no-summarize` | on | Extractive summary |
 
 JSON output includes `topic`, `summary`, and `sources[]` with `url`, `title`,
-`score`. Use this for broad topics; use `search --answer` for quick facts.
+`score`. Use this for broad topics; use `omniscout answer` for quick facts.
 
-## 5. Extract
+## 6. Extract
 
 Fetch a URL and return clean content (trafilatura + markdownify). Uses on-disk
 HTML cache; no browser session required.
@@ -152,13 +179,21 @@ HTML cache; no browser session required.
 omniscout extract https://example.com
 omniscout extract https://example.com --format text
 omniscout extract https://example.com --format json
+omniscout extract https://example.com --format structured
+omniscout extract https://example.com --format structured --fields company,pricing,twitter
+omniscout extract https://example.com --format json --fields company,pricing
+omniscout extract https://example.com --format structured --data   # full ExtractResult
 omniscout extract @e12    # resolve ref from latest snapshot
 ```
 
-Formats: `markdown` (default), `text`, `json`. Pass `--no-cache` to bypass
-disk cache.
+Formats: `markdown` (default), `text`, `json`, `structured`. `--format structured`
+auto-extracts metadata, pricing, founder, social links (Twitter/X, LinkedIn,
+GitHub, YouTube, …), important page URLs (docs, blog, careers, community,
+status, …), contact info, and any `Label: value` lines on the page. Pass
+`--fields` to limit keys; `--data` for full metadata and stderr logs. Pass
+`--no-cache` to bypass disk cache.
 
-## 6. Browser memory
+## 7. Browser memory
 
 Explicit indexing — normal navigate/extract/snapshot do **not** auto-index.
 
@@ -179,7 +214,7 @@ omniscout memory clear --yes
 Memory lives in `$OMNISCOUT_DATA_DIR/memory.sqlite` with vectors in Qdrant.
 Search it with `--source memory` or `--source hybrid`.
 
-## 7. Workflow shortcuts
+## 8. Workflow shortcuts
 
 Top-level aliases that tie search, browser, and extract together:
 
@@ -197,7 +232,7 @@ Deterministic rules:
 - `omniscout extract @eN` resolves through latest snapshot lineage
 - Re-snapshot if refs are stale before retrying extraction
 
-## 8. Browser automation
+## 9. Browser automation
 
 All browser commands accept `--session NAME` (default `default`) and `--json`.
 Prefer top-level `omniscout snapshot` / `omniscout open` when chaining with
@@ -277,7 +312,7 @@ omniscout browser captcha --solver 2captcha       # opt-in; needs TWOCAPTCHA_API
 - Cross-origin iframes: navigate to iframe URL directly
 - `pdf` and `upload` require Playwright backend
 
-## 9. Profiles
+## 10. Profiles
 
 Persistent Chrome user-data-dirs; login state survives across runs.
 
@@ -288,7 +323,7 @@ omniscout profile delete work
 omniscout browser navigate https://github.com --profile work
 ```
 
-## 10. Observability
+## 11. Observability
 
 Every daemon action is logged to `$OMNISCOUT_DATA_DIR/daemon/actions.jsonl`:
 
@@ -302,7 +337,7 @@ omniscout daemon watch [--filter action.finish] [--json-lines]
 omniscout workflow export --session demo --since 300
 ```
 
-## 11. Typical agent workflows
+## 12. Typical agent workflows
 
 **Research a topic:**
 
@@ -342,7 +377,7 @@ omniscout search "rate limiting" --source memory
 omniscout memory stats
 ```
 
-## 12. Cleanup
+## 13. Cleanup
 
 ```bash
 omniscout browser close --session demo

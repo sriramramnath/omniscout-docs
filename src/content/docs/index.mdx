@@ -2,16 +2,33 @@
 title: OmniScout
 description: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
 template: splash
+head:
+  - tag: meta
+    attrs:
+      property: og:title
+      content: OmniScout Docs
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://docs.omniscout.xyz/og/docs-home.jpg
+  - tag: meta
+    attrs:
+      name: twitter:image
+      content: https://docs.omniscout.xyz/og/docs-home.jpg
 hero:
   tagline: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
   actions:
     - text: Get started
       link: /cli/overview/
       icon: right-arrow
+    - text: Website
+      link: https://omniscout.xyz
+      icon: external
+      variant: secondary
     - text: GitHub
       link: https://github.com/sriramramnath/omniscout
       icon: github
-      variant: secondary
+      variant: minimal
     - text: PyPI
       link: https://pypi.org/project/omniscout/
       icon: external
@@ -157,6 +174,7 @@ OmniScout just exposes the actuator side as a CLI.
 
 ## Where to go next
 
+<LinkCard title="Website" description="Install guide, use cases, and product overview." href="https://omniscout.xyz/" />
 <LinkCard title="CLI Overview" description="Install, configure, and run your first commands." href="/cli/overview/" />
 <LinkCard title="Command reference" description="Every verb in the action vocabulary, with JSON shapes." href="/cli/commands/" />
 <LinkCard title="Using OmniScout with AI agents" description="Drop-in prompts for Claude Code, Cursor, and Codex." href="/cli/agents/" />

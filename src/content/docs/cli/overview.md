@@ -1,6 +1,19 @@
 ---
 title: What is OmniScout?
 description: OmniScout — local-first browser control, semantic search, and research for AI agents.
+head:
+  - tag: meta
+    attrs:
+      property: og:title
+      content: What is OmniScout?
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://docs.omniscout.xyz/og/docs-overview.jpg
+  - tag: meta
+    attrs:
+      name: twitter:image
+      content: https://docs.omniscout.xyz/og/docs-overview.jpg
 ---
 
 OmniScout (CLI binary: `omniscout`) is a **local-first browser-control, semantic-
@@ -9,6 +22,8 @@ Cursor, Codex, Kimi, and any shell-capable agent the same kind of
 browser-actuator surface you'd get from Kimi WebBridge, Claude for Chrome,
 or ChatGPT Atlas — but it runs entirely on your machine, with no cloud
 APIs, no hosted browser session, and no MCP server.
+
+**Website:** [omniscout.xyz](https://omniscout.xyz) · **Docs:** [docs.omniscout.xyz](https://docs.omniscout.xyz)
 
 ## What you get
 
@@ -70,17 +85,21 @@ See [Architecture](/cli/architecture) for the full picture.
 ### Prerequisites
 
 - Python 3.11+
-- Google Chrome (recommended) or Playwright's bundled Chromium
+- A Chromium-based browser (Chrome recommended; Edge, Brave, Vivaldi, Arc, and
+  others supported via `omniscout settings`)
 
 ### Install from PyPI (recommended)
 
 ```bash
 pip install omniscout
-omniscout install                    # verify Chrome + prefetch embedding model
+omniscout install                    # pick a browser + prefetch models
+omniscout install --browser brave    # non-interactive browser choice
 omniscout install --skill            # optional: install agent skill files
+omniscout settings browsers          # list supported / installed browsers
 ```
 
-`omniscout install` verifies Chrome is reachable, prefetches the local embedding
+`omniscout install` detects installed Chromium browsers (interactive picker in
+a TTY), writes your choice to `config.toml`, prefetches the local embedding
 model to disk (~80MB), and optionally drops the agent skill into Claude Code,
 Cursor, and Codex's well-known skill directories. Search commands auto-start
 the daemon and keep the embed model loaded in RAM — no separate warm-up step.
@@ -103,7 +122,7 @@ pip install omniscout
 omniscout install
 ```
 
-If Chrome isn't installed, add `--bundled` to download Playwright's
+If no Chromium browser is installed, add `--bundled` to download Playwright's
 Chromium (~190MB).
 
 ### Optional: Chrome extension
@@ -162,9 +181,19 @@ request_throttle_seconds = 1.0
 embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
 qdrant_collection = "scout_passages"
 summary_sentences = 6
-browser_channel = "chrome"            # chrome | chromium
-# browser_executable = "/path/to/chrome"
+browser = "chrome"                    # chrome | edge | brave | vivaldi | opera | arc | dia | thorium | chromium | custom
+# browser_executable = "/path/to/binary"  # optional override or required for custom
 ```
+
+Or change the browser from the CLI:
+
+```bash
+omniscout settings browsers
+omniscout settings set browser edge
+omniscout settings show
+```
+
+Legacy `browser_channel = "chrome"` is still read when `browser` is omitted.
 
 ## When to use OmniScout vs alternatives
 

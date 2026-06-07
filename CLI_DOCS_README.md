@@ -34,7 +34,7 @@ Complete documentation for Scout CLI has been created in `src/content/docs/cli/`
 - **Installation & Setup**
 - Global installation
 - Virtual environment setup
-- Chrome/Chromium configuration
+- Chrome/Chromium configuration (`omniscout settings`, multi-browser catalog)
 
 - **CLI Commands**
 - Search commands
@@ -43,6 +43,7 @@ Complete documentation for Scout CLI has been created in `src/content/docs/cli/`
 - Browser automation commands
 - Profile management
 - Session management
+- Settings (`settings show`, `settings browsers`, `settings set browser`)
 - Daemon management
 
 - **Python API**
@@ -97,9 +98,9 @@ Complete documentation for Scout CLI has been created in `src/content/docs/cli/`
 - JSON output
 
 ### Extraction
-- URL extraction
+- URL extraction (`markdown`, `text`, `json`)
+- Structured extraction (`--format structured`, `--fields`, `--data`)
 - Browser rendering
-- Multiple formats
 - Caching
 
 ### Research
