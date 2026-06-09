@@ -31,6 +31,14 @@ export default defineAppConfig({
     github: 'https://github.com/sriramramnath/omniscout',
   },
 
+  assistant: {
+    floatingInput: false,
+    explainWithAi: false,
+    shortcuts: {
+      focusInput: '',
+    },
+  },
+
   toc: {
     title: 'On this page',
     bottom: {
@@ -62,6 +70,14 @@ export default defineAppConfig({
     colors: {
       primary: 'indigo',
       neutral: 'slate',
+    },
+    pageHero: {
+      slots: {
+        root: 'relative isolate overflow-hidden',
+        container: 'flex flex-col py-16 sm:py-20 lg:py-24 gap-10',
+        title: 'text-4xl sm:text-6xl text-pretty tracking-tight font-bold text-highlighted max-w-4xl',
+        description: 'text-lg sm:text-xl text-muted max-w-2xl',
+      },
     },
   },
 })

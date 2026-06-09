@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -35,12 +33,75 @@ pre,
   font-family: var(--font-mono);
 }
 
-.install-banner {
-  margin: 1.5rem 0 2rem;
+.scout-hero-glow {
+  position: absolute;
+  inset: -40% auto auto 50%;
+  width: min(56rem, 90vw);
+  height: 28rem;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in oklab, var(--ui-color-primary-500) 28%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: -1;
 }
 
-.install-banner pre {
-  border-radius: 0.75rem;
+.scout-bento {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .scout-bento {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .scout-bento > * {
+    grid-column: span 12;
+  }
+
+  .scout-bento__span-8 {
+    grid-column: span 8;
+  }
+
+  .scout-bento__span-7 {
+    grid-column: span 7;
+  }
+
+  .scout-bento__span-6 {
+    grid-column: span 6;
+  }
+
+  .scout-bento__span-5 {
+    grid-column: span 5;
+  }
+
+  .scout-bento__span-4 {
+    grid-column: span 4;
+  }
+
+  .scout-bento__row-2 {
+    grid-row: span 2;
+  }
+}
+
+.scout-bento-card :where(pre) {
+  margin: 0;
+  border-radius: 0.625rem;
   border: 1px solid var(--ui-border);
   background: var(--ui-bg-muted);
+  font-size: 0.8125rem;
+}
+
+.scout-bento-card :where(code) {
+  font-size: 0.8125rem;
+}
+
+.scout-prompt-tabs {
+  margin-top: 0.5rem;
 }

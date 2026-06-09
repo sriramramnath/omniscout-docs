@@ -4,12 +4,15 @@ seo:
   description: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
 ---
 
+::div{.scout-hero-glow}
+::
+
 ::u-page-hero
 #title
-Give your AI agent a browser. No SDK. No cloud. Just a CLI.
+Give your AI agent a browser.
 
 #description
-Local-first browser control, semantic search, and research for AI agents.
+Local-first browser control, semantic search, and research for AI agents. No SDK. No cloud. Just a CLI.
 
 #links
   :::u-button
@@ -56,111 +59,115 @@ Local-first browser control, semantic search, and research for AI agents.
   :::
 ::
 
-::div{.install-banner}
-```bash
-# Install and set up in two commands
-pip install omniscout
-omniscout install --skill
-```
-::
+::u-page-section
+#title
+Why OmniScout
 
+#description
+The actuator layer for browser-using agents — same surface as Kimi WebBridge or Claude for Chrome, but you bring the model.
 
-## What OmniScout does
+#body
+::div{.scout-bento}
+  :::u-page-card{.scout-bento__span-8.scout-bento-card}
+  ---
+  title: Install in two commands
+  icon: i-lucide-terminal
+  variant: subtle
+  spotlight: true
+  ---
+  ```bash
+  pip install omniscout
+  omniscout install --skill
+  ```
 
-OmniScout is a local daemon + CLI that gives Claude Code, Cursor, Codex, or any LLM agent real browser control — navigate, click, fill, screenshot, scrape — all through JSON-in, JSON-out commands that run entirely on your machine.
+  Then start the daemon once: `omniscout daemon start`
+  :::
 
-It exposes the same browser-control surface that products like **Kimi WebBridge**, **Claude for Chrome**, and **ChatGPT Atlas** ship with their models — but deliberately without the reasoning loop. Bring whatever LLM you want; OmniScout just exposes the actuator side as a CLI.
-
-::card-group
-  ::card
+  :::u-page-card{.scout-bento__span-4.scout-bento__row-2}
   ---
   title: One atomic CLI per action
+  description: navigate, snapshot, click, fill, scroll, screenshot, eval, wait, tab, network, login, captcha — every verb returns structured JSON.
   icon: i-lucide-rocket
-  ---
-  `navigate`, `snapshot`, `click`, `fill`, `scroll`, `key`, `screenshot`,
-		`eval`, `wait`, `tab`, `network`, `login`, `captcha`. Every command
-		returns structured JSON your agent can act on immediately.
-  ::
+  to: /cli/commands
+  variant: subtle
+  spotlight: true
+  :::
 
-  ::card
+  :::u-page-card{.scout-bento__span-4}
   ---
   title: Sub-second calls
-  icon: i-lucide-circle-check
-  ---
-  A long-lived `omniscout daemon` keeps Playwright warm. Your agent never
-		pays cold-start cost on every browser action.
-  ::
+  description: A long-lived daemon keeps Playwright warm. No cold-start tax on every browser action.
+  icon: i-lucide-zap
+  to: /cli/architecture
+  variant: subtle
+  :::
 
-  ::card
+  :::u-page-card{.scout-bento__span-4}
+  ---
+  title: Stable @eN refs
+  description: Snapshot returns accessibility-tree refs that survive CSS churn — same shape Kimi WebBridge uses.
+  icon: i-lucide-crosshair
+  to: /cli/architecture
+  variant: subtle
+  :::
+
+  :::u-page-card{.scout-bento__span-6}
   ---
   title: Two backends, one vocabulary
+  description: Headless Playwright by default, or drive your real Chrome via the extension — cookies and logins intact.
   icon: i-lucide-puzzle
-  ---
-  Use headless Playwright by default, or flip to the Chrome extension to
-		drive your *real* running browser — with its real cookies and logins.
-  ::
+  to: /cli/overview
+  variant: subtle
+  :::
 
-  ::card
-  ---
-  title: Stable element refs
-  icon: i-lucide-pencil
-  ---
-  `snapshot` returns accessibility-tree refs (`@eN`) that survive CSS
-		class-hash churn. No brittle selectors. Same shape Kimi WebBridge uses.
-  ::
-
-  ::card
+  :::u-page-card{.scout-bento__span-6}
   ---
   title: Fully local
+  description: No cloud API, no hosted browser, no MCP server to babysit. Your data never leaves your machine.
   icon: i-lucide-laptop
-  ---
-  No cloud API. No hosted browser. No MCP server to babysit. The CLI is
-		the interface — your data never leaves your machine.
-  ::
+  to: /cli/overview
+  variant: subtle
+  :::
 
-  ::card
+  :::u-page-card{.scout-bento__span-7.scout-bento-card}
   ---
   title: Agent-native output
+  description: Skill files land in Claude Code, Cursor, Codex, and Gemini skill dirs after install --skill.
   icon: i-lucide-braces
+  to: /cli/agents
+  variant: subtle
+  spotlight: true
   ---
-  Skill files install into `~/.claude/skills/`, `~/.cursor/skills-cursor/`,
-		`~/.codex/skills/`, and `~/.gemini/config/skills/` so your agent learns OmniScout's vocabulary
-		automatically after `omniscout install --skill`.
-  ::
+  `~/.claude/skills/scout/` · `~/.cursor/skills-cursor/scout/` · `~/.codex/skills/scout/`
+  :::
+
+  :::u-page-card{.scout-bento__span-5.scout-bento-card}
+  ---
+  title: Try it in 60 seconds
+  icon: i-lucide-play
+  variant: subtle
+  ---
+  ```bash
+  omniscout browser navigate https://news.ycombinator.com
+  omniscout browser snapshot --refs-only
+  omniscout browser click '@e3'
+  omniscout browser screenshot --out /tmp/hn.png
+  ```
+  :::
+::
 ::
 
-## Try it in 60 seconds
+::u-page-section
+#title
+Drop a prompt into any agent
 
-```bash
-# 1. Install from PyPI
-pip install omniscout
+#description
+After `omniscout install --skill`, paste one of these — your agent routes browser work through OmniScout automatically.
 
-# 2. First-run setup + agent skill
-omniscout install --skill
-
-# 3. Start the daemon (idempotent)
-omniscout daemon start
-
-# 4. Drive a browser
-omniscout browser navigate https://news.ycombinator.com
-omniscout browser snapshot --refs-only
-omniscout browser click '@e3'
-omniscout browser screenshot --out /tmp/hn.png
-```
-
-::tip{title="Working from a git checkout?"}
-Clone the repo and run `pip install -e cli/` for an editable install instead of
-installing from PyPI.
-::
-
-## Drop these prompts into any agent
-
-After `omniscout install --skill`, your agent reads `SKILL.md` and learns OmniScout's
-command vocabulary. From then on, paste any of the following and it routes
-browser tasks through OmniScout automatically.
-
+#body
+::div{.scout-prompt-tabs}
 ::tabs
-  :::tabs-item{label="Research a topic"}
+  :::tabs-item{label="Research"}
 ```text
 Use OmniScout to research "open-source browser agents in 2026" and summarize
 the top 5 passages with their source URLs.
@@ -169,98 +176,118 @@ the top 5 passages with their source URLs.
 
   :::tabs-item{label="Navigate & act"}
 ```text
-Open https://news.ycombinator.com using OmniScout, get a snapshot of the
-interactive elements, click the top story link, and screenshot the
-resulting page to /tmp/hn-top.png.
+Open https://news.ycombinator.com using OmniScout, snapshot interactive
+elements, click the top story, and screenshot the result to /tmp/hn-top.png.
 ```
   :::
 
   :::tabs-item{label="Persistent login"}
 ```text
-Run `omniscout browser login https://github.com --profile work` and pause
-for me to authenticate. Then use that profile to screenshot my
-notifications page.
-```
-  :::
-
-  :::tabs-item{label="Fill a form"}
-```text
-Use OmniScout to open https://duckduckgo.com, fill the search box with
-"local-first AI agents", press Enter, wait for results, and return
-the titles of the first 3 results.
+Run `omniscout browser login https://github.com --profile work`, pause for
+me to authenticate, then screenshot my notifications page with that profile.
 ```
   :::
 
   :::tabs-item{label="Inspect network"}
 ```text
-Open the Vercel pricing page with OmniScout, start network capture, scroll
-through the page, then stop capture and list any requests matching
-"stripe|payment|checkout" with their response status codes.
+Open the Vercel pricing page with OmniScout, capture network traffic while
+scrolling, then list requests matching stripe|payment|checkout.
 ```
   :::
 ::
+::
+::
 
-## Prior art, and where OmniScout sits
+::u-page-section
+#title
+Where OmniScout sits
 
+#description
+These products ship the reasoning model with the actuator. OmniScout deliberately does not — bring whatever LLM you want.
+
+#body
 | Product | Where it runs | What OmniScout borrows |
 |---|---|---|
 | Kimi WebBridge | Local daemon + Chrome extension | `@eN` refs, `/status` shape, optional extension backend |
 | Claude for Chrome | MV3 side panel | Hybrid `@eN` + coordinates, click/key/scroll vocabulary |
 | ChatGPT Atlas | Forked Chromium | Per-session tab groups, persistent login |
 | browser-use | Playwright in-process | Backend-agnostic action surface, persistent profiles |
+::
 
-All of those products ship the reasoning model alongside the actuator. OmniScout's
-deliberate non-goal is to own the reasoning loop — bring whatever LLM you want,
-OmniScout just exposes the actuator side as a CLI.
+::u-page-section
+#title
+Go deeper
 
-## Where to go next
+#features
+  :::u-page-feature
+  ---
+  icon: i-lucide-book-open
+  to: /cli/overview
+  ---
+  #title
+  [CLI overview](/cli/overview)
 
-::card
----
-title: Website
-to: https://omniscout.xyz/
----
-Install guide, use cases, and product overview.
-::
-::card
----
-title: CLI Overview
-to: /cli/overview/
----
-Install, configure, and run your first commands.
-::
-::card
----
-title: Command reference
-to: /cli/commands/
----
-Every verb in the action vocabulary, with JSON shapes.
-::
-::card
----
-title: Using OmniScout with AI agents
-to: /cli/agents/
----
-Drop-in prompts for Claude Code, Cursor, and Codex.
-::
-::card
----
-title: Examples & recipes
-to: /cli/examples/
----
-Common workflows: research, login, captcha, multi-tab automation.
-::
-::card
----
-title: Architecture
-to: /cli/architecture/
----
-Daemon, backends, snapshot refs, lifecycle.
-::
-::card
----
-title: Python SDK
-to: /sdk/
----
-Use OmniScout engines directly from Python.
+  #description
+  Install, configure, and run your first commands.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-bot
+  to: /cli/agents
+  ---
+  #title
+  [Using with AI agents](/cli/agents)
+
+  #description
+  Drop-in prompts for Claude Code, Cursor, and Codex.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-list
+  to: /cli/commands
+  ---
+  #title
+  [Commands reference](/cli/commands)
+
+  #description
+  Every verb, flag, and JSON field in the action vocabulary.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-flask-conical
+  to: /cli/examples
+  ---
+  #title
+  [Examples & recipes](/cli/examples)
+
+  #description
+  Research, login, captcha, and multi-tab workflows.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-layers
+  to: /cli/architecture
+  ---
+  #title
+  [Architecture](/cli/architecture)
+
+  #description
+  Daemon, backends, snapshot refs, and lifecycle.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-code-xml
+  to: /sdk
+  ---
+  #title
+  [Python SDK](/sdk)
+
+  #description
+  Use OmniScout engines directly from Python.
+  :::
 ::
