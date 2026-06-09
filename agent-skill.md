@@ -31,6 +31,7 @@ curl-equivalent against `http://127.0.0.1:7720/command`.
 | Deep multi-source report | `omniscout research "topic"` | Search → crawl → extract → summarize |
 | Clean Markdown from a URL | `omniscout extract https://…` | No browser needed; uses on-disk cache |
 | Structured facts from a page | `omniscout extract https://… --format structured` | Auto-extract all fields it can (NLP, no LLM) |
+| Structured facts from a query | `omniscout extract -q "SpaceX founder" --format structured --fields founder` | DDG + multi-level crawl, then extract |
 | Specific fields only | `omniscout extract https://… --format structured --fields company,pricing,twitter` | Only requested keys |
 | Save a page for later recall | `omniscout remember https://…` | Indexes into semantic memory |
 | Search pages you've saved | `omniscout search "query" --source memory` | Or `--source hybrid` (memory + DDG) |
@@ -181,6 +182,7 @@ omniscout extract https://example.com --format text
 omniscout extract https://example.com --format json
 omniscout extract https://example.com --format structured
 omniscout extract https://example.com --format structured --fields company,pricing,twitter
+omniscout extract -q "Acme Inc pricing" --format structured --depth 3 --results 5
 omniscout extract https://example.com --format json --fields company,pricing
 omniscout extract https://example.com --format structured --data   # full ExtractResult
 omniscout extract @e12    # resolve ref from latest snapshot
@@ -192,6 +194,11 @@ GitHub, YouTube, …), important page URLs (docs, blog, careers, community,
 status, …), contact info, and any `Label: value` lines on the page. Pass
 `--fields` to limit keys; `--data` for full metadata and stderr logs. Pass
 `--no-cache` to bypass disk cache.
+
+**Query mode** (`--query` / `-q`): omit the URL, search DuckDuckGo, crawl top
+`--results` seed URLs (default 5), follow same-host links up to `--depth`
+levels (default 3), merge text, then extract. Requires `--format structured` or
+`--fields`.
 
 ## 7. Browser memory
 

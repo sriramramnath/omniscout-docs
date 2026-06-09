@@ -1,51 +1,69 @@
 ---
-title: OmniScout
-description: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
-template: splash
-head:
-  - tag: meta
-    attrs:
-      property: og:title
-      content: OmniScout Docs
-  - tag: meta
-    attrs:
-      property: og:image
-      content: https://docs.omniscout.xyz/og/docs-home.jpg
-  - tag: meta
-    attrs:
-      name: twitter:image
-      content: https://docs.omniscout.xyz/og/docs-home.jpg
-hero:
-  tagline: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
-  actions:
-    - text: Get started
-      link: /cli/overview/
-      icon: right-arrow
-    - text: Website
-      link: https://omniscout.xyz
-      icon: external
-      variant: secondary
-    - text: GitHub
-      link: https://github.com/sriramramnath/omniscout
-      icon: github
-      variant: minimal
-    - text: PyPI
-      link: https://pypi.org/project/omniscout/
-      icon: external
-      variant: minimal
+seo:
+  title: OmniScout Docs
+  description: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
 ---
 
-import { Card, CardGrid, Tabs, TabItem, LinkCard, Aside } from '@astrojs/starlight/components';
+::u-page-hero
+#title
+Give your AI agent a browser. No SDK. No cloud. Just a CLI.
 
-<div class="install-banner">
+#description
+Local-first browser control, semantic search, and research for AI agents.
 
+#links
+  :::u-button
+  ---
+  color: primary
+  size: xl
+  to: /cli/overview
+  trailing-icon: i-lucide-arrow-right
+  ---
+  Get started
+  :::
+
+  :::u-button
+  ---
+  color: neutral
+  size: xl
+  to: https://omniscout.xyz
+  variant: outline
+  trailing-icon: i-lucide-external-link
+  ---
+  Website
+  :::
+
+  :::u-button
+  ---
+  color: neutral
+  icon: i-simple-icons-github
+  size: xl
+  to: https://github.com/sriramramnath/omniscout
+  variant: ghost
+  ---
+  GitHub
+  :::
+
+  :::u-button
+  ---
+  color: neutral
+  icon: i-simple-icons-pypi
+  size: xl
+  to: https://pypi.org/project/omniscout/
+  variant: ghost
+  ---
+  PyPI
+  :::
+::
+
+::div{.install-banner}
 ```bash
 # Install and set up in two commands
 pip install omniscout
 omniscout install --skill
 ```
+::
 
-</div>
 
 ## What OmniScout does
 
@@ -53,34 +71,63 @@ OmniScout is a local daemon + CLI that gives Claude Code, Cursor, Codex, or any 
 
 It exposes the same browser-control surface that products like **Kimi WebBridge**, **Claude for Chrome**, and **ChatGPT Atlas** ship with their models — but deliberately without the reasoning loop. Bring whatever LLM you want; OmniScout just exposes the actuator side as a CLI.
 
-<CardGrid stagger>
-	<Card title="One atomic CLI per action" icon="rocket">
-		`navigate`, `snapshot`, `click`, `fill`, `scroll`, `key`, `screenshot`,
+::card-group
+  ::card
+  ---
+  title: One atomic CLI per action
+  icon: i-lucide-rocket
+  ---
+  `navigate`, `snapshot`, `click`, `fill`, `scroll`, `key`, `screenshot`,
 		`eval`, `wait`, `tab`, `network`, `login`, `captcha`. Every command
 		returns structured JSON your agent can act on immediately.
-	</Card>
-	<Card title="Sub-second calls" icon="approve-check">
-		A long-lived `omniscout daemon` keeps Playwright warm. Your agent never
+  ::
+
+  ::card
+  ---
+  title: Sub-second calls
+  icon: i-lucide-circle-check
+  ---
+  A long-lived `omniscout daemon` keeps Playwright warm. Your agent never
 		pays cold-start cost on every browser action.
-	</Card>
-	<Card title="Two backends, one vocabulary" icon="puzzle">
-		Use headless Playwright by default, or flip to the Chrome extension to
+  ::
+
+  ::card
+  ---
+  title: Two backends, one vocabulary
+  icon: i-lucide-puzzle
+  ---
+  Use headless Playwright by default, or flip to the Chrome extension to
 		drive your *real* running browser — with its real cookies and logins.
-	</Card>
-	<Card title="Stable element refs" icon="pencil">
-		`snapshot` returns accessibility-tree refs (`@eN`) that survive CSS
+  ::
+
+  ::card
+  ---
+  title: Stable element refs
+  icon: i-lucide-pencil
+  ---
+  `snapshot` returns accessibility-tree refs (`@eN`) that survive CSS
 		class-hash churn. No brittle selectors. Same shape Kimi WebBridge uses.
-	</Card>
-	<Card title="Fully local" icon="laptop">
-		No cloud API. No hosted browser. No MCP server to babysit. The CLI is
+  ::
+
+  ::card
+  ---
+  title: Fully local
+  icon: i-lucide-laptop
+  ---
+  No cloud API. No hosted browser. No MCP server to babysit. The CLI is
 		the interface — your data never leaves your machine.
-	</Card>
-	<Card title="Agent-native output" icon="seti:json">
-		Skill files install into `~/.claude/skills/`, `~/.cursor/skills-cursor/`,
+  ::
+
+  ::card
+  ---
+  title: Agent-native output
+  icon: i-lucide-braces
+  ---
+  Skill files install into `~/.claude/skills/`, `~/.cursor/skills-cursor/`,
 		`~/.codex/skills/`, and `~/.gemini/config/skills/` so your agent learns OmniScout's vocabulary
 		automatically after `omniscout install --skill`.
-	</Card>
-</CardGrid>
+  ::
+::
 
 ## Try it in 60 seconds
 
@@ -101,10 +148,10 @@ omniscout browser click '@e3'
 omniscout browser screenshot --out /tmp/hn.png
 ```
 
-<Aside type="tip" title="Working from a git checkout?">
+::tip{title="Working from a git checkout?"}
 Clone the repo and run `pip install -e cli/` for an editable install instead of
 installing from PyPI.
-</Aside>
+::
 
 ## Drop these prompts into any agent
 
@@ -112,52 +159,46 @@ After `omniscout install --skill`, your agent reads `SKILL.md` and learns OmniSc
 command vocabulary. From then on, paste any of the following and it routes
 browser tasks through OmniScout automatically.
 
-<Tabs>
-<TabItem label="Research a topic">
-
+::tabs
+  :::tabs-item{label="Research a topic"}
 ```text
 Use OmniScout to research "open-source browser agents in 2026" and summarize
 the top 5 passages with their source URLs.
 ```
+  :::
 
-</TabItem>
-<TabItem label="Navigate & act">
-
+  :::tabs-item{label="Navigate & act"}
 ```text
 Open https://news.ycombinator.com using OmniScout, get a snapshot of the
 interactive elements, click the top story link, and screenshot the
 resulting page to /tmp/hn-top.png.
 ```
+  :::
 
-</TabItem>
-<TabItem label="Persistent login">
-
+  :::tabs-item{label="Persistent login"}
 ```text
 Run `omniscout browser login https://github.com --profile work` and pause
 for me to authenticate. Then use that profile to screenshot my
 notifications page.
 ```
+  :::
 
-</TabItem>
-<TabItem label="Fill a form">
-
+  :::tabs-item{label="Fill a form"}
 ```text
 Use OmniScout to open https://duckduckgo.com, fill the search box with
 "local-first AI agents", press Enter, wait for results, and return
 the titles of the first 3 results.
 ```
+  :::
 
-</TabItem>
-<TabItem label="Inspect network">
-
+  :::tabs-item{label="Inspect network"}
 ```text
 Open the Vercel pricing page with OmniScout, start network capture, scroll
 through the page, then stop capture and list any requests matching
 "stripe|payment|checkout" with their response status codes.
 ```
-
-</TabItem>
-</Tabs>
+  :::
+::
 
 ## Prior art, and where OmniScout sits
 
@@ -174,10 +215,52 @@ OmniScout just exposes the actuator side as a CLI.
 
 ## Where to go next
 
-<LinkCard title="Website" description="Install guide, use cases, and product overview." href="https://omniscout.xyz/" />
-<LinkCard title="CLI Overview" description="Install, configure, and run your first commands." href="/cli/overview/" />
-<LinkCard title="Command reference" description="Every verb in the action vocabulary, with JSON shapes." href="/cli/commands/" />
-<LinkCard title="Using OmniScout with AI agents" description="Drop-in prompts for Claude Code, Cursor, and Codex." href="/cli/agents/" />
-<LinkCard title="Examples & recipes" description="Common workflows: research, login, captcha, multi-tab automation." href="/cli/examples/" />
-<LinkCard title="Architecture" description="Daemon, backends, snapshot refs, lifecycle." href="/cli/architecture/" />
-<LinkCard title="Python SDK" description="Use OmniScout engines directly from Python." href="/sdk/" />
+::card
+---
+title: Website
+to: https://omniscout.xyz/
+---
+Install guide, use cases, and product overview.
+::
+::card
+---
+title: CLI Overview
+to: /cli/overview/
+---
+Install, configure, and run your first commands.
+::
+::card
+---
+title: Command reference
+to: /cli/commands/
+---
+Every verb in the action vocabulary, with JSON shapes.
+::
+::card
+---
+title: Using OmniScout with AI agents
+to: /cli/agents/
+---
+Drop-in prompts for Claude Code, Cursor, and Codex.
+::
+::card
+---
+title: Examples & recipes
+to: /cli/examples/
+---
+Common workflows: research, login, captcha, multi-tab automation.
+::
+::card
+---
+title: Architecture
+to: /cli/architecture/
+---
+Daemon, backends, snapshot refs, lifecycle.
+::
+::card
+---
+title: Python SDK
+to: /sdk/
+---
+Use OmniScout engines directly from Python.
+::

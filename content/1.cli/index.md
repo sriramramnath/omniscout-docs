@@ -1,8 +1,10 @@
 ---
 title: OmniScout CLI
 description: Local-first browser control, semantic search, and research for AI agents.
+seo:
+  title: "OmniScout CLI"
+  description: "Local-first browser control, semantic search, and research for AI agents."
 ---
-
 The OmniScout CLI (`omniscout`) is the public interface for everything OmniScout
 does. It's designed to be driven by AI agents, but it works just as well
 from a human shell.

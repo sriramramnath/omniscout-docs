@@ -99,7 +99,7 @@ Complete documentation for Scout CLI has been created in `src/content/docs/cli/`
 
 ### Extraction
 - URL extraction (`markdown`, `text`, `json`)
-- Structured extraction (`--format structured`, `--fields`, `--data`)
+- Structured extraction (`--format structured`, `--fields`, `--data`, `--query`)
 - Browser rendering
 - Caching
 

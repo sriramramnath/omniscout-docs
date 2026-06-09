@@ -1,8 +1,10 @@
 ---
 title: SDK Documentation
 description: OmniScout SDK - Python API for programmatic access to OmniScout CLI
+seo:
+  title: "SDK Documentation"
+  description: "OmniScout SDK - Python API for programmatic access to OmniScout CLI"
 ---
-
 # OmniScout SDK Documentation
 
 The OmniScout SDK provides a Python API for programmatic access to OmniScout CLI functionality. Use the SDK to integrate OmniScout into your Python applications.
