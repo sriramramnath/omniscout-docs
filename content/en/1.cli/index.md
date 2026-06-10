@@ -1,6 +1,8 @@
 ---
 title: OmniScout CLI
 description: Local-first browser control, semantic search, and research for AI agents.
+navigation:
+  icon: i-lucide-book-open
 seo:
   title: "OmniScout CLI"
   description: "Local-first browser control, semantic search, and research for AI agents."
@@ -38,6 +40,7 @@ omniscout daemon start
 omniscout browser navigate https://example.com
 omniscout browser snapshot --refs-only
 omniscout browser screenshot --out /tmp/out.png
+omniscout browser screenshot --full-length --out /tmp/full.png
 omniscout browser close --all
 ```
 
@@ -52,6 +55,7 @@ omniscout browser close --all
 | `omniscout remember` / `memory ...` | Browser memory — visit, note, semantic search over history |
 | `omniscout extract` | Fetch a URL and return clean Markdown / text / JSON |
 | `omniscout research` | Multi-step: search → crawl → extract → embed → rerank → summarize |
+| `omniscout graph` | Knowledge graph tree for an entity; optional site-only crawl (`--website` or URL entity) |
 | `omniscout open`, `snapshot`, `context` | Workflow shortcuts for agents |
 | `omniscout replay`, `workflow export` | Replay daemon actions; export workflow JSON |
 | `omniscout warmup` | Optional: preload embed + answer models in daemon before a batch |

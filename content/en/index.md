@@ -7,6 +7,7 @@ seo:
 ::div{.scout-hero-glow}
 ::
 
+::div{.scout-home-hero}
 ::u-page-hero
 #title
 Give your AI agent a browser.
@@ -42,7 +43,7 @@ Local-first browser control, semantic search, and research for AI agents. No SDK
   icon: i-simple-icons-github
   size: xl
   to: https://github.com/sriramramnath/omniscout
-  variant: ghost
+  variant: outline
   ---
   GitHub
   :::
@@ -53,13 +54,14 @@ Local-first browser control, semantic search, and research for AI agents. No SDK
   icon: i-simple-icons-pypi
   size: xl
   to: https://pypi.org/project/omniscout/
-  variant: ghost
+  variant: outline
   ---
   PyPI
   :::
 ::
+::
 
-::u-page-section
+::u-page-section{.scout-bento-section}
 #title
 Why OmniScout
 
@@ -83,7 +85,7 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   Then start the daemon once: `omniscout daemon start`
   :::
 
-  :::u-page-card{.scout-bento__span-4.scout-bento__row-2}
+  :::u-page-card{.scout-bento__span-4.scout-bento-card}
   ---
   title: One atomic CLI per action
   description: navigate, snapshot, click, fill, scroll, screenshot, eval, wait, tab, network, login, captcha — every verb returns structured JSON.
@@ -91,6 +93,8 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   to: /cli/commands
   variant: subtle
   spotlight: true
+  ---
+
   :::
 
   :::u-page-card{.scout-bento__span-4}
@@ -100,6 +104,8 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   icon: i-lucide-zap
   to: /cli/architecture
   variant: subtle
+  ---
+
   :::
 
   :::u-page-card{.scout-bento__span-4}
@@ -109,6 +115,19 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   icon: i-lucide-crosshair
   to: /cli/architecture
   variant: subtle
+  ---
+
+  :::
+
+  :::u-page-card{.scout-bento__span-4}
+  ---
+  title: Search, answer, extract
+  description: DuckDuckGo search with local rerank, one-sentence answers, and URL-to-Markdown extraction — no browser required.
+  icon: i-lucide-search
+  to: /cli/overview
+  variant: subtle
+  ---
+
   :::
 
   :::u-page-card{.scout-bento__span-6}
@@ -118,6 +137,8 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   icon: i-lucide-puzzle
   to: /cli/overview
   variant: subtle
+  ---
+
   :::
 
   :::u-page-card{.scout-bento__span-6}
@@ -127,9 +148,11 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   icon: i-lucide-laptop
   to: /cli/overview
   variant: subtle
+  ---
+
   :::
 
-  :::u-page-card{.scout-bento__span-7.scout-bento-card}
+  :::u-page-card{.scout-bento__span-6.scout-bento-card}
   ---
   title: Agent-native output
   description: Skill files land in Claude Code, Cursor, Codex, and Gemini skill dirs after install --skill.
@@ -138,10 +161,14 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   variant: subtle
   spotlight: true
   ---
-  `~/.claude/skills/scout/` · `~/.cursor/skills-cursor/scout/` · `~/.codex/skills/scout/`
+  ```text
+  ~/.claude/skills/scout/
+  ~/.cursor/skills-cursor/scout/
+  ~/.codex/skills/scout/
+  ```
   :::
 
-  :::u-page-card{.scout-bento__span-5.scout-bento-card}
+  :::u-page-card{.scout-bento__span-6.scout-bento-card}
   ---
   title: Try it in 60 seconds
   icon: i-lucide-play
@@ -157,7 +184,7 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
 ::
 ::
 
-::u-page-section
+::u-page-section{.scout-home-section}
 #title
 Drop a prompt into any agent
 
@@ -165,8 +192,7 @@ Drop a prompt into any agent
 After `omniscout install --skill`, paste one of these — your agent routes browser work through OmniScout automatically.
 
 #body
-::div{.scout-prompt-tabs}
-::tabs
+::tabs{.scout-prompt-tabs}
   :::tabs-item{label="Research"}
 ```text
 Use OmniScout to research "open-source browser agents in 2026" and summarize
@@ -194,7 +220,6 @@ Open the Vercel pricing page with OmniScout, capture network traffic while
 scrolling, then list requests matching stripe|payment|checkout.
 ```
   :::
-::
 ::
 ::
 

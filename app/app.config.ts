@@ -74,9 +74,19 @@ export default defineAppConfig({
     pageHero: {
       slots: {
         root: 'relative isolate overflow-hidden',
-        container: 'flex flex-col py-16 sm:py-20 lg:py-24 gap-10',
-        title: 'text-4xl sm:text-6xl text-pretty tracking-tight font-bold text-highlighted max-w-4xl',
-        description: 'text-lg sm:text-xl text-muted max-w-2xl',
+        container: 'flex flex-col items-center text-center py-20 sm:py-24 lg:py-28 gap-8',
+        title: 'text-4xl sm:text-5xl lg:text-6xl text-balance tracking-tight font-bold text-highlighted max-w-4xl mx-auto',
+        description: 'text-lg sm:text-xl text-muted text-balance max-w-2xl mx-auto leading-relaxed',
+        links: 'flex flex-wrap items-center justify-center gap-3',
+      },
+    },
+    pageSection: {
+      slots: {
+        root: 'py-14 sm:py-16',
+        container: 'flex flex-col gap-8',
+        title: 'text-3xl sm:text-4xl font-bold text-highlighted text-center text-balance',
+        description: 'text-muted text-center text-balance max-w-3xl mx-auto leading-relaxed',
+        body: 'mt-2',
       },
     },
   },

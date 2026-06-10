@@ -1,5 +1,14 @@
+import { docusLocales, defaultLocale } from './i18n/locales.config'
+
 export default defineNuxtConfig({
   extends: ['docus'],
+
+  modules: ['@nuxtjs/i18n', './modules/i18n-strategy'],
+
+  i18n: {
+    defaultLocale,
+    locales: docusLocales,
+  },
 
   site: {
     url: 'https://docs.omniscout.xyz',
@@ -21,6 +30,15 @@ export default defineNuxtConfig({
 
   mcp: {
     enabled: false,
+  },
+
+  runtimeConfig: {
+    public: {
+      // Exposed for DocsPageHeaderLinks — keep in sync with mcp.enabled above.
+      mcp: {
+        enabled: false,
+      },
+    },
   },
 
   llms: {

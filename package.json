@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
-    "build": "node scripts/build-llms-full.mjs && nuxt build",
+    "translate": "node scripts/translate-content.mjs",
+    "build": "node scripts/translate-content.mjs && node scripts/build-llms-full.mjs && nuxt build",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
@@ -12,5 +13,8 @@
     "better-sqlite3": "^12.6.2",
     "docus": "latest",
     "nuxt": "^4.3.1"
+  },
+  "devDependencies": {
+    "gt": "^2.14.47"
   }
 }

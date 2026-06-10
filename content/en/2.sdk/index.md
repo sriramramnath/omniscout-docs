@@ -1,6 +1,8 @@
 ---
 title: SDK Documentation
 description: OmniScout SDK - Python API for programmatic access to OmniScout CLI
+navigation:
+  icon: i-lucide-code-xml
 seo:
   title: "SDK Documentation"
   description: "OmniScout SDK - Python API for programmatic access to OmniScout CLI"

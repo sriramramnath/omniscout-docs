@@ -2,8 +2,9 @@
 name: scout
 description: |
   OmniScout is a local-first CLI for AI agents: semantic web search (DuckDuckGo +
-  local rerank), one-sentence answers, multi-step research, URL extraction to
-  Markdown, browser memory, and full browser automation (navigate, click, fill,
+  local rerank), one-sentence answers, multi-step research, knowledge graphs,
+  URL extraction to Markdown, browser memory, and full browser automation
+  (navigate, click, fill,
   screenshot, login, CAPTCHA, network capture) via a daemon at 127.0.0.1:7720.
   Use this skill whenever the user wants to search the web, research a topic,
   extract page content, remember pages, or interact with a website. Prefer
@@ -29,6 +30,8 @@ curl-equivalent against `http://127.0.0.1:7720/command`.
 | Quick web lookup, ranked results | `omniscout search "query"` | DDG + optional local rerank |
 | One-sentence factual answer | `omniscout answer "query"` | Plain text; add `--data` for sources/timing |
 | Deep multi-source report | `omniscout research "topic"` | Search → crawl → extract → summarize |
+| Structured entity map (tree) | `omniscout graph "Cursor"` | 3 sources by default; local LLM → Unicode tree |
+| Entity map from one website | `omniscout graph "cursor.com"` or `graph "X" -w URL` | Site-only BFS; skips DDG |
 | Clean Markdown from a URL | `omniscout extract https://…` | No browser needed; uses on-disk cache |
 | Structured facts from a page | `omniscout extract https://… --format structured` | Auto-extract all fields it can (NLP, no LLM) |
 | Structured facts from a query | `omniscout extract -q "SpaceX founder" --format structured --fields founder` | DDG + multi-level crawl, then extract |
@@ -36,12 +39,14 @@ curl-equivalent against `http://127.0.0.1:7720/command`.
 | Save a page for later recall | `omniscout remember https://…` | Indexes into semantic memory |
 | Search pages you've saved | `omniscout search "query" --source memory` | Or `--source hybrid` (memory + DDG) |
 | Interact with a live page | `omniscout browser navigate …` | Requires daemon; use `@eN` refs |
+| Full-page screenshot (top to bottom) | `omniscout browser screenshot --full-length` | Viewport-only by default; `--full-page` is an alias |
 | Open result #3 from last search | `omniscout open 3` | Workflow shorthand |
 | Extract from a snapshot ref | `omniscout extract @e12` | Resolves via workflow state |
 
 **Rule of thumb:** start with `search` or `research` for information gathering;
-use `extract` for a known URL; use `browser` when the page needs clicks,
-logins, JS rendering, or network inspection.
+use `graph` when the user wants a structured overview of a product, company, or
+person; use `extract` for a known URL; use `browser` when the page needs
+clicks, logins, JS rendering, or network inspection.
 
 ## 1. Health check (always do this first)
 
@@ -152,7 +157,31 @@ omniscout install --answer-model
 omniscout warmup
 ```
 
-## 5. Research
+## 5. Graph
+
+Knowledge graph for an entity — Company, Founders, Competitors, Pricing,
+Features, Reviews, and more — as a Unicode tree. Fast default: 3 sources, httpx
+crawl (no browser fallback). Uses the same local answer LLM as `omniscout answer`.
+
+```bash
+omniscout graph "Cursor"
+omniscout graph "cursor.com"                    # URL → site-only crawl
+omniscout graph "Cursor" --website cursor.com   # label + pinned site
+omniscout graph "Cursor" --data                 # tree + sources/timing
+omniscout graph "Cursor" --no-llm               # heuristic fallback only
+```
+
+| Flag | Default | Meaning |
+|------|---------|---------|
+| `--results`, `-k` | 3 | Web hits or in-site pages |
+| `--website`, `-w` | — | Same-host crawl only |
+| `--data` | off | Sources and diagnostics |
+| `--no-llm` | off | Skip local LLM synthesis |
+
+Prefer `graph` over `research` when the user wants a structured entity overview,
+not a prose report. Pass a URL (or `-w`) when they point at a specific site.
+
+## 6. Research
 
 Multi-step pipeline: search → crawl → extract → embed → rerank → summarize.
 
@@ -171,7 +200,7 @@ omniscout research "topic" --no-summarize   # sources only, skip summary
 JSON output includes `topic`, `summary`, and `sources[]` with `url`, `title`,
 `score`. Use this for broad topics; use `omniscout answer` for quick facts.
 
-## 6. Extract
+## 7. Extract
 
 Fetch a URL and return clean content (trafilatura + markdownify). Uses on-disk
 HTML cache; no browser session required.
@@ -200,7 +229,7 @@ status, …), contact info, and any `Label: value` lines on the page. Pass
 levels (default 3), merge text, then extract. Requires `--format structured` or
 `--fields`.
 
-## 7. Browser memory
+## 8. Browser memory
 
 Explicit indexing — normal navigate/extract/snapshot do **not** auto-index.
 
@@ -221,7 +250,7 @@ omniscout memory clear --yes
 Memory lives in `$OMNISCOUT_DATA_DIR/memory.sqlite` with vectors in Qdrant.
 Search it with `--source memory` or `--source hybrid`.
 
-## 8. Workflow shortcuts
+## 9. Workflow shortcuts
 
 Top-level aliases that tie search, browser, and extract together:
 
@@ -239,7 +268,7 @@ Deterministic rules:
 - `omniscout extract @eN` resolves through latest snapshot lineage
 - Re-snapshot if refs are stale before retrying extraction
 
-## 9. Browser automation
+## 10. Browser automation
 
 All browser commands accept `--session NAME` (default `default`) and `--json`.
 Prefer top-level `omniscout snapshot` / `omniscout open` when chaining with
@@ -254,7 +283,7 @@ search; use `omniscout browser …` for the full verb set.
 | `scroll` | direction, `--amount`, `--ref` | `{direction, amount}` | |
 | `key` | combo | `{combo}` | e.g. `cmd+a`, `Escape`, `Enter`. |
 | `hover` | selector or `--coord X Y` | `{mode}` | |
-| `screenshot` | `--out`, `--ref`, `--full-page` | `{format, path, size_bytes}` | **Read the returned path via your Read tool.** |
+| `screenshot` | `--out`, `--ref`, `--full-page`, `--full-length` | `{format, path, size_bytes}` | Full page = top to bottom. **Read the returned path via your Read tool.** |
 | `pdf` | `--out`, `--paper`, `--landscape` | `{path, size_bytes}` | Playwright backend only. |
 | `eval` | code | `{type, value}` | Use compact `JSON.stringify`; wrap in IIFE for fresh scope. |
 | `wait` | `--ref` / `--url` / `--idle` / `--ms` | `{reason}` | |
@@ -264,6 +293,21 @@ search; use `omniscout browser …` for the full verb set.
 | `login` | url, `--profile`, `--success-pattern` | `{logged_in, final_url}` | Headful + blocks; use `login --done` to resume. |
 | `captcha` | `--solver none\|2captcha\|…`, `--detect-only` | captcha status | Default `none` = local-first, user solves. |
 | `close` | `--session`, `--all` | `{closed}` | **Always call at end of task.** |
+
+### Screenshots
+
+Viewport-only by default. Pass `--full-length` or `--full-page` (aliases) to
+capture the entire scrollable page from top to bottom. Use `--ref @eN` to capture
+a single element instead. Always pass `--out` to a path you can read back.
+
+```bash
+omniscout browser screenshot --out /tmp/viewport.png
+omniscout browser screenshot --full-length --out /tmp/full.png
+omniscout browser screenshot https://example.com --full-page --out /tmp/page.png
+omniscout browser screenshot --ref @e3 --out /tmp/button.png
+```
+
+Daemon JSON arg: `"full_page": true` (works with curl/`POST /command` too).
 
 ### curl equivalent
 
@@ -319,7 +363,7 @@ omniscout browser captcha --solver 2captcha       # opt-in; needs TWOCAPTCHA_API
 - Cross-origin iframes: navigate to iframe URL directly
 - `pdf` and `upload` require Playwright backend
 
-## 10. Profiles
+## 11. Profiles
 
 Persistent Chrome user-data-dirs; login state survives across runs.
 
@@ -330,7 +374,7 @@ omniscout profile delete work
 omniscout browser navigate https://github.com --profile work
 ```
 
-## 11. Observability
+## 12. Observability
 
 Every daemon action is logged to `$OMNISCOUT_DATA_DIR/daemon/actions.jsonl`:
 
@@ -344,7 +388,7 @@ omniscout daemon watch [--filter action.finish] [--json-lines]
 omniscout workflow export --session demo --since 300
 ```
 
-## 12. Typical agent workflows
+## 13. Typical agent workflows
 
 **Research a topic:**
 
@@ -360,6 +404,15 @@ omniscout search "OmniScout browser agent" --limit 5
 omniscout open 1
 omniscout snapshot --refs-only
 omniscout extract @e3    # or extract the page URL directly
+omniscout browser close --all
+```
+
+**Capture a full-page screenshot:**
+
+```bash
+omniscout browser navigate https://example.com
+omniscout browser wait networkidle
+omniscout browser screenshot --full-length --out /tmp/example-full.png
 omniscout browser close --all
 ```
 
@@ -384,7 +437,7 @@ omniscout search "rate limiting" --source memory
 omniscout memory stats
 ```
 
-## 13. Cleanup
+## 14. Cleanup
 
 ```bash
 omniscout browser close --session demo

@@ -62,6 +62,8 @@ omniscout daemon logs --prev -n 200  # the previous run's log (after a crash)
 | `click @eN` returns `no_such_ref` | The ref expired (TTL 120s) or you re-navigated. Re-`snapshot`. |
 | `fill` writes to the wrong element on SPAs | The role-based locator is ambiguous. Use the snapshot's `value` field to verify which `@e` you want; or fall back to a more specific CSS selector. |
 | Screenshot path lives in a temp dir you can't access | Pass `--out /path/you/control.png` explicitly. |
+| Screenshot only shows the visible viewport / cuts off below-the-fold content | Viewport capture is the default. Re-run with `--full-length` or `--full-page` for a top-to-bottom capture. |
+| Extension full-page screenshot still looks viewport-sized (pre-0.2.9) | Upgrade to `omniscout` 0.2.9+ and restart the daemon. |
 | Banner doesn't appear on extension-driven tabs | Reload the page once after enabling the extension. |
 
 ## Reset to a clean state

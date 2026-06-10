@@ -1,0 +1,12 @@
+{
+  "defaultLocale": "en",
+  "locales": ["es", "fr", "de", "ja", "ko", "zh-CN", "pt-BR", "ru", "hi"],
+  "files": {
+    "md": {
+      "include": ["content/[locale]/**/*.md"]
+    },
+    "yaml": {
+      "include": ["content/[locale]/**/.navigation.yml"]
+    }
+  }
+}

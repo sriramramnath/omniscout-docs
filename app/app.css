@@ -35,17 +35,70 @@ pre,
 
 .scout-hero-glow {
   position: absolute;
-  inset: -40% auto auto 50%;
-  width: min(56rem, 90vw);
-  height: 28rem;
+  inset: -20% auto auto 50%;
+  width: min(48rem, 85vw);
+  height: 24rem;
   transform: translateX(-50%);
   background: radial-gradient(
     ellipse at center,
-    color-mix(in oklab, var(--ui-color-primary-500) 28%, transparent),
-    transparent 70%
+    color-mix(in oklab, var(--ui-color-primary-500) 22%, transparent),
+    transparent 72%
   );
   pointer-events: none;
   z-index: -1;
+}
+
+.scout-home-hero {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 1rem;
+}
+
+.scout-home-hero > :where([data-slot='root'], section, div) {
+  width: 100%;
+}
+
+.scout-home-hero :where([data-slot='container']) {
+  align-items: center !important;
+  text-align: center !important;
+  margin-inline: auto;
+}
+
+.scout-home-hero :where([data-slot='title']) {
+  margin-inline: auto;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    var(--ui-text-highlighted, #fff) 30%,
+    color-mix(in oklab, var(--ui-color-primary-400) 85%, white)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.scout-home-hero :where([data-slot='description']) {
+  margin-inline: auto;
+  text-align: center;
+  max-width: 36rem;
+}
+
+.scout-home-hero :where([data-slot='links']) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* Sticky header: opaque background so hero CTAs do not bleed through on scroll */
+[data-slot='header'] {
+  background-color: color-mix(in oklab, var(--ui-bg) 94%, transparent);
+  backdrop-filter: blur(12px);
 }
 
 .scout-bento {
@@ -55,10 +108,15 @@ pre,
   width: 100%;
 }
 
+.scout-bento > * {
+  min-width: 0;
+}
+
 @media (min-width: 768px) {
   .scout-bento {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: 1rem;
+    align-items: stretch;
   }
 
   .scout-bento > * {
@@ -96,12 +154,58 @@ pre,
   border: 1px solid var(--ui-border);
   background: var(--ui-bg-muted);
   font-size: 0.8125rem;
+  padding: 0.875rem 1rem;
 }
 
 .scout-bento-card :where(code) {
   font-size: 0.8125rem;
 }
 
+.scout-bento :where([data-slot='card'], .group) {
+  height: 100%;
+}
+
+.scout-bento__row-2 :where([data-slot='card'], .group) {
+  display: flex;
+  flex-direction: column;
+}
+
+.scout-bento-section :where([data-slot='root']) {
+  padding-bottom: 1.25rem !important;
+}
+
+.scout-home-section {
+  border-top: 1px solid var(--ui-border);
+  width: 100%;
+}
+
+.scout-home-section :where([data-slot='root']) {
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+}
+
+.scout-home-section :where([data-slot='container']) {
+  gap: 1.25rem;
+}
+
 .scout-prompt-tabs {
-  margin-top: 0.5rem;
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+.scout-prompt-tabs :where([role='tablist']) {
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.scout-prompt-tabs :where(pre) {
+  margin: 0;
+  border-radius: 0.625rem;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg-muted);
+  font-size: 0.8125rem;
+  padding: 1rem 1.125rem;
 }

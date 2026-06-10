@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DOCS_ROOT = path.join(__dirname, '../content');
+const DOCS_ROOT = path.join(__dirname, '../content/en');
 const DOCS_SITE = 'https://docs.omniscout.xyz';
 const OUT_FILE = path.join(__dirname, '../public/llms-full.txt');
 
@@ -60,7 +60,7 @@ async function main() {
     if (!urlPath) continue;
     const raw = await readFile(path.join(DOCS_ROOT, rel), 'utf8');
     const body = stripFrontmatter(raw);
-    sections.push(`---`, `URL: ${DOCS_SITE}${urlPath}`, `Source: content/${rel}`, `---`, body.trim(), ``);
+    sections.push(`---`, `URL: ${DOCS_SITE}${urlPath}`, `Source: content/en/${rel}`, `---`, body.trim(), ``);
   }
 
   await writeFile(OUT_FILE, sections.join('\n') + '\n');
