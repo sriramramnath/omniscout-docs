@@ -30,8 +30,10 @@ curl-equivalent against `http://127.0.0.1:7720/command`.
 | Quick web lookup, ranked results | `omniscout search "query"` | DDG + optional local rerank |
 | One-sentence factual answer | `omniscout answer "query"` | Plain text; add `--data` for sources/timing |
 | Deep multi-source report | `omniscout research "topic"` | Search → crawl → extract → summarize |
-| Structured entity map (tree) | `omniscout graph "Cursor"` | 3 sources by default; local LLM → Unicode tree |
-| Entity map from one website | `omniscout graph "cursor.com"` or `graph "X" -w URL` | Site-only BFS; skips DDG |
+| Structured entity map (tree) | `omniscout graph "Cursor"` | 5 sources by default; evidence-first NLP tree |
+| Entity map from one website | `omniscout graph "cursor.com"` or `graph "X" -w URL` | Site seed URLs; skips DDG |
+| Exa-style JSON from search | `omniscout search "…" --output-schema-inline '{...}'` | Multi-source NLP + schema validation |
+| Exa-style JSON from URL | `omniscout extract URL --schema-inline '{...}'` | Same envelope as structured search |
 | Clean Markdown from a URL | `omniscout extract https://…` | No browser needed; uses on-disk cache |
 | Structured facts from a page | `omniscout extract https://… --format structured` | Auto-extract all fields it can (NLP, no LLM) |
 | Structured facts from a query | `omniscout extract -q "SpaceX founder" --format structured --fields founder` | DDG + multi-level crawl, then extract |
@@ -160,7 +162,8 @@ omniscout warmup
 ## 5. Graph
 
 Knowledge graph for an entity — Company, Founders, Competitors, Pricing,
-Features, Reviews, and more — as a Unicode tree. Fast default: 3 sources, httpx
+Features, Reviews, and more — as a Unicode tree. Default: evidence-first NLP from
+5 sources (optional `--llm` for Classic LLM overlay).
 crawl (no browser fallback). Uses the same local answer LLM as `omniscout answer`.
 
 ```bash
@@ -168,15 +171,15 @@ omniscout graph "Cursor"
 omniscout graph "cursor.com"                    # URL → site-only crawl
 omniscout graph "Cursor" --website cursor.com   # label + pinned site
 omniscout graph "Cursor" --data                 # tree + sources/timing
-omniscout graph "Cursor" --no-llm               # heuristic fallback only
+omniscout graph "Cursor" --llm                  # optional Classic LLM overlay
 ```
 
 | Flag | Default | Meaning |
 |------|---------|---------|
-| `--results`, `-k` | 3 | Web hits or in-site pages |
+| `--results`, `-k` | 5 | Web hits or in-site pages |
 | `--website`, `-w` | — | Same-host crawl only |
 | `--data` | off | Sources and diagnostics |
-| `--no-llm` | off | Skip local LLM synthesis |
+| `--llm` | off | Optional Classic LLM overlay |
 
 Prefer `graph` over `research` when the user wants a structured entity overview,
 not a prose report. Pass a URL (or `-w`) when they point at a specific site.
@@ -214,6 +217,8 @@ omniscout extract https://example.com --format structured --fields company,prici
 omniscout extract -q "Acme Inc pricing" --format structured --depth 3 --results 5
 omniscout extract https://example.com --format json --fields company,pricing
 omniscout extract https://example.com --format structured --data   # full ExtractResult
+OMNISCOUT_JSON=1 omniscout search "Cursor pricing" --output-schema-inline '{"type":"object","properties":{"pricing":{"type":"string"}},"required":["pricing"]}'
+OMNISCOUT_JSON=1 omniscout extract https://cursor.com/pricing --schema-inline '{"type":"object","properties":{"pricing":{"type":"string"}},"required":["pricing"]}'
 omniscout extract @e12    # resolve ref from latest snapshot
 ```
 
@@ -283,7 +288,7 @@ search; use `omniscout browser …` for the full verb set.
 | `scroll` | direction, `--amount`, `--ref` | `{direction, amount}` | |
 | `key` | combo | `{combo}` | e.g. `cmd+a`, `Escape`, `Enter`. |
 | `hover` | selector or `--coord X Y` | `{mode}` | |
-| `screenshot` | `--out`, `--ref`, `--full-page`, `--full-length` | `{format, path, size_bytes}` | Full page = top to bottom. **Read the returned path via your Read tool.** |
+| `screenshot` | `--out`, `--ref`, `--full-page`, `--full-length`, `--delay` | `{format, path, size_bytes}` | `--delay SEC` before capture. **Read the returned path via your Read tool.** |
 | `pdf` | `--out`, `--paper`, `--landscape` | `{path, size_bytes}` | Playwright backend only. |
 | `eval` | code | `{type, value}` | Use compact `JSON.stringify`; wrap in IIFE for fresh scope. |
 | `wait` | `--ref` / `--url` / `--idle` / `--ms` | `{reason}` | |
@@ -305,9 +310,10 @@ omniscout browser screenshot --out /tmp/viewport.png
 omniscout browser screenshot --full-length --out /tmp/full.png
 omniscout browser screenshot https://example.com --full-page --out /tmp/page.png
 omniscout browser screenshot --ref @e3 --out /tmp/button.png
+omniscout browser screenshot --delay 3 --out /tmp/after-load.png
 ```
 
-Daemon JSON arg: `"full_page": true` (works with curl/`POST /command` too).
+Daemon JSON args: `"full_page": true`, `"delay_ms": 3000` (works with curl/`POST /command` too).
 
 ### curl equivalent
 

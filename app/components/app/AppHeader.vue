@@ -19,14 +19,24 @@ const links = computed(() => appConfig.github && appConfig.github.url
 
 <template>
   <UHeader
-    :ui="{ center: 'flex-1' }"
+    :ui="{
+      root: 'fixed top-0 w-full z-50 bg-[#131313] border-b border-[#333] h-16',
+      container: 'flex items-center justify-between h-full px-8',
+      left: 'flex items-center gap-3',
+      center: 'flex-1',
+      right: 'flex items-center gap-2',
+    }"
     :class="{ 'flex flex-col': subNavigationMode === 'header' }"
   >
-    <AppHeaderCenter />
-
     <template #left>
-      <AppHeaderLeft />
+      <NuxtLink to="/" class="flex items-center gap-3">
+        <img src="/logo.svg" alt="OmniScout" class="h-7 w-auto shrink-0" />
+        <span class="font-bold tracking-tighter text-xl text-white">{{ appConfig.header?.title || 'OmniScout' }}</span>
+        <span class="text-[11px] font-mono text-[#94a3b8] tracking-tight">v0.3.1.2</span>
+      </NuxtLink>
     </template>
+
+    <AppHeaderCenter />
 
     <template #right>
       <AppHeaderCTA />
@@ -36,7 +46,7 @@ const links = computed(() => appConfig.github && appConfig.github.url
           <LanguageSelect />
 
           <template #fallback>
-            <div class="h-8 w-8 animate-pulse bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+            <div class="h-8 w-8 animate-pulse bg-neutral-200 dark:bg-neutral-800 zero-radius" />
           </template>
         </ClientOnly>
 
@@ -52,7 +62,7 @@ const links = computed(() => appConfig.github && appConfig.github.url
         <UColorModeButton />
 
         <template #fallback>
-          <div class="h-8 w-8 animate-pulse bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+          <div class="h-8 w-8 animate-pulse bg-neutral-200 dark:bg-neutral-800 zero-radius" />
         </template>
       </ClientOnly>
 

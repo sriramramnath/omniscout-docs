@@ -64,6 +64,7 @@ omniscout daemon logs --prev -n 200  # the previous run's log (after a crash)
 | Screenshot path lives in a temp dir you can't access | Pass `--out /path/you/control.png` explicitly. |
 | Screenshot only shows the visible viewport / cuts off below-the-fold content | Viewport capture is the default. Re-run with `--full-length` or `--full-page` for a top-to-bottom capture. |
 | Extension full-page screenshot still looks viewport-sized (pre-0.2.9) | Upgrade to `omniscout` 0.2.9+ and restart the daemon. |
+| Screenshot shows a loading spinner or half-rendered page | Page settled before you captured. Re-run with `--delay SEC` (e.g. `--delay 3`) or `browser wait networkidle` first. |
 | Banner doesn't appear on extension-driven tabs | Reload the page once after enabling the extension. |
 
 ## Reset to a clean state

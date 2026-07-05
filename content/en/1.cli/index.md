@@ -20,6 +20,8 @@ from a human shell.
   prompts for Claude Code, Cursor, and Codex.
 - **Looking for a specific command?** Jump to
   [Commands reference](/cli/commands).
+- **Probe Zero answer engine?** See [Probe Zero](/cli/probe-zero) for setup,
+  benchmarks, and `--probe` / settings defaults.
 - **Want recipes?** [Examples & recipes](/cli/examples) has worked
   workflows like "research → screenshot → summarize".
 - **Debugging?** [Troubleshooting](/cli/troubleshooting) covers the
@@ -51,7 +53,7 @@ omniscout browser close --all
 | `omniscout daemon ...` | Long-lived daemon: browser backends, warm embed model, trace/replay/watch |
 | `omniscout browser ...` | Atomic browser actions (navigate, click, fill, snapshot, screenshot, login, captcha, network, tab, …) |
 | `omniscout search` | DuckDuckGo + local embedding rerank; sources `ddg`, `index`, `memory`, `hybrid` |
-| `omniscout answer` | Direct DDG answers → extractive → local LLM → crawl; who-is, capital, height, math |
+| `omniscout answer` | Direct web answers → extractive → local LLM → crawl; Classic or **Probe Zero** engine |
 | `omniscout remember` / `memory ...` | Browser memory — visit, note, semantic search over history |
 | `omniscout extract` | Fetch a URL and return clean Markdown / text / JSON |
 | `omniscout research` | Multi-step: search → crawl → extract → embed → rerank → summarize |
