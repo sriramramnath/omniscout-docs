@@ -32,7 +32,7 @@ const links = computed(() => appConfig.github && appConfig.github.url
       <NuxtLink to="/" class="flex items-center gap-3">
         <img src="/logo.svg" alt="OmniScout" class="h-7 w-auto shrink-0" />
         <span class="font-bold tracking-tighter text-xl text-white">{{ appConfig.header?.title || 'OmniScout' }}</span>
-        <span class="text-[11px] font-mono text-[#94a3b8] tracking-tight">v0.3.1.2</span>
+        <span class="text-[11px] font-mono text-[#94a3b8] tracking-tight">v0.4.0</span>
       </NuxtLink>
     </template>
 
