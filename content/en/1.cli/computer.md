@@ -1,6 +1,6 @@
 ---
-title: Computer automation commands
-description: Desktop automation commands for macOS via the `omniscout computer` sub‑command.
+title: Computer automation & UI commands
+description: Desktop automation and UI commands for macOS via the `omniscout computer` sub‑command.
 navigation:
   title: Computer commands
   icon: i-lucide-monitor
@@ -25,6 +25,19 @@ OmniScout now supports **desktop (computer) automation** on macOS. The `computer
 | `window activate` | `omniscout computer window activate <title|id> [--confirm] [--session <id>]` | Brings the specified window to the foreground. |
 | `window close` | `omniscout computer window close <title|id> [--confirm] [--session <id>]` | Closes a window after confirmation. |
 | `wait` | `omniscout computer wait <ms> [--session <id>]` | Simple sleep for the given milliseconds. |
+
+## UI sub‑commands
+
+| Command | Syntax | Description |
+|---|---|---|
+| `snapshot` | `omniscout computer ui snapshot [--session <id>]` | Returns the UI accessibility tree with stable `@eN` refs. |
+| `click` | `omniscout computer ui click <ref> [--session <id>]` | Clicks the UI element identified by an `@eN` ref. |
+| `drag` | `omniscout computer ui drag <src-ref> <dst-ref> [--session <id>]` | Drags an element from source ref to destination ref. |
+| `is` | `omniscout computer ui is <ref> <role> [--session <id>]` | Checks whether the element matches a role (`button`, `textbox`, …). |
+| `mouse_move` | `omniscout computer ui mouse_move <x> <y> [--session <id>]` | Moves the mouse cursor to screen coordinates. |
+| `mouse_scroll` | `omniscout computer ui mouse_scroll <dx> <dy> [--session <id>]` | Scrolls the mouse wheel by the given deltas. |
+| `drop` | `omniscout computer ui drop <ref> <filepath> [--session <id>]` | Drops a file onto the UI element. |
+
 
 ## Session model & safety
 
