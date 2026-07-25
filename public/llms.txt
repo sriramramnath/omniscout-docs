@@ -26,7 +26,6 @@
 
 ## Optional
 
-- [Roadmap](https://docs.omniscout.xyz/cli/roadmap/): Planned features including MCP support
 - [Marketing site](https://omniscout.xyz/llms.txt): Product overview and feature pages
 - [PyPI package](https://pypi.org/project/omniscout/)
 - [GitHub repository](https://github.com/sriramramnath/omniscout)

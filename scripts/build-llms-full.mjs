@@ -15,7 +15,6 @@ const SLUG_TO_PATH = {
   '1.cli/3.examples.md': '/cli/examples/',
   '1.cli/4.commands.md': '/cli/commands/',
   '1.cli/5.architecture.md': '/cli/architecture/',
-  '1.cli/6.roadmap.md': '/cli/roadmap/',
   '1.cli/7.troubleshooting.md': '/cli/troubleshooting/',
   '2.sdk/index.md': '/sdk/',
   '2.sdk/1.api.md': '/sdk/api/',

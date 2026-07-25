@@ -75,7 +75,6 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   title: Install in two commands
   icon: i-lucide-terminal
   variant: subtle
-  spotlight: true
   ---
   ```bash
   pip install omniscout
@@ -92,7 +91,6 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   icon: i-lucide-rocket
   to: /cli/commands
   variant: subtle
-  spotlight: true
   ---
 
   :::
@@ -159,7 +157,6 @@ The actuator layer for browser-using agents — same surface as Kimi WebBridge o
   icon: i-lucide-braces
   to: /cli/agents
   variant: subtle
-  spotlight: true
   ---
   ```text
   ~/.claude/skills/scout/

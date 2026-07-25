@@ -1,6 +1,7 @@
 export default defineAppConfig({
   docus: {
     locale: 'en',
+    colorMode: 'light',
   },
 
   seo: {
@@ -13,11 +14,11 @@ export default defineAppConfig({
   header: {
     title: 'OmniScout Docs',
     logo: {
-      light: '/logo.svg',
-      dark: '/logo.svg',
+      light: '/omniscout.svg',
+      dark: '/omniscout.svg',
       alt: 'OmniScout',
       favicon: '/favicon.svg',
-      class: 'h-7',
+      class: 'h-5',
     },
   },
 
@@ -68,15 +69,15 @@ export default defineAppConfig({
 
   ui: {
     colors: {
-      primary: 'teal',
+      primary: 'neutral',
       neutral: 'slate',
     },
     pageHero: {
       slots: {
         root: 'relative isolate overflow-hidden',
-        container: 'flex flex-col items-center text-center py-20 sm:py-24 lg:py-28 gap-8',
-        title: 'text-4xl sm:text-5xl lg:text-6xl text-balance tracking-tight font-bold text-highlighted max-w-4xl mx-auto',
-        description: 'text-lg sm:text-xl text-muted text-balance max-w-2xl mx-auto leading-relaxed',
+        container: 'flex flex-col items-center text-center py-24 sm:py-32 lg:py-40 gap-8',
+        title: 'text-5xl sm:text-6xl lg:text-7xl text-balance tracking-tight font-bold text-highlighted max-w-4xl mx-auto',
+        description: 'text-xl sm:text-2xl text-muted text-balance max-w-2xl mx-auto leading-relaxed',
         links: 'flex flex-wrap items-center justify-center gap-3',
       },
     },

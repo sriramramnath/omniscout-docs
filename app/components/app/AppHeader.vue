@@ -20,19 +20,18 @@ const links = computed(() => appConfig.github && appConfig.github.url
 <template>
   <UHeader
     :ui="{
-      root: 'fixed top-0 w-full z-50 bg-[#131313] border-b border-[#333] h-16',
-      container: 'flex items-center justify-between h-full px-8',
-      left: 'flex items-center gap-3',
+      root: 'fixed top-0 w-full z-50 bg-white border-b border-[#E5E5E5] h-14',
+      container: 'flex items-center justify-between h-full px-6',
+      left: 'flex items-center gap-2',
       center: 'flex-1',
-      right: 'flex items-center gap-2',
+      right: 'flex items-center gap-3',
     }"
     :class="{ 'flex flex-col': subNavigationMode === 'header' }"
   >
     <template #left>
-      <NuxtLink to="/" class="flex items-center gap-3">
-        <img src="/logo.svg" alt="OmniScout" class="h-7 w-auto shrink-0" />
-        <span class="font-bold tracking-tighter text-xl text-white">{{ appConfig.header?.title || 'OmniScout' }}</span>
-        <span class="text-[11px] font-mono text-[#94a3b8] tracking-tight">v0.4.1.1</span>
+      <NuxtLink to="/" class="flex items-center gap-2">
+        <img src="/omniscout.svg" alt="OmniScout" class="h-5 w-5 shrink-0" />
+        <span class="font-semibold text-sm tracking-tight text-[#0f0f0f]">OmniScout</span>
       </NuxtLink>
     </template>
 
@@ -46,7 +45,7 @@ const links = computed(() => appConfig.github && appConfig.github.url
           <LanguageSelect />
 
           <template #fallback>
-            <div class="h-8 w-8 animate-pulse bg-neutral-200 dark:bg-neutral-800 zero-radius" />
+            <div class="h-8 w-8 animate-pulse bg-[#f5f5f5]" />
           </template>
         </ClientOnly>
 
@@ -62,7 +61,7 @@ const links = computed(() => appConfig.github && appConfig.github.url
         <UColorModeButton />
 
         <template #fallback>
-          <div class="h-8 w-8 animate-pulse bg-neutral-200 dark:bg-neutral-800 zero-radius" />
+          <div class="h-8 w-8 animate-pulse bg-[#f5f5f5]" />
         </template>
       </ClientOnly>
 
@@ -71,6 +70,7 @@ const links = computed(() => appConfig.github && appConfig.github.url
           v-for="(link, index) of links"
           :key="index"
           v-bind="{ color: 'neutral', variant: 'ghost', ...link }"
+          :ui="{ base: 'text-[#6B6B6B] hover:text-[#0f0f0f]' }"
         />
       </template>
     </template>
