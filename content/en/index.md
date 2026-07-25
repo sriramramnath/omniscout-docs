@@ -4,6 +4,7 @@ seo:
   description: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
 ---
 
+::div{.scout-hero-dark}
 ::u-page-hero
 #title
 Give your AI agent a browser.
