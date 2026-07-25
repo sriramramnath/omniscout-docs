@@ -1,8 +1,7 @@
 ---
 title: SDK Documentation
 description: Use OmniScout engines directly from Python.
-navigation:
-  icon: i-lucide-code-xml
+navigation: false
 seo:
   title: "SDK Documentation"
   description: "Use OmniScout engines directly from Python."
