@@ -4,7 +4,6 @@ seo:
   description: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
 ---
 
-::scout-hero
 ::u-page-hero
 #title
 Give your AI agent a browser.

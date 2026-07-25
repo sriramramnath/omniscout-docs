@@ -107,7 +107,54 @@ code {
   --tw-prose-td-borders: #f0f0f0;
 }
 
-/* Hero glow — hidden */
+/* ═══════════════════════════════════════════════
+   Homepage hero — pure CSS, no Vue component needed.
+   Targets data-slot attributes so it works across SPA navigation.
+   ═══════════════════════════════════════════════ */
+
+/* Dark background on the hero root */
+main [data-slot='root'][data-orientation='vertical'] {
+  background-color: #0a0a0a !important;
+  background-image: url('/darkbg.png') !important;
+  background-size: cover !important;
+  background-position: top !important;
+}
+
+/* Force all children transparent (kills default white backgrounds) */
+main [data-slot='root'][data-orientation='vertical'] *,
+main [data-slot='root'][data-orientation='vertical'] *::before,
+main [data-slot='root'][data-orientation='vertical'] *::after {
+  background-color: transparent !important;
+}
+
+/* White title */
+main [data-slot='root'][data-orientation='vertical'] [data-slot='title'] {
+  color: #ffffff !important;
+}
+
+/* Grey description */
+main [data-slot='root'][data-orientation='vertical'] [data-slot='description'] {
+  color: #a3a3a3 !important;
+}
+
+/* White button text + white ring outline */
+main [data-slot='root'][data-orientation='vertical'] [data-slot='links'] a,
+main [data-slot='root'][data-orientation='vertical'] [data-slot='links'] button {
+  color: #ffffff !important;
+  --tw-ring-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+main [data-slot='root'][data-orientation='vertical'] [data-slot='links'] a:hover,
+main [data-slot='root'][data-orientation='vertical'] [data-slot='links'] button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* White icons */
+main [data-slot='root'][data-orientation='vertical'] [data-slot='leadingIcon'],
+main [data-slot='root'][data-orientation='vertical'] [data-slot='trailingIcon'] {
+  color: #ffffff !important;
+}
 
 /* Go Deeper features - plain styling */
 .scout-home-section [data-slot='item'] {
