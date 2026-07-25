@@ -4,10 +4,7 @@ seo:
   description: Give your AI agent a browser. No SDK. No cloud. Just a CLI.
 ---
 
-::div{.scout-hero-glow}
-::
-
-::div{.scout-home-hero}
+::scout-hero
 ::u-page-hero
 #title
 Give your AI agent a browser.
@@ -18,7 +15,8 @@ Local-first browser control, semantic search, and research for AI agents. No SDK
 #links
   :::u-button
   ---
-  color: primary
+  color: neutral
+  variant: outline
   size: xl
   to: /cli/overview
   trailing-icon: i-lucide-arrow-right
@@ -29,9 +27,9 @@ Local-first browser control, semantic search, and research for AI agents. No SDK
   :::u-button
   ---
   color: neutral
+  variant: outline
   size: xl
   to: https://omniscout.xyz
-  variant: outline
   trailing-icon: i-lucide-external-link
   ---
   Website
@@ -40,10 +38,10 @@ Local-first browser control, semantic search, and research for AI agents. No SDK
   :::u-button
   ---
   color: neutral
+  variant: outline
   icon: i-simple-icons-github
   size: xl
   to: https://github.com/sriramramnath/omniscout
-  variant: outline
   ---
   GitHub
   :::
@@ -51,10 +49,10 @@ Local-first browser control, semantic search, and research for AI agents. No SDK
   :::u-button
   ---
   color: neutral
+  variant: outline
   icon: i-simple-icons-pypi
   size: xl
   to: https://pypi.org/project/omniscout/
-  variant: outline
   ---
   PyPI
   :::
@@ -299,17 +297,5 @@ Go deeper
 
   #description
   Daemon, backends, snapshot refs, and lifecycle.
-  :::
-
-  :::u-page-feature
-  ---
-  icon: i-lucide-code-xml
-  to: /sdk
-  ---
-  #title
-  [Python SDK](/sdk)
-
-  #description
-  Use OmniScout engines directly from Python.
   :::
 ::

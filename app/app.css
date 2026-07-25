@@ -107,43 +107,7 @@ code {
   --tw-prose-td-borders: #f0f0f0;
 }
 
-/* Hero section — dark background with darkbg.png */
-.scout-home-hero {
-  background-color: #0a0a0a !important;
-  background-image: url('/darkbg.png') !important;
-  background-size: cover !important;
-  background-position: top !important;
-}
-
-/* Force every child of the hero wrapper transparent */
-.scout-home-hero *,
-.scout-home-hero *::before,
-.scout-home-hero *::after {
-  background-color: transparent !important;
-}
-
-/* White text inside hero */
-.scout-home-hero .text-highlighted,
-.scout-home-hero [data-slot='title'] {
-  color: #ffffff !important;
-}
-.scout-home-hero .text-muted,
-.scout-home-hero [data-slot='description'] {
-  color: #a3a3a3 !important;
-}
-.scout-home-hero [data-slot='links'] a,
-.scout-home-hero [data-slot='links'] button {
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-}
-.scout-home-hero [data-slot='links'] a:hover,
-.scout-home-hero [data-slot='links'] button:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-.scout-hero-glow {
-  display: none;
-}
+/* Hero glow — hidden */
 
 /* Go Deeper features - plain styling */
 .scout-home-section [data-slot='item'] {
