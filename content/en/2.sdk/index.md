@@ -65,5 +65,5 @@ client.screenshot(session="default", output_path="result.png")
 
 ## See also
 
-- [Python API reference](/sdk/api) — complete API docs
-- [CLI documentation](/cli/overview) — command-line usage
+- [Python API reference](/en/sdk/api) — complete API docs
+- [CLI documentation](/en/cli/overview) — command-line usage

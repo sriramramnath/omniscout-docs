@@ -16,7 +16,7 @@ export default defineEventHandler((event) => {
 
   if (
     path.startsWith('/_')
-    || path.startsWith('/api/')
+    || path.startsWith('/api/_')
     || path.startsWith('/raw/')
     || path.startsWith('/__')
     || /\.\w+$/.test(path)
@@ -24,7 +24,12 @@ export default defineEventHandler((event) => {
     return
   }
 
-  if (path.startsWith('/cli') || path.startsWith('/sdk')) {
+  if (
+    path === '/api'
+    || path.startsWith('/api/')
+    || path.startsWith('/cli')
+    || path.startsWith('/sdk')
+  ) {
     return sendRedirect(event, `/${defaultLocale}${path}${url.search}`, 302)
   }
 })

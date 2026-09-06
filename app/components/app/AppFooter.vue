@@ -1,55 +1,55 @@
 <template>
-  <footer class="border-t border-[#E5E5E5] bg-white">
+  <footer v-if="false" class="border-t border-[rgba(0,0,0,0.1)] bg-white">
     <div class="max-w-6xl mx-auto px-6 lg:px-8 py-16">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
         <div class="col-span-2">
-          <NuxtLink to="/" class="flex items-center gap-2 mb-4 w-fit" aria-label="OmniScout home">
+          <NuxtLink to="/en" class="flex items-center gap-2 mb-4 w-fit" aria-label="OmniScout home">
             <img src="/omniscout.svg" alt="" width="20" height="20" class="h-5 w-5 shrink-0" />
-            <span class="font-semibold text-sm">OmniScout</span>
+            <span class="font-[Inter,sans-serif] font-semibold text-[24px] tracking-[-0.48px] leading-[1.45] text-black">OmniScout</span>
           </NuxtLink>
-          <p class="text-xs text-[#6B6B6B] leading-relaxed max-w-xs">
-            Local-first browser automation and research infrastructure for AI agents.
+          <p class="font-[Inter,sans-serif] font-medium text-[16px] tracking-[-0.08px] leading-[1.45] text-[rgba(0,0,0,0.55)] max-w-xs">
+            Question. Explore. Solve.
           </p>
         </div>
 
         <div>
-          <div class="text-[10px] font-medium text-[#0F0F0F] mb-4 uppercase tracking-[0.1em]">
+          <div class="font-[Inter,sans-serif] font-semibold text-[16px] text-black tracking-[-0.08px] leading-[1.45] mb-4">
             Product
           </div>
-          <ul class="space-y-2.5">
+          <ul class="space-y-2">
             <li>
-              <a href="https://omniscout.xyz/features" class="text-xs text-[#6B6B6B] hover:text-[#0F0F0F] transition-colors">Features</a>
+              <a href="https://omniscout.xyz/features" class="font-[Inter,sans-serif] font-medium text-[16px] text-[rgba(0,0,0,0.55)] tracking-[-0.08px] leading-[1.45] hover:text-black hover:underline transition-colors">Features</a>
             </li>
             <li>
-              <a href="https://omniscout.xyz/compare" class="text-xs text-[#6B6B6B] hover:text-[#0F0F0F] transition-colors">Compare</a>
+              <a href="https://omniscout.xyz/compare" class="font-[Inter,sans-serif] font-medium text-[16px] text-[rgba(0,0,0,0.55)] tracking-[-0.08px] leading-[1.45] hover:text-black hover:underline transition-colors">Compare</a>
             </li>
             <li>
-              <a href="https://omniscout.xyz/changelog" class="text-xs text-[#6B6B6B] hover:text-[#0F0F0F] transition-colors">Changelog</a>
+              <a href="https://omniscout.xyz/changelog" class="font-[Inter,sans-serif] font-medium text-[16px] text-[rgba(0,0,0,0.55)] tracking-[-0.08px] leading-[1.45] hover:text-black hover:underline transition-colors">Changelog</a>
             </li>
           </ul>
         </div>
 
         <div>
-          <div class="text-[10px] font-medium text-[#0F0F0F] mb-4 uppercase tracking-[0.1em]">
+          <div class="font-[Inter,sans-serif] font-semibold text-[16px] text-black tracking-[-0.08px] leading-[1.45] mb-4">
             Resources
           </div>
-          <ul class="space-y-2.5">
+          <ul class="space-y-2">
             <li>
-              <a href="https://omniscout.xyz" target="_blank" rel="noreferrer" class="text-xs text-[#6B6B6B] hover:text-[#0F0F0F] transition-colors">Website</a>
+              <a href="https://omniscout.xyz" target="_blank" rel="noreferrer" class="font-[Inter,sans-serif] font-medium text-[16px] text-[rgba(0,0,0,0.55)] tracking-[-0.08px] leading-[1.45] hover:text-black hover:underline transition-colors">Website</a>
             </li>
             <li>
-              <a href="https://pypi.org/project/omniscout/" target="_blank" rel="noreferrer" class="text-xs text-[#6B6B6B] hover:text-[#0F0F0F] transition-colors">PyPI</a>
+              <a href="https://pypi.org/project/omniscout/" target="_blank" rel="noreferrer" class="font-[Inter,sans-serif] font-medium text-[16px] text-[rgba(0,0,0,0.55)] tracking-[-0.08px] leading-[1.45] hover:text-black hover:underline transition-colors">PyPI</a>
             </li>
             <li>
-              <a href="https://github.com/sriramramnath/omniscout" target="_blank" rel="noreferrer" class="text-xs text-[#6B6B6B] hover:text-[#0F0F0F] transition-colors">GitHub</a>
+              <a href="https://github.com/sriramramnath/omniscout" target="_blank" rel="noreferrer" class="font-[Inter,sans-serif] font-medium text-[16px] text-[rgba(0,0,0,0.55)] tracking-[-0.08px] leading-[1.45] hover:text-black hover:underline transition-colors">GitHub</a>
             </li>
           </ul>
         </div>
       </div>
 
-      <div class="h-px bg-[#E5E5E5] mb-8" />
+      <div class="h-px bg-[rgba(0,0,0,0.1)] mb-8" />
 
-      <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#6B6B6B]">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 font-[Inter,sans-serif] text-[16px] text-[rgba(0,0,0,0.55)]">
         <span>&copy; 2026 OmniScout</span>
         <div class="flex flex-wrap items-center gap-5">
           <a
