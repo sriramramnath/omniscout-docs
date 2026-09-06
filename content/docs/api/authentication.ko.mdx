@@ -1,0 +1,88 @@
+---
+title: 인증
+description: OmniScout Cloud API 키를 생성하고 사용하기.
+---
+
+모든 Cloud API 요청에는 `Authorization` 헤더에 Bearer 토큰이 필요합니다.
+
+검색 및 답변 엔드포인트는 이 API 키만 있으면 됩니다. **브라우저 및 컴퓨터 세션 명령어**에는 두 번째 자격 증명도 필요합니다: 세션 생성 시 반환되는 `session_secret` ([엔드포인트 → 브라우저 세션](/ko/docs/api/endpoints#browser-sessions) 참조).
+
+## API 키
+
+API 키는 [대시보드](https://api.omniscout.xyz/dashboard/api-keys)에서 생성합니다. 각 키는:
+
+- `os_live_`로 시작
+- Clerk 계정에 연결됨
+- 독립적인 사용량 추적
+- 언제든 해지 가능
+
+```bash
+Authorization: Bearer os_live_abc123...
+```
+
+## 키 생성
+
+1. [api.omniscout.xyz](https://api.omniscout.xyz)에서 로그인.
+2. **대시보드 → API 키**로 이동.
+3. **키 생성**을 클릭하고 값을 복사 — 한 번만 표시됨.
+
+키는 소스 코드가 아닌 환경 변수에 저장하세요:
+
+```bash
+export OMNISCOUT_API_KEY=os_live_abc123...
+```
+
+## 예제 요청
+
+```bash
+curl -X POST https://api.omniscout.xyz/v0/search \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "python async patterns"}'
+```
+
+## 세션 시크릿
+
+세션 경로는 **두 가지** 자격 증명을 사용합니다:
+
+| 자격 증명 | 헤더 | 사용 시점 |
+|---|---|---|
+| API 키 | `Authorization: Bearer os_live_...` | 생성, 명령어, 파일 업로드/다운로드, 삭제 |
+| 세션 시크릿 | `x-session-secret: <secret>` | 명령어, 파일 업로드/다운로드만 |
+
+세션 시크릿은 생성 응답에 **한 번만** 반환됩니다 (`session_secret`). `session_id`와 함께 저장하세요 — 나중에 다시 조회할 수 없습니다.
+
+```bash
+# 생성 (API 키만)
+curl -X POST https://api.omniscout.xyz/v0/computer/sessions \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY"
+
+# 명령어 (API 키 + 세션 시크릿)
+curl -X POST "https://api.omniscout.xyz/v0/computer/sessions/$SESSION_ID" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"computer.type","args":{"text":"hello"},"session":"default"}'
+```
+
+삭제는 API 키만 필요합니다 (세션 시크릿 불필요).
+
+## 오류 응답
+
+| 상태 | 의미 |
+|---|---|
+| `401` | API 키가 없거나 잘못됨 |
+| `401` | 세션 명령어 또는 파일 경로의 `x-session-secret`가 잘못됨 |
+| `429` | 일일 요금 제한 초과 |
+
+모든 오류 응답에는 디버깅용 `request_id`가 포함됩니다:
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "unauthorized",
+    "message": "Invalid API key"
+  }
+}
+```

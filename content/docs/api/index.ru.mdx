@@ -1,0 +1,94 @@
+---
+title: Обзор Cloud API
+description: Cloud API OmniScout для поиска, обоснованных ответов и сессий браузера/компьютера.
+---
+
+OmniScout Cloud — это облачный API для семантического поиска, обоснованных ответов и удалённых сессий браузера/компьютера. Он использует тот же пайплайн поиска и реранжирования, что и локальный CLI, но на основе собственного индекса Qdrant вместо DuckDuckGo.
+
+## Что вы получаете
+
+| Возможность | Эндпоинт | Описание |
+|---|---|---|
+| **Поиск** | `POST /v0/search` | Гибридный векторный поиск + BM25 по собственному индексу, реранжирование с помощью omniscout |
+| **Ответ** | `POST /v0/answer` | Search → extract → AI-синтез с источниками и уверенностью |
+| **Сессии браузера** | `POST /v0/browser/sessions` | Лёгкий Sprite только с браузером (`capabilities: ["browser"]`) |
+| **Сессии компьютера** | `POST /v0/computer/sessions` | Унифицированный Sprite с браузером и рабочим столом (`capabilities: ["browser", "computer"]`) |
+| **Файлы сессий** | `POST/GET /v0/sessions/{id}/files` | Загрузка в Sprite или скачивание из Sprite |
+
+### Что изменилось для вызывающих сессии
+
+`POST /v0/search` и `POST /v0/answer` **без изменений**.
+
+Эндпоинты сессий используют те же пути, что и раньше, со следующими отличиями:
+
+1. **Сохраните `session_secret`** из ответа создания — требуется в каждой команде и файловом запросе через `x-session-secret`.
+2. **Сессии компьютера унифицированы** — один `session_id` поддерживает и команды браузера (`POST /v0/browser/sessions/{id}`), и команды компьютера (`POST /v0/computer/sessions/{id}`). Отдельная сессия браузера больше не нужна, если у вас уже есть сессия компьютера.
+3. **Имена действий** — действия браузера используют короткие имена (`navigate`, `screenshot`); действия компьютера используют префикс `computer.` (`computer.type`, `computer.screenshot`).
+4. **Файловые маршруты — новые** — используйте `/v0/sessions/{id}/files` для загрузки файлов или скачивания скриншотов/PDF из Sprite.
+5. **Истечение — по неактивности** — сессии продлеваются каждой командой (по умолчанию 30 мин простоя, макс. 2 ч). Не полагайтесь на фиксированный TTL от момента создания.
+
+```bash
+# 1. Создание унифицированной сессии компьютера (только API-ключ)
+curl -X POST https://api.omniscout.xyz/v0/computer/sessions \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY"
+
+# Ответ включает session_id, session_secret, capabilities: ["browser","computer"]
+
+# 2. Команда браузера в той же сессии (оба заголовка)
+curl -X POST "https://api.omniscout.xyz/v0/browser/sessions/$SESSION_ID" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"navigate","args":{"url":"https://example.com"}}'
+
+# 3. Команда компьютера в той же сессии
+curl -X POST "https://api.omniscout.xyz/v0/computer/sessions/$SESSION_ID" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"computer.type","args":{"text":"hello"}}'
+```
+
+## Быстрый старт
+
+1. Зарегистрируйтесь на [api.omniscout.xyz](https://api.omniscout.xyz) (или на URL вашего деплоя).
+2. Создайте API-ключ в дашборде — ключи начинаются с `os_live_`.
+3. Отправьте первый запрос:
+
+```bash
+curl -X POST https://api.omniscout.xyz/v0/search \
+  -H "Authorization: Bearer os_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "rust async runtimes", "limit": 10}'
+```
+
+## CLI и Cloud
+
+| | **CLI** | **Cloud API** |
+|---|---|---|
+| Источник поиска | DuckDuckGo + локальное реранжирование | Собственный индекс Qdrant + реранжирование omniscout |
+| Ответы | Локальный Probe Zero Mini | Vercel AI Gateway (настраиваемая модель) |
+| Браузер | Ваш локальный Chrome / Playwright | Fly Sprites с демоном omniscout |
+| Аутентификация | Нет (работает локально) | Bearer API-ключ (`os_live_...`) |
+| Оплата | Бесплатно, open source | Бесплатный тариф + платные планы |
+
+Локальный CLI без изменений. Cloud дополняет его — используйте то, что подходит вашему деплою.
+
+## Архитектура
+
+```
+Client → Vercel gateway (/v0/*) → Fly search worker → Qdrant Cloud
+                                 → Vercel AI Gateway (answers)
+                                 → Fly Sprites (browser/computer)
+```
+
+- **Vercel** хостит дашборд, API-шлюз, Clerk-аутентификацию и Convex (ключи, использование, сессии).
+- **Fly.io** запускает поисковый воркер, индексер и Sprites.
+- **Qdrant Cloud** хранит собственный поисковый индекс (Common Crawl + StormCrawler, добавочная индексация).
+
+## Дальнейшие шаги
+
+- [Аутентификация и API-ключи](/ru/docs/api/authentication) — как создавать и использовать ключи
+- [Эндпоинты](/ru/docs/api/endpoints) — схемы запросов/ответов для каждого маршрута
+- [Лимиты](/ru/docs/api/rate-limits) — дневные квоты и тарифы
+- [Справочник OpenAPI](https://api.omniscout.xyz/docs) — интерактивный проводник API

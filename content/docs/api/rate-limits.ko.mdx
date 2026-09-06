@@ -1,0 +1,46 @@
+---
+title: 요금 제한 및 지출 보호
+description: OmniScout Cloud 악용 방지, 동시성 제한, 지출 한도.
+---
+
+OmniScout Cloud는 구독 티어나 월간 API 포함 허용량을 **사용하지 않습니다**. 고객은 소비한 리소스에 대해 지불합니다 ([사용량 및 결제](/ko/docs/api/billing) 참조).
+
+## 악용 방지 (요금제가 아님)
+
+이 제한은 플랫폼을 악용으로부터 보호합니다. 과금 할당량이 **아닙니다**.
+
+| 제어 | 기본값 | 환경 변수 재정의 |
+|---|---|---|
+| 동시 세션 | 3 | `MAX_CONCURRENT_SESSIONS` |
+| 세션 비활성 TTL | 30분 | `SESSION_INACTIVITY_MS` |
+| 세션 최대 TTL | 2시간 | `SESSION_MAX_TTL_MS` |
+| 일일 검색 상한 (레거시 가드) | 1,000 | `DAILY_SEARCH_LIMIT` |
+| 일일 답변 상한 (레거시 가드) | 100 | `DAILY_ANSWER_LIMIT` |
+| 일일 세션 명령어 상한 (레거시 가드) | 5,000 | `DAILY_SESSION_COMMAND_LIMIT` |
+
+일일 엔드포인트 상한은 레거시 악용 가드이며 제거될 수 있습니다. 과금 사용량은 Convex 원장에 별도로 추적됩니다.
+
+## 지출 한도
+
+계정에 월간 USD 지출 상한을 설정할 수 있습니다. 초과 시 과금 작업은 다음을 반환합니다:
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "payment_required",
+    "code": "spending_limit_exceeded",
+    "message": "Spending limit exceeded",
+    "retryable": false
+  }
+}
+```
+
+## 결제 필요
+
+Stripe에서 `past_due` 또는 `unpaid` 청구 상태를 보고하면, 새로운 과금 소비가 `402 payment_required`로 차단될 수 있습니다.
+
+## 사용량 추적
+
+- API: API 키와 함께 `GET /v0/usage`
+- 대시보드: [사용량](https://api.omniscout.xyz/dashboard/usage) 및 [결제](https://api.omniscout.xyz/dashboard/billing)

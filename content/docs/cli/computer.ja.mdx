@@ -1,0 +1,42 @@
+---
+title: コンピューターコマンド
+description: "`omniscout computer`サブコマンドによるmacOS向けデスクトップ自動化。"
+icon: Monitor
+---
+
+OmniScoutはmacOSネイティブのアプリケーション、ウィンドウ、クリップボード、画面を操作できます。
+
+## コマンド
+
+| コマンド | 内容 |
+|---------|--------------|
+| `computer navigate <target>` | アプリ・ファイル・URLを開く |
+| `computer type <text>` | フォーカス中のウィンドウに入力 |
+| `computer key <combo>` | キーボードショートカットを送信（例：`cmd+v`） |
+| `computer screenshot` | 画面をキャプチャ |
+| `computer clipboard get` | クリップボードを読み取る |
+| `computer clipboard set <text>` | クリップボードに書き込む |
+| `computer window list` | 開いているウィンドウを一覧表示 |
+| `computer window activate <title>` | ウィンドウを前面に表示 |
+| `computer window close <title>` | ウィンドウを閉じる |
+| `computer wait <ms>` | ミリ秒単位で待機 |
+
+## UI要素の操作
+
+| コマンド | 内容 |
+|---------|--------------|
+| `computer ui snapshot` | UI要素の参照を取得 |
+| `computer ui click <ref>` | UI要素をクリック |
+| `computer ui drag <src> <dst>` | 要素間でドラッグ |
+| `computer ui is <ref> <role>` | 要素がロールに一致するか確認 |
+
+## 例
+
+```bash
+# メモを開いてメッセージを入力
+omniscout computer navigate "Notes" --session notes
+omniscout computer type "Hello from OmniScout!" --session notes
+omniscout computer screenshot --out /tmp/notes.png --session notes
+```
+
+すべてのオプションは`omniscout computer --help`を参照してください。

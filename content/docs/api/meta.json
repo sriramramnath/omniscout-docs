@@ -1,0 +1,11 @@
+{
+  "title": "Cloud API",
+  "icon": "Cloud",
+  "pages": [
+    "index",
+    "authentication",
+    "endpoints",
+    "rate-limits",
+    "billing"
+  ]
+}

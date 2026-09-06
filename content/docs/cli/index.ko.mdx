@@ -1,0 +1,60 @@
+---
+title: "OmniScout CLI"
+description: AI 에이전트를 위한 로컬 우선 브라우저 제어, 시맨틱 검색 및 리서치.
+icon: BookOpen
+---
+
+## 설치
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+## 사용법
+
+```bash
+omniscout daemon start
+
+# 검색
+omniscout answer "what is the capital of france"
+
+# 추출
+omniscout extract https://example.com
+
+# 브라우저
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# 리서치
+omniscout research "AI agents in 2026"
+
+# 지식 그래프
+omniscout graph "Cursor"
+```
+
+## 구성 요소
+
+| 명령어 | 설명 |
+|---|---|
+| `omniscout answer` | 인용과 함께하는 직접 Q&A |
+| `omniscout search` | 리랭킹이 적용된 웹 검색 |
+| `omniscout extract` | URL을 가져와 깔끔한 콘텐츠 반환 |
+| `omniscout research` | 다단계 리서치 파이프라인 |
+| `omniscout graph` | 지식 그래프 구축 |
+| `omniscout browser` | 브라우저 제어 |
+| `omniscout computer` | 데스크톱 자동화 (macOS) |
+| `omniscout remember` | 메모리에 URL 저장 |
+| `omniscout daemon` | 백그라운드 서비스 관리 |
+
+## JSON 출력
+
+```bash
+export OMNISCOUT_JSON=1  # 에이전트용 구조화 출력
+```
+
+## 로컬 우선
+
+클라우드 계정, API 키, 호스팅 서버가 필요 없습니다. 유일한 외부 트래픽은 DuckDuckGo 검색과 사용자가 직접 요청한 URL 가져오기뿐입니다.

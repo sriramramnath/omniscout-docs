@@ -1,0 +1,14 @@
+{
+  "title": "CLI",
+  "icon": "SquareTerminal",
+  "pages": [
+    "index",
+    "overview",
+    "agents",
+    "examples",
+    "commands",
+    "architecture",
+    "computer",
+    "troubleshooting"
+  ]
+}

@@ -1,0 +1,69 @@
+---
+title: Usage & Billing
+description: OmniScout Cloud usage-based billing, spending limits, and Stripe metered billing.
+icon: CreditCard
+---
+
+OmniScout Cloud uses **usage-based pricing only**. There are no subscription tiers, included monthly hours, or plan-based API limits.
+
+## Pricing formula
+
+```
+customer_charge = actual_infrastructure_cost × 1.30
+```
+
+This is a **30% markup on underlying cost** (cost + 30%), not a 30% gross margin.
+
+## Billable resources
+
+| Resource | Metering | Stripe meter event |
+|---|---|---|
+| Computer runtime | Seconds from session ready → destroy | `computer_runtime_seconds` |
+| Browser runtime | Seconds from session ready → destroy | `browser_runtime_seconds` |
+| Search | Per `POST /v0/search` request | `search_requests` |
+| Answer | Per `POST /v0/answer` request | `answer_requests` |
+
+API calls such as `GET /v0/sessions/{id}` and `POST /v0/sessions/{id}/actions` are **not** metered as API usage. They are unlimited subject to abuse protection, concurrency caps, session TTL, and spending limits.
+
+## Two-layer billing
+
+| Layer | Role |
+|---|---|
+| **Convex usage ledger** | Audit trail, real-time cost estimates, spending-limit enforcement |
+| **Stripe Billing** | Payment method, metered usage, invoicing, Customer Portal |
+
+## GET /v0/usage
+
+Returns current-period usage, estimated charges, active sessions, spending limits, and billing status.
+
+```json
+{
+  "period": "2026-09",
+  "usage": {
+    "computer_runtime_seconds": 3600,
+    "browser_runtime_seconds": 1200,
+    "search_count": 42,
+    "answer_count": 8
+  },
+  "costs": {
+    "underlying_cost_usd": 12.5,
+    "markup_multiplier": 1.3,
+    "estimated_charge_usd": 16.25
+  },
+  "spending_limit_usd": 100,
+  "spending_limit_remaining_usd": 83.75,
+  "billing_status": "active"
+}
+```
+
+## Spending protection
+
+When a monthly spending limit is exceeded, billable operations return `402` with `spending_limit_exceeded`. Accounts with `past_due` billing status may be blocked until payment is resolved.
+
+## Dashboard
+
+View usage and estimated charges at [dashboard billing](https://api.omniscout.xyz/dashboard/billing). Open the Stripe Customer Portal from that page to manage payment methods and invoices.
+
+## Setup
+
+Operators configure Stripe meters, webhook, and cost rates per `cloud/SETUP.md` in the repository.

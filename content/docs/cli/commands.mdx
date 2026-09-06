@@ -1,0 +1,92 @@
+---
+title: Commands reference
+description: Every command in OmniScout's CLI.
+icon: List
+---
+
+Use `omniscout --help` to see all commands, or `omniscout <command> --help` for options.
+
+## Top-level commands
+
+| Command | What it does | When to use |
+|---------|--------------|-------------|
+| `search` | Web search with optional semantic rerank | Quick lookup of URLs or facts |
+| `answer` | Retrieve web results and synthesize with an LLM | Direct Q&A with citation. Preferred over `search` |
+| `map` | Crawl a site and produce a URL map | Explore a whole domain |
+| `warmup` | Pre-load embedding/answer models in the daemon | Reduce latency for first calls |
+| `remember` | Visit a URL, extract content, store in browser memory | Persist information for later recall |
+| `extract` | Fetch a URL or query and return readable/structured data | Pull raw text or JSON from a page |
+| `open` | Open a URL or the latest search-result index in the managed browser | Run a page in the controlled Chromium |
+| `snapshot` | Capture an accessibility snapshot with `@e` refs | Inspect page structure for later UI actions |
+| `context` | Show current workflow continuity state | Debug or resume a multi-step flow |
+| `reset` | Reset the continuity state | Start a fresh session |
+| `auto` | Auto-route input to the best command | Simple one-liner use |
+| `research` | Multi-step: search → crawl → extract → rerank → summarize | Full research pipelines |
+| `graph` | Build a structured knowledge graph for an entity | Organise facts into nodes/edges |
+| `install` | Verify (or download) a Chromium browser for automation | First-time setup |
+| `settings` | View / change user settings | Configuration tweaks |
+| `browser` | Direct Playwright-based Chromium automation | Complex web UI workflows |
+| `computer` | Native desktop automation (macOS) | Interact with OS apps, files, clipboard, etc. |
+| `daemon` | Manage the long-lived browser-control daemon | Start/stop the background service |
+| `index` | Manage the local search index | Re-index or query local cache |
+| `crawl` | Run / inspect local crawl jobs | Bulk site crawling |
+| `record` | Record daemon actions into a named macro | Create reusable scripts |
+| `macro` | List / run saved macros | Replay recorded actions |
+| `replay` | Replay recorded browser actions | Debug or repeat a flow |
+| `workflow` | Export / view continuity workflow | Persist or share a process |
+| `monitor` | Continuously monitor a URL for changes | Alert on content updates |
+| `profile` | Manage persistent browser profiles | Separate contexts (work vs personal) |
+| `session` | Manage long-lived browser sessions | Keep cookies/logins across runs |
+| `memory` | Browser memory – remembered visits & notes | Retrieve stored snippets |
+
+## Global options
+
+All commands support:
+
+- `--json` — emit machine-readable JSON to stdout
+- `--verbose`, `-v` — verbose stderr logging
+- `--version` — print version and exit
+
+Set `OMNISCOUT_JSON=1` in the environment to make JSON output the default.
+
+## Browser commands
+
+| Command | What it does |
+|---------|--------------|
+| `browser navigate <url>` | Open a URL in the active tab |
+| `browser snapshot --refs-only` | Get interactive elements with `@eN` refs |
+| `browser click <ref>` | Click an element by `@eN` ref |
+| `browser fill <ref> <value>` | Fill a form field |
+| `browser type <ref> <text>` | Type text into a field |
+| `browser scroll [up\|down]` | Scroll the page |
+| `browser key <combo>` | Press a keyboard shortcut |
+| `browser screenshot [-o PATH]` | Take a screenshot |
+| `browser pdf [-o PATH]` | Generate a PDF |
+| `browser wait text <substring>` | Wait for text to appear |
+| `browser login <url>` | Open headful login window |
+| `browser captcha` | Detect or solve CAPTCHAs |
+| `browser close --all` | Close all sessions |
+
+## Computer commands (macOS)
+
+| Command | What it does |
+|---------|--------------|
+| `computer navigate <target>` | Open an app, file, or URL |
+| `computer type <text>` | Type into the focused window |
+| `computer key <combo>` | Send a keyboard shortcut |
+| `computer screenshot` | Capture the screen |
+| `computer clipboard get` | Read the clipboard |
+| `computer clipboard set <text>` | Write to the clipboard |
+| `computer window list` | List open windows |
+| `computer window activate <title>` | Bring a window to foreground |
+| `computer ui snapshot` | Get UI element refs |
+| `computer ui click <ref>` | Click a UI element |
+
+## Environment variables
+
+| Variable | Purpose |
+|---|---|
+| `OMNISCOUT_JSON=1` | Force JSON output on every command |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | Don't auto-start the daemon |
+| `OMNISCOUT_DAEMON_PORT` | Override the daemon port (default 7720) |
+| `OMNISCOUT_DATA_DIR` | Override data dir |

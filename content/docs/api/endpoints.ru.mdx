@@ -1,0 +1,251 @@
+---
+title: Эндпоинты
+description: Справочник эндпоинтов Cloud API OmniScout.
+---
+
+Базовый URL: `https://api.omniscout.xyz` (или URL вашего деплоя).
+
+Каждый ответ включает `request_id` (UUID) для отладки и поддержки.
+
+## POST /v0/search
+
+Семантический поиск по собственному индексу.
+
+### Запрос
+
+```json
+{
+  "query": "rust async runtimes",
+  "limit": 10
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|---|---|---|---|
+| `query` | string | yes | Поисковый запрос (1–500 символов) |
+| `limit` | integer | no | Максимум результатов (1–20, по умолчанию 10) |
+
+### Ответ
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "query": "rust async runtimes",
+  "count": 10,
+  "hits": [
+    {
+      "url": "https://tokio.rs/",
+      "title": "Tokio - An asynchronous Rust runtime",
+      "snippet": "...",
+      "source": "common_crawl",
+      "score": 0.94,
+      "rank": 1
+    }
+  ]
+}
+```
+
+### Пайплайн
+
+1. Гибридный векторный + BM25-запрос к Qdrant Cloud
+2. Реранжирование с помощью `omniscout.engines.search.rerank`
+3. Возврат топ-результатов с оценками
+
+---
+
+## POST /v0/answer
+
+Обоснованный ответ одним предложением из веб-источников.
+
+### Запрос
+
+```json
+{
+  "query": "What is the latest stable Rust version?"
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|---|---|---|---|
+| `query` | string | yes | Вопрос (1–500 символов) |
+
+### Ответ
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "query": "What is the latest stable Rust version?",
+  "answer": "Rust 1.85.0 is the latest stable release as of February 2025.",
+  "status": "answered",
+  "confidence": 0.87,
+  "sources": [
+    { "url": "https://blog.rust-lang.org/", "title": "Rust Blog" }
+  ]
+}
+```
+
+Когда доказательств недостаточно, `status` равен `insufficient_information`, а `answer` — `null`.
+
+### Пайплайн
+
+1. Поиск топ-3 по индексу + реранжирование
+2. Извлечение контента URL (omniscout или trafilatura)
+3. Синтез через Vercel AI Gateway
+4. Возврат ответа с источниками и уверенностью
+
+---
+
+## Краткое описание Session API
+
+`POST /v0/search` и `POST /v0/answer` без изменений. Эндпоинты сессий используют те же пути URL, но вызывающим следует учесть:
+
+| Тема | Было | Стало |
+|---|---|---|
+| Ответ создания | `session_id`, `expires_at` | Также `session_secret` (сохраните его) и `capabilities` |
+| Аутентификация команд | API key + `x-session-secret` | То же — задокументировано явно; секрет показывается только при создании |
+| Компьютер + браузер | Раздельные сессии / VM | ID сессии компьютера работает для **обоих** маршрутов |
+| Действия браузера | `navigate`, `screenshot`, … | Без изменений (короткие имена действий) |
+| Действия компьютера | префикс `computer.*` | Без изменений |
+| Скриншоты / файлы | Только путь на Sprite | Используйте `GET /v0/sessions/{id}/files` для скачивания байтов |
+| Загрузка в браузер | Только пути на Sprite | Сначала `POST /v0/sessions/{id}/files`, затем действие `upload` |
+| Истечение | Фиксированный TTL от создания | Скользящая неактивность (по умолчанию 30 мин) с макс. 2 ч |
+| Удаление сессии | API-ключ | Только API-ключ (без `x-session-secret`) |
+
+---
+
+## Сессии браузера
+
+### POST /v0/browser/sessions
+
+Создание сессии Fly Sprite только с браузером (лёгкая Chromium VM).
+
+Аутентификация: `Authorization: Bearer os_live_...`
+
+```json
+{
+  "request_id": "...",
+  "session_id": "j57abc...",
+  "type": "browser",
+  "capabilities": ["browser"],
+  "expires_at": 1710000000000,
+  "sprite_url": "https://omniscout-sprites.fly.dev",
+  "session_secret": "48-char-hex-secret-returned-once"
+}
+```
+
+Сессии истекают после неактивности (`SESSION_INACTIVITY_MS`, по умолчанию 30 минут) или при достижении жёсткого TTL (`SESSION_MAX_TTL_MS`, по умолчанию 2 часа). Каждая команда продлевает окно неактивности.
+
+### `POST /v0/browser/sessions/{id}`
+
+Проксирование команды демона в сессию.
+
+**Заголовки:** `Authorization: Bearer os_live_...` и `x-session-secret: <secret from create>`
+
+```json
+{
+  "action": "navigate",
+  "args": { "url": "https://example.com" },
+  "session": "default"
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|---|---|---|---|
+| `action` | string | yes | Имя действия браузера (например, `navigate`, `snapshot`, `screenshot`) — без префикса `browser.` |
+| `args` | object | no | Аргументы конкретного действия |
+| `session` | string | no | Имя группы вкладок демона (по умолчанию `default`) |
+| `timeout_ms` | integer | no | Таймаут команды в миллисекундах |
+
+Сессии компьютера с `capabilities: ["browser", "computer"]` также принимают команды браузера на этом маршруте с использованием **того же** `session_id`.
+
+Сессии только с браузером отклоняют действия `computer.*` с `400`.
+
+### `DELETE /v0/browser/sessions/{id}`
+
+Уничтожение сессии и освобождение Fly Machine.
+
+**Заголовки:** только `Authorization: Bearer os_live_...` (секрет сессии не требуется).
+
+---
+
+## Сессии компьютера
+
+Унифицированные сессии Fly Sprite включают автоматизацию рабочего стола и браузера на одной VM.
+
+| Метод | Путь | Описание |
+|---|---|---|
+| `POST` | `/v0/computer/sessions` | Создание унифицированного Sprite (`capabilities: ["browser", "computer"]`) |
+| `POST` | `/v0/computer/sessions/{id}` | Проксирование команды (действия `computer.*`) |
+| `DELETE` | `/v0/computer/sessions/{id}` | Уничтожение сессии (только API-ключ) |
+
+**Заголовки для команд:** `Authorization` + `x-session-secret` (как для команд браузера).
+
+Команды компьютера используют префикс `computer.`:
+
+```json
+{
+  "action": "computer.type",
+  "args": { "text": "hello" },
+  "session": "default"
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|---|---|---|---|
+| `action` | string | yes | Должен начинаться с `computer.` (например, `computer.type`, `computer.screenshot`) |
+| `args` | object | no | Аргументы конкретного действия |
+| `session` | string | no | Имя сессии демона (по умолчанию `default`) |
+
+Тот же `session_id` работает для команд браузера через `/v0/browser/sessions/{id}` — вторая сессия браузера не нужна.
+
+---
+
+## Файлы сессий
+
+Загрузка и скачивание файлов в файловой системе Sprite.
+
+| Метод | Путь | Описание |
+|---|---|---|
+| `POST` | `/v0/sessions/{id}/files` | Multipart-загрузка (поле `file`, опциональное имя `session`) |
+| `GET` | `/v0/sessions/{id}/files?path=...` | Скачивание байтов файла |
+| `GET` | `/v0/sessions/{id}/files?path=...&format=base64` | Скачивание как JSON с base64-полезной нагрузкой |
+
+Оба маршрута требуют `Authorization` и `x-session-secret`.
+
+**Загрузка** — `multipart/form-data` с полем `file`. Опциональное поле `session` задаёт имя сессии демона (по умолчанию `default`).
+
+```bash
+curl -X POST "https://api.omniscout.xyz/v0/sessions/$SESSION_ID/files" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -F "file=@./document.pdf"
+```
+
+**Скачивание** — query-параметр `path` (из результата команды, например `screenshot`):
+
+```bash
+curl "https://api.omniscout.xyz/v0/sessions/$SESSION_ID/files?path=/tmp/...&format=base64" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET"
+```
+
+Типовой процесс скриншота:
+
+1. `POST /v0/browser/sessions/{id}` с `{"action":"screenshot","args":{}}`
+2. `GET /v0/sessions/{id}/files?path={returned_path}&format=base64`
+
+Типовой процесс загрузки в браузер:
+
+1. `POST /v0/sessions/{id}/files` с байтами файла
+2. `POST /v0/browser/sessions/{id}` с `{"action":"upload","args":{"selector":"@e1","files":["/path/from/step-1"]}}`
+
+---
+
+## OpenAPI
+
+Полная спецификация OpenAPI 3.1 доступна здесь:
+
+- Интерактивный проводник: [api.omniscout.xyz/docs](https://api.omniscout.xyz/docs)
+- JSON: [api.omniscout.xyz/api/openapi](https://api.omniscout.xyz/api/openapi)
+
+Спецификация генерируется из Zod-схем маршрутов и всегда соответствует живому API.

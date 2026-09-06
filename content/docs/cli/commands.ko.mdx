@@ -1,0 +1,92 @@
+---
+title: 명령어 레퍼런스
+description: OmniScout CLI의 모든 명령어.
+icon: List
+---
+
+모든 명령어는 `omniscout --help`로, 옵션은 `omniscout <command> --help`로 확인하세요.
+
+## 최상위 명령어
+
+| 명령어 | 설명 | 사용 시점 |
+|---------|--------------|-------------|
+| `search` | 선택적 시맨틱 리랭크가 적용된 웹 검색 | URL이나 사실을 빠르게 조회 |
+| `answer` | 웹 결과를 가져와 LLM으로 합성 | 인용이 포함된 직접 Q&A. `search`보다 권장 |
+| `map` | 사이트를 크롤링해 URL 맵 생성 | 전체 도메인 탐색 |
+| `warmup` | 데몬에 임베딩/답변 모델 미리 로드 | 첫 호출 지연 시간 단축 |
+| `remember` | URL을 방문해 콘텐츠를 추출하고 브라우저 메모리에 저장 | 나중에 다시 볼 정보를 저장 |
+| `extract` | URL이나 쿼리를 가져와 읽기 쉬운/구조화된 데이터 반환 | 페이지에서 원시 텍스트나 JSON 추출 |
+| `open` | 관리형 브라우저에서 URL이나 최신 검색 결과 인덱스 열기 | 제어되는 Chromium에서 페이지 실행 |
+| `snapshot` | `@e` 참조가 포함된 접근성 스냅샷 캡처 | 이후 UI 동작을 위해 페이지 구조 확인 |
+| `context` | 현재 워크플로 연속성 상태 표시 | 다단계 흐름 디버그 또는 재개 |
+| `reset` | 연속성 상태 초기화 | 새 세션 시작 |
+| `auto` | 입력에 가장 적합한 명령어로 자동 라우팅 | 간단한 한 줄 사용 |
+| `research` | 다단계: 검색 → 크롤 → 추출 → 리랭크 → 요약 | 전체 리서치 파이프라인 |
+| `graph` | 항목에 대한 구조화된 지식 그래프 구축 | 사실을 노드/엣지로 정리 |
+| `install` | 자동화용 Chromium 브라우저 확인 (또는 다운로드) | 최초 설정 |
+| `settings` | 사용자 설정 보기 / 변경 | 설정 조정 |
+| `browser` | Playwright 기반 직접 Chromium 자동화 | 복잡한 웹 UI 워크플로 |
+| `computer` | 네이티브 데스크톱 자동화 (macOS) | OS 앱, 파일, 클립보드 등과 상호작용 |
+| `daemon` | 오래 실행되는 브라우저 제어 데몬 관리 | 백그라운드 서비스 시작/중지 |
+| `index` | 로컬 검색 인덱스 관리 | 로컬 캐시 재인덱싱 또는 조회 |
+| `crawl` | 로컬 크롤 작업 실행 / 확인 | 대량 사이트 크롤링 |
+| `record` | 데몬 동작을 이름 있는 매크로로 기록 | 재사용 가능한 스크립트 생성 |
+| `macro` | 저장된 매크로 나열 / 실행 | 기록된 동작 재생 |
+| `replay` | 기록된 브라우저 동작 재생 | 흐름 디버그 또는 반복 |
+| `workflow` | 연속성 워크플로 내보내기 / 보기 | 프로세스 저장 또는 공유 |
+| `monitor` | 변경 사항이 있는지 URL 지속 모니터링 | 콘텐츠 업데이트 시 알림 |
+| `profile` | 영구 브라우저 프로필 관리 | 별도 컨텍스트 (업무용 vs 개인용) |
+| `session` | 오래 지속되는 브라우저 세션 관리 | 실행 간 쿠키/로그인 유지 |
+| `memory` | 브라우저 메모리 – 기억된 방문 기록 및 메모 | 저장된 스니펫 검색 |
+
+## 전역 옵션
+
+모든 명령어가 지원합니다:
+
+- `--json` — stdout에 기계가 읽을 수 있는 JSON 출력
+- `--verbose`, `-v` — 자세한 stderr 로깅
+- `--version` — 버전 출력 후 종료
+
+JSON 출력을 기본값으로 만들려면 환경에 `OMNISCOUT_JSON=1`을 설정하세요.
+
+## 브라우저 명령어
+
+| 명령어 | 설명 |
+|---------|--------------|
+| `browser navigate <url>` | 활성 탭에서 URL 열기 |
+| `browser snapshot --refs-only` | `@eN` 참조가 포함된 상호작용 요소 가져오기 |
+| `browser click <ref>` | `@eN` 참조로 요소 클릭 |
+| `browser fill <ref> <value>` | 양식 필드 채우기 |
+| `browser type <ref> <text>` | 필드에 텍스트 입력 |
+| `browser scroll [up\|down]` | 페이지 스크롤 |
+| `browser key <combo>` | 키보드 단축키 누르기 |
+| `browser screenshot [-o PATH]` | 스크린샷 촬영 |
+| `browser pdf [-o PATH]` | PDF 생성 |
+| `browser wait text <substring>` | 텍스트가 나타날 때까지 대기 |
+| `browser login <url>` | 직접 로그인 창 열기 |
+| `browser captcha` | CAPTCHA 감지 또는 해결 |
+| `browser close --all` | 모든 세션 닫기 |
+
+## 컴퓨터 명령어 (macOS)
+
+| 명령어 | 설명 |
+|---------|--------------|
+| `computer navigate <target>` | 앱, 파일 또는 URL 열기 |
+| `computer type <text>` | 포커스된 창에 입력 |
+| `computer key <combo>` | 키보드 단축키 전송 |
+| `computer screenshot` | 화면 캡처 |
+| `computer clipboard get` | 클립보드 읽기 |
+| `computer clipboard set <text>` | 클립보드에 쓰기 |
+| `computer window list` | 열린 창 나열 |
+| `computer window activate <title>` | 창을 앞으로 가져오기 |
+| `computer ui snapshot` | UI 요소 참조 가져오기 |
+| `computer ui click <ref>` | UI 요소 클릭 |
+
+## 환경 변수
+
+| 변수 | 용도 |
+|---|---|
+| `OMNISCOUT_JSON=1` | 모든 명령어에 JSON 출력 강제 |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | 데몬 자동 시작 안 함 |
+| `OMNISCOUT_DAEMON_PORT` | 데몬 포트 재정의 (기본값 7720) |
+| `OMNISCOUT_DATA_DIR` | 데이터 디렉터리 재정의 |

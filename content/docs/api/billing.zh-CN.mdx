@@ -1,0 +1,68 @@
+---
+title: 用量与计费
+description: OmniScout 云按用量计费、支出限制与 Stripe 按量计费。
+---
+
+OmniScout Cloud 仅采用**按用量计费**。没有订阅层级、每月包含时长或基于计划的 API 限制。
+
+## 定价公式
+
+```
+customer_charge = actual_infrastructure_cost × 1.30
+```
+
+这是**在底层成本上加价 30%**（成本 + 30%），而非 30% 毛利率。
+
+## 计费资源
+
+| 资源 | 计量方式 | Stripe 计量事件 |
+|---|---|---|
+| 电脑运行时长 | 从会话就绪到销毁的秒数 | `computer_runtime_seconds` |
+| 浏览器运行时长 | 从会话就绪到销毁的秒数 | `browser_runtime_seconds` |
+| 搜索 | 每次 `POST /v0/search` 请求 | `search_requests` |
+| 问答 | 每次 `POST /v0/answer` 请求 | `answer_requests` |
+
+诸如 `GET /v0/sessions/{id}` 和 `POST /v0/sessions/{id}/actions` 的 API 调用**不**计为 API 用量。它们不受限，但受滥用防护、并发上限、会话 TTL 和支出限制约束。
+
+## 双层计费
+
+| 层 | 职责 |
+|---|---|
+| **Convex 用量台账** | 审计追踪、实时费用估算、支出上限执行 |
+| **Stripe Billing** | 支付方式、按量用量、开票、客户门户 |
+
+## GET /v0/usage
+
+返回当前周期的用量、预估费用、活动会话、支出限制与账单状态。
+
+```json
+{
+  "period": "2026-09",
+  "usage": {
+    "computer_runtime_seconds": 3600,
+    "browser_runtime_seconds": 1200,
+    "search_count": 42,
+    "answer_count": 8
+  },
+  "costs": {
+    "underlying_cost_usd": 12.5,
+    "markup_multiplier": 1.3,
+    "estimated_charge_usd": 16.25
+  },
+  "spending_limit_usd": 100,
+  "spending_limit_remaining_usd": 83.75,
+  "billing_status": "active"
+}
+```
+
+## 支出保护
+
+超出每月支出限制时，计费操作返回 `402` 与 `spending_limit_exceeded`。账单状态为 `past_due` 的账号可能被阻止，直到付款问题解决。
+
+## 控制台
+
+在[控制台计费页](https://api.omniscout.xyz/dashboard/billing)查看用量与预估费用。在该页面打开 Stripe 客户门户以管理支付方式和发票。
+
+## 配置
+
+运营方按仓库中 `cloud/SETUP.md` 配置 Stripe 计量、webhook 与成本费率。

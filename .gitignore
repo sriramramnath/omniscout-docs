@@ -1,4 +1,6 @@
-# Nuxt dev/build outputs
+# Next.js dev/build outputs
+.next
+out
 .output
 .data
 .nuxt

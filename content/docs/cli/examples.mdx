@@ -1,0 +1,118 @@
+---
+title: Examples & recipes
+description: Real workflows for OmniScout.
+icon: FlaskConical
+---
+
+Copy-paste recipes for common tasks.
+
+## Quick reference
+
+```bash
+omniscout daemon start                              # 1. start the daemon
+omniscout browser navigate https://example.com      # 2. drive the browser
+omniscout browser snapshot --refs-only              # 3. find @eN refs
+omniscout browser click '@e3'                       # 4. act on them
+omniscout browser screenshot --out /tmp/out.png     # 5. capture state
+omniscout browser close --all                       # 6. clean up
+```
+
+## Search and answer
+
+```bash
+# One-line factual answer
+omniscout answer "who is the prime minister of india"
+omniscout answer "what is the capital of france"
+
+# Web search with ranked hits
+omniscout search "AI agents 2026" --limit 5
+```
+
+## Extract content from a page
+
+```bash
+omniscout extract https://example.com > /tmp/page.md
+```
+
+## Research a topic
+
+```bash
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+## Build a knowledge graph
+
+```bash
+omniscout graph "Cursor"
+omniscout graph "cursor.com"          # site-only mode
+```
+
+## Navigate and interact
+
+```bash
+omniscout browser navigate https://news.ycombinator.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/hn.png
+omniscout browser close --all
+```
+
+## Fill a form
+
+```bash
+omniscout browser navigate https://duckduckgo.com
+omniscout browser snapshot --refs-only
+SEARCH_REF=$(jq -r '.refs[] | select(.role == "searchbox") | .ref' | head -1)
+omniscout browser fill "$SEARCH_REF" "local-first AI agents"
+omniscout browser key Enter
+```
+
+## Log in and reuse a profile
+
+```bash
+# Terminal A: opens browser, blocks
+omniscout browser login https://github.com/login --profile work
+
+# Terminal B (after you log in):
+omniscout browser login --done
+
+# Now reuse the profile
+omniscout browser navigate https://github.com/notifications --profile work
+omniscout browser screenshot --out /tmp/notifs.png
+```
+
+## Capture network requests
+
+```bash
+omniscout browser network start
+omniscout browser navigate https://vercel.com/pricing
+omniscout browser scroll down --amount 10
+omniscout browser network stop
+omniscout browser network list --filter "stripe|payment"
+```
+
+## Take a full-page screenshot
+
+```bash
+omniscout browser screenshot https://example.com --full-length --out /tmp/full.png
+```
+
+## Multiple tabs
+
+```bash
+omniscout browser navigate https://example.com --session multi
+omniscout browser navigate https://news.ycombinator.com --new-tab --session multi
+omniscout browser tab list --session multi
+omniscout browser tab switch 0 --session multi
+```
+
+## JSON for agents
+
+```bash
+export OMNISCOUT_JSON=1
+
+omniscout search "topic"          | jq '.hits[] | {title, url}'
+omniscout browser snapshot        | jq '.refs[] | select(.role == "button")'
+omniscout extract https://...     | jq '{title, word_count}'
+omniscout research "topic"        | jq '.passages[0:3]'
+```

@@ -1,0 +1,105 @@
+---
+title: Устранение неполадок
+description: Типичные проблемы и способы их решения.
+icon: LifeBuoy
+---
+
+## Ссылка `@eN` не найдена
+
+Страница изменилась с момента последнего `snapshot`. Сделайте снимок заново и используйте новую ссылку:
+
+```bash
+omniscout browser snapshot --refs-only
+omniscout browser click '@e7'
+```
+
+## Вход никогда не завершается
+
+Используйте сигнал `--done` из другого шелла:
+
+```bash
+# Терминал A:
+omniscout browser login https://app.example.com --profile work
+
+# Терминал B (после входа):
+omniscout browser login --done
+```
+
+## CAPTCHA блокирует навсегда
+
+Решите её в видимом окне или используйте сторонний решатель:
+
+```bash
+export TWOCAPTCHA_API_KEY=...
+omniscout browser captcha --solver 2captcha
+```
+
+## Расширение сообщает `backend_unavailable`
+
+1. Откройте `chrome://extensions` — убедитесь, что расширение загружено
+2. Нажмите на значок расширения — переподключитесь, если отключено
+3. Или уберите `--backend extension`, чтобы использовать Playwright
+
+## Ошибка версии Python
+
+```bash
+python --version  # требуется 3.11+
+pip install omniscout
+```
+
+## Chrome не найден
+
+```bash
+omniscout settings browsers          # посмотреть установленное
+omniscout settings set browser edge  # или brave, vivaldi и т.д.
+```
+
+## Демон не запускается
+
+```bash
+omniscout daemon stop
+omniscout daemon start
+lsof -i :7720                       # проверить, занят ли порт
+omniscout daemon start --port 7721   # использовать другой порт
+```
+
+## Поиск не возвращает результатов
+
+```bash
+omniscout search "more specific query"
+omniscout search "query" --source ddg
+```
+
+## Скриншот пустой
+
+```bash
+# Ожидание загрузки
+omniscout browser screenshot https://example.com --delay 3 --out /tmp/page.png
+
+# Вся страница
+omniscout browser screenshot https://example.com --full-length --out /tmp/full.png
+```
+
+## Частые вопросы
+
+**Мои данные отправляются в облако?**
+Нет. Единственный исходящий трафик — это поиски DuckDuckGo и URL, которые вы явно запрашиваете. Одноразовая загрузка модели кэшируется локально.
+
+**Могу ли я использовать OmniScout без Chrome?**
+Вам нужен браузер семейства Chromium. Установите Chrome/Chromium или укажите свой путь командой `omniscout install --browser custom --browser-executable <path>`.
+
+**Как обновиться?**
+```bash
+pip install --upgrade omniscout
+```
+
+**Как удалить все данные?**
+```bash
+rm -rf ~/Library/Application\ Support/omniscout/   # macOS
+rm -rf ~/.local/share/omniscout/                   # Linux
+```
+
+**Где получить помощь?**
+- [Обзор CLI](/ru/docs/cli/overview)
+- [Примеры](/ru/docs/cli/examples)
+- [Issues на GitHub](https://github.com/sriramramnath/omniscout/issues)

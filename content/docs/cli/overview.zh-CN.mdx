@@ -1,0 +1,60 @@
+---
+title: 什么是 OmniScout？
+description: OmniScout——面向 AI 智能体的本地优先浏览器控制、语义搜索与研究。
+icon: Info
+---
+
+OmniScout 让 AI 智能体能够搜索网页、提取内容、控制浏览器并自动执行桌面任务——全部在本地完成，无需云服务。
+
+## 安装
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+## 使用
+
+```bash
+# 启动 daemon（仅需一次）
+omniscout daemon start
+
+# 搜索网页
+omniscout answer "what is the capital of france"
+
+# 从 URL 提取内容
+omniscout extract https://example.com
+
+# 控制浏览器
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# 研究某个主题
+omniscout research "AI agents in 2026"
+
+# 构建知识图谱
+omniscout graph "Cursor"
+```
+
+## 你可以做什么
+
+| 命令 | 功能 |
+|---------|--------------|
+| `search` | 网页搜索，可选语义重排序 |
+| `answer` | 带引用的直接问答（优先于 `search` 使用） |
+| `extract` | 获取 URL 并返回干净的 Markdown |
+| `research` | 多步骤：搜索 → 抓取 → 提取 → 总结 |
+| `graph` | 构建结构化知识图谱 |
+| `browser` | 控制浏览器（导航、点击、填写、截图） |
+| `computer` | 桌面自动化（macOS） |
+| `remember` | 将 URL 存入浏览器记忆以便日后回忆 |
+| `install` | 首次安装设置 |
+| `daemon` | 管理后台服务 |
+
+## 下一步
+
+- [与 AI 智能体配合使用](/zh-CN/docs/cli/agents)——适用于 Claude Code、Cursor、Codex 的开箱即用提示词
+- [命令参考](/zh-CN/docs/cli/commands)——每个动词、每个标志
+- [示例与配方](/zh-CN/docs/cli/examples)——常见工作流

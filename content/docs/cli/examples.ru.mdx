@@ -1,0 +1,118 @@
+---
+title: Примеры и рецепты
+description: Реальные рабочие процессы для OmniScout.
+icon: FlaskConical
+---
+
+Готовые рецепты для типовых задач.
+
+## Краткая справка
+
+```bash
+omniscout daemon start                              # 1. запуск демона
+omniscout browser navigate https://example.com      # 2. управление браузером
+omniscout browser snapshot --refs-only              # 3. поиск @eN-ссылок
+omniscout browser click '@e3'                       # 4. действия с ними
+omniscout browser screenshot --out /tmp/out.png     # 5. снимок состояния
+omniscout browser close --all                       # 6. очистка
+```
+
+## Поиск и ответы
+
+```bash
+# Фактический ответ в одну строку
+omniscout answer "who is the prime minister of india"
+omniscout answer "what is the capital of france"
+
+# Веб-поиск с ранжированными результатами
+omniscout search "AI agents 2026" --limit 5
+```
+
+## Извлечение контента со страницы
+
+```bash
+omniscout extract https://example.com > /tmp/page.md
+```
+
+## Исследование темы
+
+```bash
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+## Построение графа знаний
+
+```bash
+omniscout graph "Cursor"
+omniscout graph "cursor.com"          # режим только сайта
+```
+
+## Навигация и взаимодействие
+
+```bash
+omniscout browser navigate https://news.ycombinator.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/hn.png
+omniscout browser close --all
+```
+
+## Заполнение формы
+
+```bash
+omniscout browser navigate https://duckduckgo.com
+omniscout browser snapshot --refs-only
+SEARCH_REF=$(jq -r '.refs[] | select(.role == "searchbox") | .ref' | head -1)
+omniscout browser fill "$SEARCH_REF" "local-first AI agents"
+omniscout browser key Enter
+```
+
+## Вход и повторное использование профиля
+
+```bash
+# Терминал A: открывает браузер, блокирует
+omniscout browser login https://github.com/login --profile work
+
+# Терминал B (после входа):
+omniscout browser login --done
+
+# Теперь повторное использование профиля
+omniscout browser navigate https://github.com/notifications --profile work
+omniscout browser screenshot --out /tmp/notifs.png
+```
+
+## Захват сетевых запросов
+
+```bash
+omniscout browser network start
+omniscout browser navigate https://vercel.com/pricing
+omniscout browser scroll down --amount 10
+omniscout browser network stop
+omniscout browser network list --filter "stripe|payment"
+```
+
+## Скриншот всей страницы
+
+```bash
+omniscout browser screenshot https://example.com --full-length --out /tmp/full.png
+```
+
+## Несколько вкладок
+
+```bash
+omniscout browser navigate https://example.com --session multi
+omniscout browser navigate https://news.ycombinator.com --new-tab --session multi
+omniscout browser tab list --session multi
+omniscout browser tab switch 0 --session multi
+```
+
+## JSON для агентов
+
+```bash
+export OMNISCOUT_JSON=1
+
+omniscout search "topic"          | jq '.hits[] | {title, url}'
+omniscout browser snapshot        | jq '.refs[] | select(.role == "button")'
+omniscout extract https://...     | jq '{title, word_count}'
+omniscout research "topic"        | jq '.passages[0:3]'
+```

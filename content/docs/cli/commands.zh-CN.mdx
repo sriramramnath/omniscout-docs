@@ -1,0 +1,92 @@
+---
+title: 命令参考
+description: OmniScout 命令行中的每一条命令。
+icon: List
+---
+
+使用 `omniscout --help` 查看所有命令，或使用 `omniscout <command> --help` 查看选项。
+
+## 顶层命令
+
+| 命令 | 功能 | 适用场景 |
+|---------|--------------|-------------|
+| `search` | 网页搜索，可选语义重排序 | 快速查找 URL 或事实 |
+| `answer` | 检索网页结果并用 LLM 综合 | 带引用的直接问答。优先于 `search` 使用 |
+| `map` | 抓取站点并生成 URL 地图 | 探索整个域名 |
+| `warmup` | 在 daemon 中预加载嵌入/问答模型 | 降低首次调用延迟 |
+| `remember` | 访问 URL、提取内容并存入浏览器记忆 | 持久保存信息以便日后回忆 |
+| `extract` | 获取 URL 或查询并返回可读/结构化数据 | 从页面拉取原始文本或 JSON |
+| `open` | 在托管浏览器中打开 URL 或最新搜索结果序号 | 在受控 Chromium 中运行页面 |
+| `snapshot` | 捕获带 `@e` 引用的无障碍快照 | 检查页面结构以便后续 UI 操作 |
+| `context` | 显示当前工作流连续状态 | 调试或恢复多步骤流程 |
+| `reset` | 重置连续状态 | 开始全新会话 |
+| `auto` | 自动将输入路由到最佳命令 | 简单的一行式用法 |
+| `research` | 多步骤：搜索 → 抓取 → 提取 → 重排序 → 总结 | 完整的研究流水线 |
+| `graph` | 为实体构建结构化知识图谱 | 将事实组织为节点/边 |
+| `install` | 验证（或下载）用于自动化的 Chromium 浏览器 | 首次安装设置 |
+| `settings` | 查看 / 修改用户设置 | 配置调整 |
+| `browser` | 基于 Playwright 的直接 Chromium 自动化 | 复杂的网页 UI 工作流 |
+| `computer` | 原生桌面自动化（macOS） | 与系统应用、文件、剪贴板等交互 |
+| `daemon` | 管理常驻的浏览器控制 daemon | 启动/停止后台服务 |
+| `index` | 管理本地搜索索引 | 重建索引或查询本地缓存 |
+| `crawl` | 运行 / 检查本地抓取任务 | 批量站点抓取 |
+| `record` | 将 daemon 操作录制为命名宏 | 创建可复用脚本 |
+| `macro` | 列出 / 运行已保存的宏 | 回放录制的操作 |
+| `replay` | 回放录制的浏览器操作 | 调试或重复某个流程 |
+| `workflow` | 导出 / 查看连续工作流 | 持久保存或分享流程 |
+| `monitor` | 持续监控 URL 变化 | 内容更新时告警 |
+| `profile` | 管理持久浏览器配置文件 | 隔离不同上下文（工作 vs 个人） |
+| `session` | 管理常驻浏览器会话 | 跨运行保留 Cookie/登录态 |
+| `memory` | 浏览器记忆——已记住的访问与笔记 | 检索已存储的片段 |
+
+## 全局选项
+
+所有命令均支持：
+
+- `--json`——向 stdout 输出机器可读的 JSON
+- `--verbose`、`-v`——详细 stderr 日志
+- `--version`——打印版本并退出
+
+在环境中设置 `OMNISCOUT_JSON=1` 可将 JSON 输出设为默认。
+
+## 浏览器命令
+
+| 命令 | 功能 |
+|---------|--------------|
+| `browser navigate <url>` | 在活动标签页中打开 URL |
+| `browser snapshot --refs-only` | 获取带 `@eN` 引用的可交互元素 |
+| `browser click <ref>` | 按 `@eN` 引用点击元素 |
+| `browser fill <ref> <value>` | 填写表单字段 |
+| `browser type <ref> <text>` | 在字段中输入文本 |
+| `browser scroll [up\|down]` | 滚动页面 |
+| `browser key <combo>` | 按下键盘快捷键 |
+| `browser screenshot [-o PATH]` | 截图 |
+| `browser pdf [-o PATH]` | 生成 PDF |
+| `browser wait text <substring>` | 等待文本出现 |
+| `browser login <url>` | 打开有界面登录窗口 |
+| `browser captcha` | 检测或解决验证码 |
+| `browser close --all` | 关闭所有会话 |
+
+## 电脑命令（macOS）
+
+| 命令 | 功能 |
+|---------|--------------|
+| `computer navigate <target>` | 打开应用、文件或 URL |
+| `computer type <text>` | 在聚焦窗口中输入 |
+| `computer key <combo>` | 发送键盘快捷键 |
+| `computer screenshot` | 截取屏幕 |
+| `computer clipboard get` | 读取剪贴板 |
+| `computer clipboard set <text>` | 写入剪贴板 |
+| `computer window list` | 列出打开的窗口 |
+| `computer window activate <title>` | 将窗口置于前台 |
+| `computer ui snapshot` | 获取 UI 元素引用 |
+| `computer ui click <ref>` | 点击 UI 元素 |
+
+## 环境变量
+
+| 变量 | 用途 |
+|---|---|
+| `OMNISCOUT_JSON=1` | 强制每条命令输出 JSON |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | 不自动启动 daemon |
+| `OMNISCOUT_DAEMON_PORT` | 覆盖 daemon 端口（默认 7720） |
+| `OMNISCOUT_DATA_DIR` | 覆盖数据目录 |

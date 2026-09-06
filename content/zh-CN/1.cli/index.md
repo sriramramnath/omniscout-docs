@@ -1,0 +1,63 @@
+---
+title: OmniScout 命令行
+description: 面向 AI 智能体的本地优先浏览器控制、语义搜索与研究。
+navigation:
+  icon: i-lucide-book-open
+seo:
+  title: "OmniScout 命令行"
+  description: "面向 AI 智能体的本地优先浏览器控制、语义搜索与研究。"
+---
+## 安装
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+## 使用
+
+```bash
+omniscout daemon start
+
+# 搜索
+omniscout answer "what is the capital of france"
+
+# 提取
+omniscout extract https://example.com
+
+# 浏览器
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# 研究
+omniscout research "AI agents in 2026"
+
+# 知识图谱
+omniscout graph "Cursor"
+```
+
+## 功能一览
+
+| 命令 | 功能 |
+|---|---|
+| `omniscout answer` | 带引用的直接问答 |
+| `omniscout search` | 带重排序的网页搜索 |
+| `omniscout extract` | 获取 URL 并返回干净内容 |
+| `omniscout research` | 多步骤研究流水线 |
+| `omniscout graph` | 构建知识图谱 |
+| `omniscout browser` | 控制浏览器 |
+| `omniscout computer` | 桌面自动化（macOS） |
+| `omniscout remember` | 将 URL 存入记忆 |
+| `omniscout daemon` | 管理后台服务 |
+
+## JSON 输出
+
+```bash
+export OMNISCOUT_JSON=1  # 面向智能体的结构化输出
+```
+
+## 本地优先
+
+无需云账号、API 密钥或托管服务器。唯一的出站流量是 DuckDuckGo 搜索和您明确获取的 URL。

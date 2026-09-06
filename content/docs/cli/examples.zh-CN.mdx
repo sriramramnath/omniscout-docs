@@ -1,0 +1,118 @@
+---
+title: 示例与配方
+description: OmniScout 的真实工作流。
+icon: FlaskConical
+---
+
+常见任务的复制即用配方。
+
+## 速查
+
+```bash
+omniscout daemon start                              # 1. 启动 daemon
+omniscout browser navigate https://example.com      # 2. 驱动浏览器
+omniscout browser snapshot --refs-only              # 3. 查找 @eN 引用
+omniscout browser click '@e3'                       # 4. 对其执行操作
+omniscout browser screenshot --out /tmp/out.png     # 5. 捕获状态
+omniscout browser close --all                       # 6. 清理
+```
+
+## 搜索与问答
+
+```bash
+# 单行事实问答
+omniscout answer "who is the prime minister of india"
+omniscout answer "what is the capital of france"
+
+# 带排序命中的网页搜索
+omniscout search "AI agents 2026" --limit 5
+```
+
+## 从页面提取内容
+
+```bash
+omniscout extract https://example.com > /tmp/page.md
+```
+
+## 研究某个主题
+
+```bash
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+## 构建知识图谱
+
+```bash
+omniscout graph "Cursor"
+omniscout graph "cursor.com"          # 仅限站点模式
+```
+
+## 导航与交互
+
+```bash
+omniscout browser navigate https://news.ycombinator.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/hn.png
+omniscout browser close --all
+```
+
+## 填写表单
+
+```bash
+omniscout browser navigate https://duckduckgo.com
+omniscout browser snapshot --refs-only
+SEARCH_REF=$(jq -r '.refs[] | select(.role == "searchbox") | .ref' | head -1)
+omniscout browser fill "$SEARCH_REF" "local-first AI agents"
+omniscout browser key Enter
+```
+
+## 登录并复用配置文件
+
+```bash
+# 终端 A：打开浏览器并阻塞等待
+omniscout browser login https://github.com/login --profile work
+
+# 终端 B（登录完成后）：
+omniscout browser login --done
+
+# 复用该配置文件
+omniscout browser navigate https://github.com/notifications --profile work
+omniscout browser screenshot --out /tmp/notifs.png
+```
+
+## 捕获网络请求
+
+```bash
+omniscout browser network start
+omniscout browser navigate https://vercel.com/pricing
+omniscout browser scroll down --amount 10
+omniscout browser network stop
+omniscout browser network list --filter "stripe|payment"
+```
+
+## 全页截图
+
+```bash
+omniscout browser screenshot https://example.com --full-length --out /tmp/full.png
+```
+
+## 多标签页
+
+```bash
+omniscout browser navigate https://example.com --session multi
+omniscout browser navigate https://news.ycombinator.com --new-tab --session multi
+omniscout browser tab list --session multi
+omniscout browser tab switch 0 --session multi
+```
+
+## 面向智能体的 JSON
+
+```bash
+export OMNISCOUT_JSON=1
+
+omniscout search "topic"          | jq '.hits[] | {title, url}'
+omniscout browser snapshot        | jq '.refs[] | select(.role == "button")'
+omniscout extract https://...     | jq '{title, word_count}'
+omniscout research "topic"        | jq '.passages[0:3]'
+```

@@ -1,0 +1,252 @@
+---
+title: Endpoints
+description: OmniScout Cloud API endpoint reference.
+icon: Route
+---
+
+Base URL: `https://api.omniscout.xyz` (or your deployment URL).
+
+Every response includes a `request_id` (UUID) for debugging and support.
+
+## POST /v0/search
+
+Semantic search over the owned index.
+
+### Request
+
+```json
+{
+  "query": "rust async runtimes",
+  "limit": 10
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `query` | string | yes | Search query (1–500 chars) |
+| `limit` | integer | no | Max results (1–20, default 10) |
+
+### Response
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "query": "rust async runtimes",
+  "count": 10,
+  "hits": [
+    {
+      "url": "https://tokio.rs/",
+      "title": "Tokio - An asynchronous Rust runtime",
+      "snippet": "...",
+      "source": "common_crawl",
+      "score": 0.94,
+      "rank": 1
+    }
+  ]
+}
+```
+
+### Pipeline
+
+1. Hybrid vector + BM25 query against Qdrant Cloud
+2. Rerank with `omniscout.engines.search.rerank`
+3. Return top hits with scores
+
+---
+
+## POST /v0/answer
+
+Grounded one-sentence answer from web sources.
+
+### Request
+
+```json
+{
+  "query": "What is the latest stable Rust version?"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `query` | string | yes | Question (1–500 chars) |
+
+### Response
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "query": "What is the latest stable Rust version?",
+  "answer": "Rust 1.85.0 is the latest stable release as of February 2025.",
+  "status": "answered",
+  "confidence": 0.87,
+  "sources": [
+    { "url": "https://blog.rust-lang.org/", "title": "Rust Blog" }
+  ]
+}
+```
+
+When evidence is insufficient, `status` is `insufficient_information` and `answer` is `null`.
+
+### Pipeline
+
+1. Top-3 index search + rerank
+2. Extract URL content (omniscout or trafilatura)
+3. Synthesize via Vercel AI Gateway
+4. Return answer with sources and confidence
+
+---
+
+## Session API summary
+
+`POST /v0/search` and `POST /v0/answer` are unchanged. Session endpoints use the same URL paths, but callers should note:
+
+| Topic | Before | Now |
+|---|---|---|
+| Create response | `session_id`, `expires_at` | Also `session_secret` (store it) and `capabilities` |
+| Command auth | API key + `x-session-secret` | Same — document explicitly; secret shown only at create |
+| Computer + browser | Separate sessions / VMs | Computer session ID works for **both** routes |
+| Browser actions | `navigate`, `screenshot`, … | Unchanged (bare action names) |
+| Computer actions | `computer.*` prefix | Unchanged |
+| Screenshots / files | Path on Sprite only | Use `GET /v0/sessions/{id}/files` to download bytes |
+| Upload to browser | Paths on Sprite only | `POST /v0/sessions/{id}/files` first, then `upload` action |
+| Expiry | Fixed TTL from create | Sliding inactivity (default 30 min) with 2 hr max |
+| Delete session | API key | API key only (no `x-session-secret`) |
+
+---
+
+## Browser sessions
+
+### POST /v0/browser/sessions
+
+Create a browser-only Fly Sprite session (lightweight Chromium VM).
+
+Auth: `Authorization: Bearer os_live_...`
+
+```json
+{
+  "request_id": "...",
+  "session_id": "j57abc...",
+  "type": "browser",
+  "capabilities": ["browser"],
+  "expires_at": 1710000000000,
+  "sprite_url": "https://omniscout-sprites.fly.dev",
+  "session_secret": "48-char-hex-secret-returned-once"
+}
+```
+
+Sessions expire after inactivity (`SESSION_INACTIVITY_MS`, default 30 minutes) or when the hard TTL is reached (`SESSION_MAX_TTL_MS`, default 2 hours). Every command extends the inactivity window.
+
+### `POST /v0/browser/sessions/{id}`
+
+Proxy a daemon command to the session.
+
+**Headers:** `Authorization: Bearer os_live_...` and `x-session-secret: <secret from create>`
+
+```json
+{
+  "action": "navigate",
+  "args": { "url": "https://example.com" },
+  "session": "default"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes | Browser action name (e.g. `navigate`, `snapshot`, `screenshot`) — no `browser.` prefix |
+| `args` | object | no | Action-specific arguments |
+| `session` | string | no | Daemon tab group name (default `default`) |
+| `timeout_ms` | integer | no | Command timeout in milliseconds |
+
+Computer sessions with `capabilities: ["browser", "computer"]` also accept browser commands on this route using the **same** `session_id`.
+
+Browser-only sessions reject `computer.*` actions with `400`.
+
+### `DELETE /v0/browser/sessions/{id}`
+
+Destroy the session and release the Fly Machine.
+
+**Headers:** `Authorization: Bearer os_live_...` only (session secret not required).
+
+---
+
+## Computer sessions
+
+Unified Fly Sprite sessions include both desktop automation and browser automation on the same VM.
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/v0/computer/sessions` | Create unified Sprite (`capabilities: ["browser", "computer"]`) |
+| `POST` | `/v0/computer/sessions/{id}` | Proxy command (`computer.*` actions) |
+| `DELETE` | `/v0/computer/sessions/{id}` | Destroy session (API key only) |
+
+**Headers for commands:** `Authorization` + `x-session-secret` (same as browser commands).
+
+Computer commands use the `computer.` prefix:
+
+```json
+{
+  "action": "computer.type",
+  "args": { "text": "hello" },
+  "session": "default"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `action` | string | yes | Must start with `computer.` (e.g. `computer.type`, `computer.screenshot`) |
+| `args` | object | no | Action-specific arguments |
+| `session` | string | no | Daemon session name (default `default`) |
+
+The same `session_id` works for browser commands via `/v0/browser/sessions/{id}` — you do not need a second browser session.
+
+---
+
+## Session files
+
+Upload and download files on the Sprite filesystem.
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/v0/sessions/{id}/files` | Multipart upload (`file` field, optional `session` name) |
+| `GET` | `/v0/sessions/{id}/files?path=...` | Download file bytes |
+| `GET` | `/v0/sessions/{id}/files?path=...&format=base64` | Download as JSON with base64 payload |
+
+Both routes require `Authorization` and `x-session-secret`.
+
+**Upload** — `multipart/form-data` with a `file` field. Optional `session` field sets the daemon session name (default `default`).
+
+```bash
+curl -X POST "https://api.omniscout.xyz/v0/sessions/$SESSION_ID/files" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -F "file=@./document.pdf"
+```
+
+**Download** — query parameter `path` (from a command result such as `screenshot`):
+
+```bash
+curl "https://api.omniscout.xyz/v0/sessions/$SESSION_ID/files?path=/tmp/...&format=base64" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET"
+```
+
+Typical screenshot workflow:
+
+1. `POST /v0/browser/sessions/{id}` with `{"action":"screenshot","args":{}}`
+2. `GET /v0/sessions/{id}/files?path={returned_path}&format=base64`
+
+Typical browser upload workflow:
+
+1. `POST /v0/sessions/{id}/files` with the file bytes
+2. `POST /v0/browser/sessions/{id}` with `{"action":"upload","args":{"selector":"@e1","files":["/path/from/step-1"]}}`
+
+---
+
+## OpenAPI
+
+The full OpenAPI 3.1 spec is available at:
+
+- Interactive explorer: [api.omniscout.xyz/docs](https://api.omniscout.xyz/docs)
+- JSON: [api.omniscout.xyz/api/openapi](https://api.omniscout.xyz/api/openapi)
+
+The spec is generated from Zod route schemas and stays in sync with the live API.

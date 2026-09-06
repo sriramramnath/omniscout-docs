@@ -1,0 +1,75 @@
+---
+title: Using OmniScout with AI agents
+description: Drop-in prompts and skill files for Claude Code, Cursor, Codex, and Kimi to drive OmniScout.
+icon: Bot
+---
+
+OmniScout is built for AI agents to drive. Here's how to set it up.
+
+## 1. Install
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+The `--skill` flag copies instructions into your agent's skill directory:
+
+| Agent | Location |
+|---|---|
+| Claude Code | `~/.claude/skills/scout/SKILL.md` |
+| Cursor | `~/.cursor/skills-cursor/scout/SKILL.md` |
+| Codex | `~/.codex/skills/scout/SKILL.md` |
+
+The agent picks it up automatically on next session.
+
+## 2. Start the daemon
+
+```bash
+omniscout daemon start
+```
+
+## 3. Drop a prompt
+
+### Research a question
+
+```text
+Use OmniScout to research "state of open-source browser agents in 2026" and summarize the top 5 passages with their source URLs.
+```
+
+### Navigate and click
+
+```text
+Open https://news.ycombinator.com using OmniScout, snapshot interactive elements, click the top story, and screenshot the result to /tmp/hn-top.png.
+```
+
+### Log in once and reuse
+
+```text
+Run `omniscout browser login https://github.com --profile work`, pause for me to authenticate, then screenshot my notifications page with that profile.
+```
+
+### Build a knowledge graph
+
+```text
+Build a knowledge graph for "Cursor" with OmniScout. Run `omniscout graph "Cursor" --json --data`, show the tree, and cite sources.
+```
+
+### Fill a form
+
+```text
+Use OmniScout to open https://duckduckgo.com, fill the search box with "local-first AI agents", press Enter, wait for results, and list the top 5 results.
+```
+
+### Capture network traffic
+
+```text
+Open the Vercel pricing page with OmniScout, capture network traffic while scrolling, then list requests matching stripe|payment|checkout.
+```
+
+## Tips for agents
+
+- Set `OMNISCOUT_JSON=1` at the start for structured output
+- Use `omniscout browser snapshot --refs-only` to find elements, then click by `@eN` ref
+- Re-snapshot after every `navigate` — refs go stale
+- Close sessions with `omniscout browser close --all` when done

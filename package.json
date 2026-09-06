@@ -1,21 +1,31 @@
 {
   "name": "omniscout-docs",
+  "version": "0.0.25",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "nuxt dev",
-    "translate": "node scripts/translate-content.mjs",
-    "build": "node scripts/translate-content.mjs && node scripts/build-llms-full.mjs && nuxt build",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "types:check": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "better-sqlite3": "^12.6.2",
-    "docus": "latest",
-    "mermaid": "^11.17.2",
-    "nuxt": "^4.3.1"
+    "cn": "^0.2.4",
+    "fumadocs-core": "16.15.7",
+    "fumadocs-mdx": "15.4.0",
+    "fumadocs-ui": "npm:@fumadocs/base-ui@16.15.7",
+    "lucide-react": "^1.39.0",
+    "next": "16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "gt": "^2.14.47"
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
   }
 }

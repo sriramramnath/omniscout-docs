@@ -1,0 +1,75 @@
+---
+title: AI 에이전트와 함께 사용하기
+description: Claude Code, Cursor, Codex, Kimi가 OmniScout를 구동하기 위한 바로 쓰는 프롬프트와 스킬 파일.
+icon: Bot
+---
+
+OmniScout는 AI 에이전트가 구동하도록 만들어졌습니다. 설정 방법은 다음과 같습니다.
+
+## 1. 설치
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+`--skill` 플래그는 에이전트의 스킬 디렉터리에 지침을 복사합니다:
+
+| 에이전트 | 위치 |
+|---|---|
+| Claude Code | `~/.claude/skills/scout/SKILL.md` |
+| Cursor | `~/.cursor/skills-cursor/scout/SKILL.md` |
+| Codex | `~/.codex/skills/scout/SKILL.md` |
+
+다음 세션부터 에이전트가 자동으로 인식합니다.
+
+## 2. 데몬 시작
+
+```bash
+omniscout daemon start
+```
+
+## 3. 프롬프트 입력
+
+### 질문 리서치
+
+```text
+Use OmniScout to research "state of open-source browser agents in 2026" and summarize the top 5 passages with their source URLs.
+```
+
+### 이동 및 클릭
+
+```text
+Open https://news.ycombinator.com using OmniScout, snapshot interactive elements, click the top story, and screenshot the result to /tmp/hn-top.png.
+```
+
+### 한 번 로그인하고 재사용
+
+```text
+Run `omniscout browser login https://github.com --profile work`, pause for me to authenticate, then screenshot my notifications page with that profile.
+```
+
+### 지식 그래프 구축
+
+```text
+Build a knowledge graph for "Cursor" with OmniScout. Run `omniscout graph "Cursor" --json --data`, show the tree, and cite sources.
+```
+
+### 양식 작성
+
+```text
+Use OmniScout to open https://duckduckgo.com, fill the search box with "local-first AI agents", press Enter, wait for results, and list the top 5 results.
+```
+
+### 네트워크 트래픽 캡처
+
+```text
+Open the Vercel pricing page with OmniScout, capture network traffic while scrolling, then list requests matching stripe|payment|checkout.
+```
+
+## 에이전트용 팁
+
+- 구조화된 출력을 위해 시작할 때 `OMNISCOUT_JSON=1` 설정
+- `omniscout browser snapshot --refs-only`로 요소를 찾은 뒤 `@eN` 참조로 클릭
+- 매 `navigate`마다 다시 스냅샷 촬영 — 참조가 무효화됨
+- 완료되면 `omniscout browser close --all`로 세션 종료
