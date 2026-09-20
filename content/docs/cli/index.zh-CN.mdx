@@ -1,8 +1,10 @@
 ---
-title: "OmniScout 命令行"
-description: 面向 AI 智能体的本地优先浏览器控制、语义搜索与研究。
+title: "OmniScout CLI"
+description: 面向 AI agent 的本地优先浏览器控制、语义搜索与研究工具。
 icon: BookOpen
 ---
+
+面向 AI agent 的本地优先浏览器控制、语义搜索与研究工具。无需云端账号、无需 API key — 装好即用。
 
 ## 安装
 
@@ -11,50 +13,61 @@ pip install omniscout
 omniscout install --skill
 ```
 
+完整配置：[安装](/docs/cli/installation)。五分钟 tour：[快速上手](/docs/cli/quickstart)。
+
 ## 使用
 
 ```bash
 omniscout daemon start
 
-# 搜索
+# Search
 omniscout answer "what is the capital of france"
 
-# 提取
+# Extract
 omniscout extract https://example.com
 
-# 浏览器
+# Browser
 omniscout browser navigate https://example.com
 omniscout browser snapshot --refs-only
 omniscout browser click '@e3'
 omniscout browser screenshot --out /tmp/page.png
 
-# 研究
+# Research
 omniscout research "AI agents in 2026"
 
-# 知识图谱
+# Knowledge graph
 omniscout graph "Cursor"
 ```
 
-## 功能一览
+## 开箱即用
 
-| 命令 | 功能 |
-|---|---|
-| `omniscout answer` | 带引用的直接问答 |
-| `omniscout search` | 带重排序的网页搜索 |
-| `omniscout extract` | 获取 URL 并返回干净内容 |
-| `omniscout research` | 多步骤研究流水线 |
-| `omniscout graph` | 构建知识图谱 |
-| `omniscout browser` | 控制浏览器 |
-| `omniscout computer` | 桌面自动化（macOS） |
-| `omniscout remember` | 将 URL 存入记忆 |
-| `omniscout daemon` | 管理后台服务 |
+| 命令 | 功能 | 指南 |
+|---|---|---|
+| `omniscout answer` / `search` | 带引用的直接问答 / 排序后的结果 | [搜索](/docs/cli/search) |
+| `omniscout extract` | 抓取 URL 并返回干净内容 | [提取](/docs/cli/extraction) |
+| `omniscout research` / `graph` | 多步骤流水线 / 知识图谱 | [研究](/docs/cli/research) |
+| `omniscout browser` | 控制浏览器 | [浏览器](/docs/cli/browser) |
+| `omniscout computer` | 桌面自动化（macOS） | [Computer](/docs/cli/computer) |
+| `omniscout daemon` / `session` / `profile` | 后台服务、会话、profile | [会话](/docs/cli/sessions) |
+| `omniscout remember` / `memory` | 存入并召回页面 | [记忆](/docs/cli/memory) |
+| `omniscout record` / `macro` / `monitor` | 可复用流程、变化提醒 | [工作流](/docs/cli/workflows) |
+
+## 指南
+
+- [什么是 OmniScout](/docs/cli/overview) — 概念与设计原则
+- [与 AI agent 配合使用](/docs/cli/agents) — 技能、JSON 循环、调试运行
+- [示例与配方](/docs/cli/examples) — 可直接复制的工作流
+- [命令参考](/docs/cli/commands) — 每个动词、每个 flag
+- [工作原理](/docs/cli/architecture) — daemon、后端、ref、数据流
+- [配置](/docs/cli/configuration) — config.toml、环境变量、数据布局
+- [故障排查](/docs/cli/troubleshooting) — 修复与 FAQ
 
 ## JSON 输出
 
 ```bash
-export OMNISCOUT_JSON=1  # 面向智能体的结构化输出
+export OMNISCOUT_JSON=1  # structured output for agents
 ```
 
 ## 本地优先
 
-无需云账号、API 密钥或托管服务器。唯一的出站流量是 DuckDuckGo 搜索和您明确获取的 URL。
+无需云端账号、API key 或托管服务。唯一的出站流量是 DuckDuckGo 搜索与你明确抓取的 URL。

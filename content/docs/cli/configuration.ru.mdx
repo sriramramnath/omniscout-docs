@@ -1,0 +1,88 @@
+---
+title: Конфигурация
+description: config.toml, переменные окружения, структура данных и JSON-вывод.
+icon: Settings
+---
+
+## config.toml
+
+Создайте `config.toml` в конфигурационном каталоге вашей платформы:
+
+| Платформа | Путь |
+|---|---|
+| macOS | `~/Library/Application Support/omniscout/config.toml` |
+| Linux | `~/.config/omniscout/config.toml` |
+
+```toml
+default_source = "searxng"   # searxng | ddg | wikipedia | web
+search_limit = 10
+research_results = 8
+request_throttle_seconds = 1.0
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+browser = "chrome"                    # chrome | edge | brave | vivaldi | opera | arc | chromium | custom
+# browser_executable = "/path/to/browser"  # only needed for 'custom'
+```
+
+Предпочитайте CLI ручному редактированию — `omniscout settings set` пишет тот же файл:
+
+```bash
+omniscout settings set browser brave
+omniscout settings show
+```
+
+Проверяйте состояние установки и движки командами `omniscout install`, `omniscout settings browsers` и `omniscout settings engines`.
+
+## Переменные окружения
+
+| Переменная | Назначение |
+|---|---|
+| `OMNISCOUT_JSON=1` | Принудительный JSON-вывод для каждой команды |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | Не запускать daemon автоматически |
+| `OMNISCOUT_DAEMON_PORT` | Порт daemon (по умолчанию 7720) |
+| `OMNISCOUT_DATA_DIR` | Переопределение каталога данных |
+| `OMNISCOUT_BROWSER` | ID браузера (переопределяет конфиг) |
+| `OMNISCOUT_EMBED_LOCAL_ONLY=0` | Разрешить runtime-загрузки Hugging Face |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | Ключ решателя CAPTCHA |
+| `OMNISCOUT_API_KEY` | Облачный API-ключ (для Cloud SDK/CLI) |
+| `OMNISCOUT_BASE_URL` | Облачный base URL (по умолчанию production) |
+
+Устаревшие эквиваленты `HARNESS_*` по-прежнему принимаются.
+
+## Контракт JSON-вывода
+
+Каждая команда говорит на JSON — поверхность интеграции агентов:
+
+```bash
+omniscout --json answer "What is local-first software?"
+export OMNISCOUT_JSON=1   # same for all commands in this shell
+```
+
+При включённом JSON `stdout` — это структурированный payload, а логи идут в `stderr` (добавьте `-v/--verbose` для подробностей). Пропускайте через `jq`:
+
+```bash
+omniscout search "topic" | jq '.hits[] | {title, url}'
+```
+
+Или минуйте CLI и говорите с daemon напрямую:
+
+```bash
+curl -X POST http://127.0.0.1:7720/command \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"navigate","args":{"url":"https://example.com"},"session":"demo"}'
+```
+
+См. [Использование с ИИ-агентами](/docs/cli/agents) про полный цикл агента (JSON, trace/replay/watch, виды ошибок).
+
+## Состояние на диске
+
+| Путь (внутри data dir) | Назначение |
+|---|---|
+| `profiles/` | Постоянные browser user-data-dirs |
+| `qdrant/` | Встроенный векторный индекс |
+| `models/sentence-transformers/` | Предзагруженная embedding-модель |
+| `memory.sqlite` | Память браузера (визиты + заметки) |
+| `sessions.sqlite` | Реестр долгоживущих сессий |
+| `cache/pages/` | Контент-хешированный HTML-кэш |
+| `daemon/` | PID, порт, логи, история действий, восстановление сессий |
+
+Держите профили и данные моделей/кэша вне version control.

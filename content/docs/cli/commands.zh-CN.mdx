@@ -1,86 +1,123 @@
 ---
 title: 命令参考
-description: OmniScout 命令行中的每一条命令。
+description: OmniScout CLI 中的每一条命令。
 icon: List
 ---
 
-使用 `omniscout --help` 查看所有命令，或使用 `omniscout <command> --help` 查看选项。
+使用 `omniscout --help` 查看所有命令，或使用 `omniscout <command> --help`（以及 `omniscout browser <action> --help`）查看选项。下面每个小节都链接到含完整 flag 与示例的指南。
 
 ## 顶层命令
 
-| 命令 | 功能 | 适用场景 |
-|---------|--------------|-------------|
-| `search` | 网页搜索，可选语义重排序 | 快速查找 URL 或事实 |
-| `answer` | 检索网页结果并用 LLM 综合 | 带引用的直接问答。优先于 `search` 使用 |
-| `map` | 抓取站点并生成 URL 地图 | 探索整个域名 |
-| `warmup` | 在 daemon 中预加载嵌入/问答模型 | 降低首次调用延迟 |
-| `remember` | 访问 URL、提取内容并存入浏览器记忆 | 持久保存信息以便日后回忆 |
-| `extract` | 获取 URL 或查询并返回可读/结构化数据 | 从页面拉取原始文本或 JSON |
-| `open` | 在托管浏览器中打开 URL 或最新搜索结果序号 | 在受控 Chromium 中运行页面 |
-| `snapshot` | 捕获带 `@e` 引用的无障碍快照 | 检查页面结构以便后续 UI 操作 |
-| `context` | 显示当前工作流连续状态 | 调试或恢复多步骤流程 |
-| `reset` | 重置连续状态 | 开始全新会话 |
-| `auto` | 自动将输入路由到最佳命令 | 简单的一行式用法 |
-| `research` | 多步骤：搜索 → 抓取 → 提取 → 重排序 → 总结 | 完整的研究流水线 |
-| `graph` | 为实体构建结构化知识图谱 | 将事实组织为节点/边 |
-| `install` | 验证（或下载）用于自动化的 Chromium 浏览器 | 首次安装设置 |
-| `settings` | 查看 / 修改用户设置 | 配置调整 |
-| `browser` | 基于 Playwright 的直接 Chromium 自动化 | 复杂的网页 UI 工作流 |
-| `computer` | 原生桌面自动化（macOS） | 与系统应用、文件、剪贴板等交互 |
-| `daemon` | 管理常驻的浏览器控制 daemon | 启动/停止后台服务 |
-| `index` | 管理本地搜索索引 | 重建索引或查询本地缓存 |
-| `crawl` | 运行 / 检查本地抓取任务 | 批量站点抓取 |
-| `record` | 将 daemon 操作录制为命名宏 | 创建可复用脚本 |
-| `macro` | 列出 / 运行已保存的宏 | 回放录制的操作 |
-| `replay` | 回放录制的浏览器操作 | 调试或重复某个流程 |
-| `workflow` | 导出 / 查看连续工作流 | 持久保存或分享流程 |
-| `monitor` | 持续监控 URL 变化 | 内容更新时告警 |
-| `profile` | 管理持久浏览器配置文件 | 隔离不同上下文（工作 vs 个人） |
-| `session` | 管理常驻浏览器会话 | 跨运行保留 Cookie/登录态 |
-| `memory` | 浏览器记忆——已记住的访问与笔记 | 检索已存储的片段 |
+| 命令 | 功能 | 指南 |
+|---|---|---|
+| `answer` | 带引用的问答（优先于 `search`） | [搜索](/docs/cli/search) |
+| `search` | 带本地语义重排序的网页搜索（+ `ui`） | [搜索](/docs/cli/search) |
+| `map` | 将站点抓取为 URL 地图（`--limit`、`--depth`） | [搜索](/docs/cli/search) |
+| `warmup` | 在 daemon 中预加载 embedding / 问答模型 | [搜索](/docs/cli/search) |
+| `extract` | URL / 查询 / 站点抓取 → Markdown 或结构化 JSON | [提取](/docs/cli/extraction) |
+| `research` | 搜索 → 抓取 → 提取 → 重排序 → 总结 | [研究](/docs/cli/research) |
+| `graph` | 实体的结构化知识图谱 | [研究](/docs/cli/research) |
+| `benchmark` | 评估问答 / 检索 / 格式化模式 | [研究](/docs/cli/research) |
+| `open` | 在浏览器中打开 URL（或上次搜索的第 N 个结果） | [工作流](/docs/cli/workflows) |
+| `snapshot` | 带 `@e` ref 的无障碍 snapshot（默认会话） | [浏览器](/docs/cli/browser) |
+| `context` | 显示工作流连续状态 | [工作流](/docs/cli/workflows) |
+| `reset` | 重置连续状态 | [工作流](/docs/cli/workflows) |
+| `auto` | 将输入路由到最佳命令 | [工作流](/docs/cli/workflows) |
+| `browser` | 完整的 Chromium 自动化词汇 | [浏览器](/docs/cli/browser) |
+| `computer` | 原生桌面自动化（macOS） | [Computer](/docs/cli/computer) |
+| `daemon` | 启动 / 停止 / 状态 / 日志 / trace / replay / watch | [会话](/docs/cli/sessions) |
+| `session` | 启动 / 列出 / 附加 / 终止常驻会话 | [会话](/docs/cli/sessions) |
+| `profile` | 创建 / 列出 / 删除持久 profile | [会话](/docs/cli/sessions) |
+| `settings` | show / browsers / engines / set | [会话](/docs/cli/sessions) |
+| `install` | 验证本地 Chromium 可用（+ `--skill`） | [安装](/docs/cli/installation) |
+| `setup` | 选择浏览器、准备扩展后端 | [安装](/docs/cli/installation) |
+| `remember` | 访问 URL 并存入浏览器记忆 | [记忆](/docs/cli/memory) |
+| `memory` | 搜索 / 列出 / 笔记 / 删除记忆 | [记忆](/docs/cli/memory) |
+| `index` | 管理本地搜索索引 | [记忆](/docs/cli/memory) |
+| `extract-jobs` | 查看后台提取任务 | [记忆](/docs/cli/memory) |
+| `crawl` | 运行并查看本地抓取任务 | [工作流](/docs/cli/workflows) |
+| `record` | 将 daemon 操作录制为命名 macro | [工作流](/docs/cli/workflows) |
+| `macro` | 列出 / 运行已保存的 macro | [工作流](/docs/cli/workflows) |
+| `replay` | 回放已记录的浏览器操作 | [工作流](/docs/cli/workflows) |
+| `workflow` | 导出 / 查看连续工作流 | [工作流](/docs/cli/workflows) |
+| `monitor` | URL 内容变化时输出 JSON 行 | [工作流](/docs/cli/workflows) |
+| `distill` | 收集 / 准备 / 评估 / 训练蒸馏问答模型 | — |
 
 ## 全局选项
 
 所有命令均支持：
 
-- `--json`——向 stdout 输出机器可读的 JSON
-- `--verbose`、`-v`——详细 stderr 日志
-- `--version`——打印版本并退出
+- `--json` — 向 stdout 输出机器可读的 JSON
+- `--verbose`、`-v` — 详细 stderr 日志
+- `--version` — 打印版本并退出
 
-在环境中设置 `OMNISCOUT_JSON=1` 可将 JSON 输出设为默认。
+在环境中设置 `OMNISCOUT_JSON=1` 可将 JSON 输出设为默认。完整 JSON 约定与所有环境变量见[配置](/docs/cli/configuration)。
 
 ## 浏览器命令
 
+完整指南：[浏览器自动化](/docs/cli/browser)。
+
 | 命令 | 功能 |
 |---------|--------------|
-| `browser navigate <url>` | 在活动标签页中打开 URL |
-| `browser snapshot --refs-only` | 获取带 `@eN` 引用的可交互元素 |
-| `browser click <ref>` | 按 `@eN` 引用点击元素 |
-| `browser fill <ref> <value>` | 填写表单字段 |
-| `browser type <ref> <text>` | 在字段中输入文本 |
-| `browser scroll [up\|down]` | 滚动页面 |
-| `browser key <combo>` | 按下键盘快捷键 |
-| `browser screenshot [-o PATH]` | 截图 |
-| `browser pdf [-o PATH]` | 生成 PDF |
-| `browser wait text <substring>` | 等待文本出现 |
-| `browser login <url>` | 打开有界面登录窗口 |
-| `browser captcha` | 检测或解决验证码 |
-| `browser close --all` | 关闭所有会话 |
+| `browser navigate <url>` / `open` | 打开 URL（`--profile`、`--session`、`--new-tab`、`--headful`、`--wait-until`、`--auto-captcha`） |
+| `browser back/forward/reload` | 历史导航 |
+| `browser snapshot [--refs-only]` | 带 `@eN` ref 的可交互元素（`--overlay` 可视化） |
+| `browser observe "<hint>"` | 为自然语言指令查找候选 ref |
+| `browser act "<instruction>"` | 解析并执行页面操作（`--value`、`--dry-run`） |
+| `browser click <ref>` | 点击（`--button`、`--clicks`、`--mod`、`--coord`） |
+| `browser fill <ref> <value>` | 替换字段内容 |
+| `browser type <ref> <text>` | 追加文本（`--delay-ms`） |
+| `browser paste <ref> <text>` | 在光标处插入 |
+| `browser select <ref> <option>` | 原生 `<select>` |
+| `browser scroll [up\|down]` | 滚动页面 / 元素（`--amount`、`--ref`） |
+| `browser key <combo>` | 键盘快捷键（`Enter`、`cmd+s`……） |
+| `browser hover <ref>` | 鼠标悬停于元素 / 坐标 |
+| `browser upload <ref> <files>` | 为 `<input type=file>` 附加文件 |
+| `browser is <ref> <state>` | visible / hidden / enabled / disabled / checked / editable |
+| `browser get title/url/text/html` | 读取页面属性 |
+| `browser eval <js>` | 运行 JavaScript 并返回值 |
+| `browser extract-visible` | 可见文本，可选 `--schema` 整形 |
+| `browser find-image` | 在视口中定位图片模板 |
+| `browser screenshot [-o PATH]` | PNG / JPEG（`--full-page`、`--ref`、`--delay`、`--format`） |
+| `browser pdf [-o PATH]` | 渲染为 PDF（`--paper`、`--landscape`、`--scale`） |
+| `browser wait …` | `text`、`selector`、`networkidle`、`url`（+ `--ms`、`--timeout-ms`） |
+| `browser mouse scroll/move` | 坐标级的原始鼠标输入 |
+| `browser tab list/close/switch` | 会话内的标签页管理 |
+| `browser network start/stop/list/tail/detail` | 请求 / 响应捕获 |
+| `browser console start/stop/list/tail` | 控制台 + JS 错误捕获 |
+| `browser login <url>` | 有界面登录，会阻塞（`--profile`、`--done`、`--success-pattern`） |
+| `browser captcha` | 检测 / 求解（`none\|2captcha\|capsolver\|manual`、`--detect-only`） |
+| `browser close [--all]` | 关闭单个会话或全部 |
 
 ## 电脑命令（macOS）
 
+完整指南：[Computer](/docs/cli/computer)。
+
 | 命令 | 功能 |
 |---------|--------------|
-| `computer navigate <target>` | 打开应用、文件或 URL |
-| `computer type <text>` | 在聚焦窗口中输入 |
+| `computer navigate <target>` | 打开应用、文件、目录或 URL |
+| `computer type <text>` | 向聚焦窗口输入 |
 | `computer key <combo>` | 发送键盘快捷键 |
+| `computer wait <ms>` | 休眠毫秒数 |
 | `computer screenshot` | 截取屏幕 |
-| `computer clipboard get` | 读取剪贴板 |
-| `computer clipboard set <text>` | 写入剪贴板 |
-| `computer window list` | 列出打开的窗口 |
-| `computer window activate <title>` | 将窗口置于前台 |
-| `computer ui snapshot` | 获取 UI 元素引用 |
-| `computer ui click <ref>` | 点击 UI 元素 |
+| `computer clipboard` | `get` / `set` 系统剪贴板 |
+| `computer window list/activate/close` | 窗口管理 |
+| `computer ui snapshot/click/drag/is` | 原生 UI 的 `@eN` ref |
+| `computer doctor` | 诊断环境 |
+| `computer backend` | 列出自动化后端 |
+
+## Daemon 命令
+
+完整指南：[Daemon 与会话](/docs/cli/sessions)。
+
+| 命令 | 功能 |
+|---|---|
+| `daemon start/stop/restart` | 生命周期（启动幂等） |
+| `daemon status` | 健康、版本、活动会话 |
+| `daemon logs` | 查看日志尾部 |
+| `daemon trace` | JSONL 历史（最近 10k 条命令） |
+| `daemon replay` | 重跑已记录的操作 |
+| `daemon watch` | 实时事件流（SSE） |
 
 ## 环境变量
 
@@ -90,3 +127,8 @@ icon: List
 | `OMNISCOUT_DAEMON_AUTO_START=0` | 不自动启动 daemon |
 | `OMNISCOUT_DAEMON_PORT` | 覆盖 daemon 端口（默认 7720） |
 | `OMNISCOUT_DATA_DIR` | 覆盖数据目录 |
+| `OMNISCOUT_BROWSER` | 浏览器 id（覆盖配置） |
+| `OMNISCOUT_EMBED_LOCAL_ONLY=0` | 允许运行时从 Hugging Face 获取 |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | 验证码求解器 key |
+
+完整列表（含配置键与数据布局）：[配置](/docs/cli/configuration)。

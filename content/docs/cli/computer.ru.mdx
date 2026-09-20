@@ -4,39 +4,68 @@ description: Автоматизация рабочего стола для macOS
 icon: Monitor
 ---
 
-OmniScout может управлять нативными приложениями macOS, окнами, буфером обмена и экраном.
+`omniscout computer` управляет нативными приложениями macOS, окнами, буфером обмена и экраном — десктопный аналог [Автоматизации браузера](/docs/cli/browser). Команды используют тот же JSON-конверт daemon и модель `--session`.
 
-## Команды
+Сначала проверьте поддержку: `omniscout computer doctor` диагностирует окружение, а `omniscout computer backend` показывает доступные бэкенды. Автоматизация рабочего стола пока поддерживает macOS через нативные `open`, AppleScript, `screencapture` и инструменты буфера обмена.
 
-| Команда | Что делает |
-|---------|--------------|
-| `computer navigate <target>` | Открытие приложения, файла или URL |
-| `computer type <text>` | Ввод в активное окно |
-| `computer key <combo>` | Отправка сочетания клавиш (например, `cmd+v`) |
-| `computer screenshot` | Снимок экрана |
-| `computer clipboard get` | Чтение буфера обмена |
-| `computer clipboard set <text>` | Запись в буфер обмена |
-| `computer window list` | Список открытых окон |
-| `computer window activate <title>` | Вывод окна на передний план |
-| `computer window close <title>` | Закрытие окна |
-| `computer wait <ms>` | Пауза в миллисекундах |
-
-## Взаимодействие с элементами интерфейса
-
-| Команда | Что делает |
-|---------|--------------|
-| `computer ui snapshot` | Получение ссылок на элементы интерфейса |
-| `computer ui click <ref>` | Клик по элементу интерфейса |
-| `computer ui drag <src> <dst>` | Перетаскивание между элементами |
-| `computer ui is <ref> <role>` | Проверка соответствия элемента роли |
-
-## Пример
+## Открытие, ввод, клавиши
 
 ```bash
-# Открытие Notes и ввод сообщения
+omniscout computer navigate /Applications/Notes.app   # app, file, dir, or URL
 omniscout computer navigate "Notes" --session notes
+omniscout computer type "Meeting notes" --session notes
+omniscout computer key cmd+s
+omniscout computer wait 300                            # milliseconds
+```
+
+- `navigate` открывает всё, что может открыть ОС: пути/имена приложений, файлы, каталоги, URL.
+- `type` печатает в текущее фокусное окно; `key` отправляет комбинации (`cmd+s`, `ctrl+c`, `cmd+space`, …).
+- `wait` спит фиксированное число миллисекунд — используйте только для анимаций; DOM-условий на десктопе нет.
+
+## Буфер обмена и скриншоты
+
+```bash
+omniscout computer clipboard set "Hello from Scout"
+omniscout computer clipboard get
+omniscout computer screenshot --out /tmp/desktop.png
+```
+
+Круговые trips буфера обмена — простейший способ перемещать текст между десктопом и шеллом (или агентом): установите, вставьте через `key cmd+v`, получите для проверки.
+
+## Окна
+
+```bash
+omniscout computer window list
+omniscout computer window activate "Notes"
+omniscout computer window close "Notes"
+```
+
+Сначала список (названия должны совпадать), затем фокус через activate перед вводом.
+
+## Взаимодействие с элементами UI
+
+Для элементного управления вместо слепого ввода сделайте snapshot accessibility-дерева и действуйте по `@eN` refs — та же модель, что в автоматизации браузера:
+
+```bash
+omniscout computer ui snapshot
+omniscout computer ui click '@e4'
+omniscout computer ui drag '@e2' '@e7'
+omniscout computer ui is '@e4' button
+```
+
+## Полный пример
+
+```bash
+# Open Notes and type a message
+omniscout computer navigate "Notes" --session notes
+omniscout computer wait 300
 omniscout computer type "Hello from OmniScout!" --session notes
+omniscout computer key cmd+s
 omniscout computer screenshot --out /tmp/notes.png --session notes
 ```
 
-См. `omniscout computer --help` для всех опций.
+## Облачный эквивалент
+
+В OmniScout Cloud те же примитивы работают на удалённом Sprite через действия `computer.*` на единой сессии — см. [Endpoints](/docs/api/endpoints#computer-sessions).
+
+См. `omniscout computer --help` (и `omniscout computer ui --help`) для всех опций.

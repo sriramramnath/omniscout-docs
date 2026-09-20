@@ -41,7 +41,8 @@ curl-equivalent against `http://127.0.0.1:7720/command`.
 | Save a page for later recall | `omniscout remember https://…` | Indexes into semantic memory |
 | Search pages you've saved | `omniscout search "query" --source memory` | Or `--source hybrid` (memory + DDG) |
 | Interact with a live page | `omniscout browser navigate …` | Requires daemon; use `@eN` refs |
-| Full-page screenshot (top to bottom) | `omniscout browser screenshot --full-length` | Viewport-only by default; `--full-page` is an alias |
+| Full-page screenshot (top to bottom) | `omniscout browser screenshot --full-length` | Viewport-only by default; `--full-page` is an alias; `--stitched` scroll-stitches instead |
+| Partial screenshot (element or pixels) | `omniscout browser screenshot --ref "#hero"` or `--region 0,200,1280,800` | `--ref` takes `@eN` refs or CSS selectors |
 | Open result #3 from last search | `omniscout open 3` | Workflow shorthand |
 | Extract from a snapshot ref | `omniscout extract @e12` | Resolves via workflow state |
 
@@ -288,7 +289,7 @@ search; use `omniscout browser …` for the full verb set.
 | `scroll` | direction, `--amount`, `--ref` | `{direction, amount}` | |
 | `key` | combo | `{combo}` | e.g. `cmd+a`, `Escape`, `Enter`. |
 | `hover` | selector or `--coord X Y` | `{mode}` | |
-| `screenshot` | `--out`, `--ref`, `--full-page`, `--full-length`, `--delay` | `{format, path, size_bytes}` | `--delay SEC` before capture. **Read the returned path via your Read tool.** |
+| `screenshot` | `--out`, `--ref`, `--region`, `--stitched`, `--full-page`, `--full-length`, `--delay` | `{format, path, size_bytes}` | `--delay SEC` before capture. **Read the returned path via your Read tool.** |
 | `pdf` | `--out`, `--paper`, `--landscape` | `{path, size_bytes}` | Playwright backend only. |
 | `eval` | code | `{type, value}` | Use compact `JSON.stringify`; wrap in IIFE for fresh scope. |
 | `wait` | `--ref` / `--url` / `--idle` / `--ms` | `{reason}` | |
@@ -302,14 +303,21 @@ search; use `omniscout browser …` for the full verb set.
 ### Screenshots
 
 Viewport-only by default. Pass `--full-length` or `--full-page` (aliases) to
-capture the entire scrollable page from top to bottom. Use `--ref @eN` to capture
-a single element instead. Always pass `--out` to a path you can read back.
+capture the entire scrollable page from top to bottom. Pass `--stitched` to
+scroll viewport-by-viewport and stitch the frames into one PNG instead (more
+reliable on lazy-loaded pages; PNG only). Use `--ref @eN` — or a raw CSS
+selector like `--ref "#hero"` — to capture a single element instead. Use
+`--region x,y,w,h` for an exact pixel rectangle. Always pass `--out` to a path
+you can read back.
 
 ```bash
 omniscout browser screenshot --out /tmp/viewport.png
 omniscout browser screenshot --full-length --out /tmp/full.png
+omniscout browser screenshot --stitched --out /tmp/stitched.png
 omniscout browser screenshot https://example.com --full-page --out /tmp/page.png
 omniscout browser screenshot --ref @e3 --out /tmp/button.png
+omniscout browser screenshot --ref "#hero" --out /tmp/hero.png
+omniscout browser screenshot --region 0,200,1280,800 --out /tmp/mid.png
 omniscout browser screenshot --delay 3 --out /tmp/after-load.png
 ```
 
@@ -419,6 +427,7 @@ omniscout browser close --all
 omniscout browser navigate https://example.com
 omniscout browser wait networkidle
 omniscout browser screenshot --full-length --out /tmp/example-full.png
+# or: omniscout browser screenshot --stitched --out /tmp/example-stitched.png
 omniscout browser close --all
 ```
 

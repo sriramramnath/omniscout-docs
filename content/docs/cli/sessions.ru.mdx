@@ -1,0 +1,81 @@
+---
+title: Daemon, сессии и профили
+description: Фоновый daemon, долгоживущие сессии, постоянные профили и инструменты отладки.
+icon: Server
+---
+
+## Жизненный цикл daemon
+
+Daemon (`127.0.0.1:7720` по умолчанию) держит браузер открытым, чтобы действия оставались субсекундными:
+
+```bash
+omniscout daemon start     # idempotent — returns status if already up
+omniscout daemon status    # health, version, active sessions
+omniscout daemon restart
+omniscout daemon stop      # SIGTERM, then SIGKILL after 5s
+omniscout daemon logs      # tail the daemon log (add --follow)
+```
+
+Большинство команд сами запускают daemon, если он не работает. Переопределите порт через `OMNISCOUT_DAEMON_PORT` (и `omniscout daemon start --port 7721`); отключите автозапуск через `OMNISCOUT_DAEMON_AUTO_START=0`.
+
+## Отладка: trace, replay, watch
+
+Каждое действие daemon записывается в JSONL-историю (последние 10k команд):
+
+```bash
+omniscout daemon trace     # inspect the action history
+omniscout daemon replay    # re-run recorded actions
+omniscout daemon watch     # subscribe to the live event stream (SSE)
+```
+
+Это самый быстрый способ увидеть, что реально сделал агент, — `trace` для форензики, `watch` для живого мониторинга.
+
+## Сессии vs профили
+
+| | Сессия (`--session`) | Профиль (`--profile`) |
+|---|---|---|
+| Что | Именованная группа вкладок в живом daemon | Постоянный browser user-data-dir на диске |
+| Переживает рестарт daemon? | Нет | Да |
+| Хранит cookies/входы? | Пока живёт | Между запусками |
+| Управление | `omniscout session …` | `omniscout profile …` |
+
+Используйте **сессии**, чтобы изолировать параллельные процессы на одном daemon; используйте **профили**, чтобы разделять идентичности (рабочая vs личная) или сохранять входы между рестартами.
+
+### Сессии
+
+```bash
+omniscout session start          # start a session, prints id + WS endpoint
+omniscout session list           # active sessions
+omniscout session attach <id>    # connection info (CDP WS endpoint)
+omniscout session kill <id>      # kill one (or all) sessions
+```
+
+Передавайте `--session <name>` в любой команде `browser`/`computer`, чтобы выполняться внутри этой сессии. Топ-уровневые шорткаты `open`, `snapshot`, `context` и `reset` работают с состоянием workflow сессии по умолчанию.
+
+### Профили
+
+```bash
+omniscout profile create work
+omniscout profile list
+omniscout profile delete old
+```
+
+Затем привяжите профиль к любому запуску браузера:
+
+```bash
+omniscout browser navigate https://github.com/notifications --profile work
+omniscout browser login https://github.com/login --profile work  # log in once, reuse
+```
+
+Профили живут в `profiles/` внутри data dir. Держите их вне репозитория — в них cookies.
+
+## Настройки
+
+```bash
+omniscout settings show        # current settings + resolved browser target
+omniscout settings browsers    # supported browsers, and which are installed
+omniscout settings engines     # supported answer engines
+omniscout settings set browser brave
+```
+
+Настройки сохраняются в `config.toml` — см. [Конфигурация](/docs/cli/configuration) про каждый ключ и переопределение через окружение.

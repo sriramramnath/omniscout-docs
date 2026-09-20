@@ -1,0 +1,85 @@
+---
+title: Extraction
+description: Turn any URL or search query into clean Markdown or structured JSON.
+icon: FileText
+---
+
+`extract` fetches a page and returns readable content — no browser session needed. It works in three modes: single URL, search-query crawl, and whole-site export.
+
+## Single URL → Markdown
+
+```bash
+omniscout extract https://example.com
+omniscout extract https://example.com --format text
+omniscout extract https://example.com > /tmp/page.md
+```
+
+| `--format/-f` | Returns |
+|---|---|
+| `markdown` (default) | Clean readable Markdown |
+| `text` | Plain text, no formatting |
+| `json` | Structured fields (requires `--fields`) |
+| `structured` | Auto-extracted fields; add `--fields` to limit |
+
+## Structured extraction
+
+Pull specific fields instead of the whole page:
+
+```bash
+omniscout extract https://example.com --format structured --fields founder,pricing
+```
+
+For Exa-style schema-driven extraction, pass a JSON Schema from a file or inline:
+
+```bash
+omniscout extract https://stripe.com/pricing \
+  --schema-inline '{"type":"object","properties":{"pricing":{"type":"string"}}}'
+omniscout extract https://stripe.com/pricing --schema ./schema.json
+```
+
+Add `--data` to include full result metadata (cache status, timing, content stats) alongside the fields.
+
+## Query mode — extract across search hits
+
+Omit the URL and pass `--query` to search the web, then extract from the top hits with a multi-level link crawl:
+
+```bash
+omniscout extract -q "SpaceX founder" --format structured --fields founder
+```
+
+Tune the crawl with:
+
+| Flag | Meaning | Default |
+|---|---|---|
+| `--results/-n` | Seed URLs taken from search | 5 |
+| `--depth` | Link hops: 1 = page only, 2 = direct links, 3+ = deeper | 1 for URL mode, 3 for `--query` |
+
+## Site export — crawl a whole site to one file
+
+Pass `--out` to trigger site-crawl mode: OmniScout crawls same-host links and writes combined Markdown to a file:
+
+```bash
+omniscout extract https://example.com --depth 2 --out /tmp/site.md
+```
+
+| Flag | Meaning | Default |
+|---|---|---|
+| `--max-pages` | Max pages to fetch | 40 |
+| `--max-links` | Same-host links followed per page | 20 |
+| `--concurrency` | Parallel fetch limit | 4 |
+| `--include` / `--exclude` | Comma-separated path substrings to keep/skip | — |
+
+```bash
+omniscout extract https://example.com --depth 2 --out /tmp/site.md \
+  --include blog,docs --exclude tag,author
+```
+
+## Caching
+
+Extracted pages are cached on disk (content-hashed under `cache/pages/`). Re-runs are instant unless the page changed. Bypass with `--no-cache`.
+
+## Agent tips
+
+- Start with plain Markdown; only reach for `--fields`/schemas when you need typed data.
+- `extract` output pipes cleanly to `jq` under `--json`: `omniscout extract https://... | jq '{title, word_count}'`.
+- For JavaScript-heavy pages that extract poorly, drive the browser instead: `browser navigate` → `browser extract-visible` (optionally with `--schema`) — see [Browser automation](/docs/cli/browser).

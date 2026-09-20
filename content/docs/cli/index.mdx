@@ -4,12 +4,16 @@ description: Local-first browser control, semantic search, and research for AI a
 icon: BookOpen
 ---
 
+Local-first browser control, semantic search, and research for AI agents. No cloud account, no API key — install and go.
+
 ## Install
 
 ```bash
 pip install omniscout
 omniscout install --skill
 ```
+
+Full setup: [Installation](/docs/cli/installation). Five-minute tour: [Quickstart](/docs/cli/quickstart).
 
 ## Use
 
@@ -37,17 +41,26 @@ omniscout graph "Cursor"
 
 ## What's in the box
 
-| Command | What it does |
-|---|---|
-| `omniscout answer` | Direct Q&A with citations |
-| `omniscout search` | Web search with reranking |
-| `omniscout extract` | Fetch a URL and return clean content |
-| `omniscout research` | Multi-step research pipeline |
-| `omniscout graph` | Build a knowledge graph |
-| `omniscout browser` | Control a browser |
-| `omniscout computer` | Desktop automation (macOS) |
-| `omniscout remember` | Store URLs in memory |
-| `omniscout daemon` | Manage the background service |
+| Command | What it does | Guide |
+|---|---|---|
+| `omniscout answer` / `search` | Direct Q&A with citations / ranked hits | [Search](/docs/cli/search) |
+| `omniscout extract` | Fetch a URL and return clean content | [Extraction](/docs/cli/extraction) |
+| `omniscout research` / `graph` | Multi-step pipeline / knowledge graph | [Research](/docs/cli/research) |
+| `omniscout browser` | Control a browser | [Browser](/docs/cli/browser) |
+| `omniscout computer` | Desktop automation (macOS) | [Computer](/docs/cli/computer) |
+| `omniscout daemon` / `session` / `profile` | Background service, sessions, profiles | [Sessions](/docs/cli/sessions) |
+| `omniscout remember` / `memory` | Store and recall pages | [Memory](/docs/cli/memory) |
+| `omniscout record` / `macro` / `monitor` | Reusable flows, change alerts | [Workflows](/docs/cli/workflows) |
+
+## Guides
+
+- [What is OmniScout](/docs/cli/overview) — concepts and design principles
+- [Using with AI agents](/docs/cli/agents) — skills, JSON loop, debugging runs
+- [Examples & recipes](/docs/cli/examples) — copy-paste workflows
+- [Commands reference](/docs/cli/commands) — every verb, every flag
+- [How it works](/docs/cli/architecture) — daemon, backends, refs, data flow
+- [Configuration](/docs/cli/configuration) — config.toml, env vars, data layout
+- [Troubleshooting](/docs/cli/troubleshooting) — fixes and FAQ
 
 ## JSON output
 

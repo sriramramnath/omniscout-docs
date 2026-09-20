@@ -4,7 +4,15 @@ description: OmniScout — локальное управление браузе�
 icon: Info
 ---
 
-OmniScout даёт ИИ-агентам возможность искать в интернете, извлекать контент, управлять браузерами и автоматизировать задачи рабочего стола — всё локально, без облака.
+OmniScout — это автономный, **терминальный интерфейс для веба**: локальный мозг браузера для ИИ-агентов. Он ищет в вебе, извлекает структурированные данные, управляет настоящим браузером, автоматизирует десктопные приложения и всё запоминает — не покидая ваш ноутбук.
+
+## Как это складывается
+
+- **CLI** — команда `omniscout`, которую вводите вы (или ваш агент). Каждая команда говорит на JSON.
+- **Daemon** — долгоживущий фоновый процесс на `127.0.0.1:7720`, который держит браузер тёплым, поэтому действия субсекундны.
+- **Бэкенды** — Patchright (по умолчанию, изолированный Chromium) или расширение, управляющее вашим существующим браузером с вашими реальными входами.
+
+См. [Как это работает](/docs/cli/architecture) для полной картины: `@eN` refs, сессии, профили, история действий и поток событий.
 
 ## Установка
 
@@ -13,48 +21,58 @@ pip install omniscout
 omniscout install --skill
 ```
 
+Полная настройка — браузеры, daemon, модели — описана в [Установка](/docs/cli/installation). Тур за 5 минут — [Быстрый старт](/docs/cli/quickstart).
+
+## Что вы можете делать
+
+| Область | Команды | Руководство |
+|---|---|---|
+| Вопросы-ответы с цитатами | `answer` | [Поиск и ответы](/docs/cli/search) |
+| Ранжированные веб-попадания | `search`, `map` | [Поиск и ответы](/docs/cli/search) |
+| Страница → Markdown/JSON | `extract` | [Извлечение](/docs/cli/extraction) |
+| Исследование многих источников | `research`, `graph` | [Исследования и графы](/docs/cli/research) |
+| Управление браузером | `browser`, `open`, `snapshot` | [Автоматизация браузера](/docs/cli/browser) |
+| Автоматизация рабочего стола (macOS) | `computer` | [Computer](/docs/cli/computer) |
+| Фоновый сервис | `daemon`, `session`, `profile` | [Daemon и сессии](/docs/cli/sessions) |
+| Личная веб-память | `remember`, `memory`, `index` | [Память](/docs/cli/memory) |
+| Переиспользуемые процессы | `record`, `macro`, `replay`, `workflow`, `monitor` | [Рабочие процессы](/docs/cli/workflows) |
+| Настройка и тюнинг | `install`, `setup`, `settings`, `warmup`, `benchmark` | [Конфигурация](/docs/cli/configuration) |
+
+## Принципы дизайна
+
+- **Local-first** — без облачного аккаунта, API-ключа или хостинг-сервера. Состояние, эмбеддинги и память остаются на вашей машине; единственный исходящий трафик — выполняемые вами поиски и загружаемые URL.
+- **Готовность к агентам** — `--json` везде, стабильные `@eN` refs элементов, записанная история действий с trace/replay и файлы skills для Claude Code, Cursor, Codex и Gemini CLI.
+- **Настоящий браузер** — ваш Chromium, ваши cookies, ваши расширения. Войдите один раз с профилем, переиспользуйте вечно.
+
 ## Использование
 
 ```bash
-# Запуск демона (один раз)
+# Start the daemon (once)
 omniscout daemon start
 
-# Поиск в интернете
+# Search the web
 omniscout answer "what is the capital of france"
 
-# Извлечение контента из URL
+# Extract content from a URL
 omniscout extract https://example.com
 
-# Управление браузером
+# Control a browser
 omniscout browser navigate https://example.com
 omniscout browser snapshot --refs-only
 omniscout browser click '@e3'
 omniscout browser screenshot --out /tmp/page.png
 
-# Исследование темы
+# Research a topic
 omniscout research "AI agents in 2026"
 
-# Построение графа знаний
+# Build a knowledge graph
 omniscout graph "Cursor"
 ```
 
-## Что вы можете делать
-
-| Команда | Что делает |
-|---------|--------------|
-| `search` | Веб-поиск с опциональным семантическим реранжированием |
-| `answer` | Прямые вопросы-ответы с цитатами (предпочтительнее, чем `search`) |
-| `extract` | Загрузка URL с возвратом чистого Markdown |
-| `research` | Многошаговый процесс: search → crawl → extract → summarize |
-| `graph` | Построение структурированного графа знаний |
-| `browser` | Управление браузером (navigate, click, fill, screenshot) |
-| `computer` | Автоматизация рабочего стола (macOS) |
-| `remember` | Сохранение URL в памяти браузера для последующего использования |
-| `install` | Первоначальная настройка |
-| `daemon` | Управление фоновым сервисом |
-
 ## Дальнейшие шаги
 
-- [Использование с ИИ-агентами](/ru/docs/cli/agents) — готовые промпты для Claude Code, Cursor, Codex
-- [Справочник команд](/ru/docs/cli/commands) — каждый глагол, каждый флаг
-- [Примеры и рецепты](/ru/docs/cli/examples) — типовые рабочие процессы
+- [Установка](/docs/cli/installation) — требования, браузеры, daemon, модели
+- [Быстрый старт](/docs/cli/quickstart) — первый запуск за пять минут
+- [Использование с ИИ-агентами](/docs/cli/agents) — готовые промпты для Claude Code, Cursor, Codex
+- [Справочник команд](/docs/cli/commands) — каждый глагол, каждый флаг
+- [Примеры и рецепты](/docs/cli/examples) — типовые рабочие процессы

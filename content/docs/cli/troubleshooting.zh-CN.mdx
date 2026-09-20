@@ -4,88 +4,172 @@ description: 常见问题及解决方法。
 icon: LifeBuoy
 ---
 
-## 找不到 `@eN` 引用
+修复按出问题的环节排序：浏览器交互、登录 / 验证码、安装 / 运行、搜索 / 提取、daemon、数据。若都不管用，带 `-v` 运行命令，并附上 `omniscout daemon trace` 输出到 [GitHub issue](https://github.com/sriramramnath/omniscout/issues)。
 
-自上次 `snapshot` 以来页面已变化。重新快照并使用新引用：
+## 浏览器交互
+
+### `@eN` ref 找不到
+
+自上次 `snapshot` 后页面已变化。重新 snapshot 并使用新 ref：
 
 ```bash
 omniscout browser snapshot --refs-only
 omniscout browser click '@e7'
 ```
 
-## 登录一直无法完成
+绝不在 `navigate`、`reload` 或表单提交之间复用 ref。
 
-从另一个 shell 发送 `--done` 信号：
+### Snapshot 没有可用 ref
+
+页面可能仍在加载。先等待内容再 snapshot：
 
 ```bash
-# 终端 A：
+omniscout browser wait networkidle
+omniscout browser wait text "expected heading"
+omniscout browser snapshot --refs-only
+```
+
+对没有无障碍树的 canvas/WebGL 页面，回退到 `screenshot` + `--coord` 点击，或 `observe`/`act`。
+
+### 点击无反应
+
+先检查元素是否可操作，再尝试键盘替代：
+
+```bash
+omniscout browser is '@e3' visible
+omniscout browser is '@e3' enabled
+omniscout browser hover '@e3'
+omniscout browser key Enter
+```
+
+### 截图空白
+
+```bash
+# Wait for loading
+omniscout browser screenshot https://example.com --delay 3 --out /tmp/page.png
+
+# Full page
+omniscout browser screenshot https://example.com --full-page --out /tmp/full.png
+```
+
+空白且 `wait networkidle` 后依然空白，通常意味着 daemon 丢了标签页 — `browser close --all` 后重新导航。
+
+## 登录与验证码
+
+### 登录一直不完成
+
+从另一个 shell 发 `--done` 信号：
+
+```bash
+# Terminal A:
 omniscout browser login https://app.example.com --profile work
 
-# 终端 B（登录完成后）：
+# Terminal B (after you log in):
 omniscout browser login --done
 ```
 
-## 验证码一直阻塞
+若站点跳转异常，传入 `--success-pattern "dashboard|/app"`，让登录在 URL 匹配时即判定完成，而不等满 5 分钟 `--timeout-ms`。
 
-在有界面窗口中手动解决，或使用第三方解决服务：
+### 验证码一直卡住
+
+在有界面窗口中手动求解，或使用第三方求解器：
 
 ```bash
 export TWOCAPTCHA_API_KEY=...
 omniscout browser captcha --solver 2captcha
 ```
 
-## 扩展提示 `backend_unavailable`
+先用 `omniscout browser captcha --detect-only` 确认真是验证码而非 bot 墙。`navigate --auto-captcha` 在加载后直接处理验证挑战。
 
-1. 打开 `chrome://extensions`——确认扩展已加载
-2. 点击扩展图标——如果断开请重连
-3. 或去掉 `--backend extension` 改用 Playwright
+### 扩展提示 `backend_unavailable`
 
-## Python 版本报错
+1. 打开 `chrome://extensions` — 确认扩展已加载
+2. 点击扩展图标 — 若断开则重连
+3. 或去掉 `--backend extension` 改用 Patchright
+
+## 安装与运行
+
+### Python 版本报错
 
 ```bash
-python --version  # 需要 3.11+
+python --version  # needs 3.11+
 pip install omniscout
 ```
 
-## 找不到 Chrome
+### 找不到 Chrome
 
 ```bash
-omniscout settings browsers          # 查看已安装的浏览器
-omniscout settings set browser edge  # 或 brave、vivaldi 等
+omniscout settings browsers          # see what's installed
+omniscout settings set browser edge  # or brave, vivaldi, etc.
 ```
 
-## Daemon 无法启动
+自定义路径：在 `config.toml` 中设 `browser = "custom"` 并加 `browser_executable`（见[配置](/docs/cli/configuration)）。
 
-```bash
-omniscout daemon stop
-omniscout daemon start
-lsof -i :7720                       # 检查端口是否被占用
-omniscout daemon start --port 7721   # 使用其他端口
-```
+### 首次搜索很慢
 
-## 搜索无结果
+那是一次性的 embedding 模型下载。预加载即可：`omniscout warmup`。之后离线可用，除非设置 `OMNISCOUT_EMBED_LOCAL_ONLY=0`。
+
+## 搜索与提取
+
+### 搜索无结果
 
 ```bash
 omniscout search "more specific query"
 omniscout search "query" --source ddg
+omniscout search "query" --no-rerank   # check if the reranker is hiding hits
 ```
 
-## 截图空白
+### 提取返回乱码
+
+- 尝试 `--format text`（去掉损坏标记）或 `--no-cache`（缓存过期）。
+- JS 重度页面改用浏览器：`navigate` → `extract-visible`，而不用 `extract`。
+- 整站拉取使用带 `--include/--exclude` 过滤的站点导出模式（见[提取](/docs/cli/extraction)）。
+
+## Daemon、Profile、会话
+
+### Daemon 启动不了
 
 ```bash
-# 等待加载
-omniscout browser screenshot https://example.com --delay 3 --out /tmp/page.png
-
-# 整页
-omniscout browser screenshot https://example.com --full-length --out /tmp/full.png
+omniscout daemon stop
+omniscout daemon start
+lsof -i :7720                       # check if port is in use
+omniscout daemon start --port 7721   # use different port
 ```
 
-## 常见问题
+若 7720 端口被其他工具占用，导出 `OMNISCOUT_DAEMON_PORT=7721` 让所有命令都用新端口。
 
-**我的数据会被发送到云端吗？**
-不会。唯一的出站流量是 DuckDuckGo 搜索和您明确获取的 URL。一次性模型下载会缓存在本地。
+### 陈旧标签页堆积
 
-**不用 Chrome 可以使用 OmniScout 吗？**
+```bash
+omniscout session list
+omniscout session kill <id>
+omniscout browser close --all
+```
+
+### 重启后登录丢失
+
+会话在 daemon 重启后不保留 — profile 会保留。用 `--profile <name>` 登录，之后每次运行传入同一 profile（见 [Daemon 与会话](/docs/cli/sessions)）。
+
+## JSON 与 agent
+
+- `--json` 输出为空但屏幕有报错：错误按设计走 `stderr` — 检查 exit code 与 `stderr`，而非 `stdout`。
+- 命令卡住时加 `-v`，输出详细的 daemon/HTTP 日志。
+
+## 终极手段
+
+```bash
+pip install --upgrade omniscout
+omniscout daemon restart
+rm -rf ~/Library/Application\ Support/omniscout/   # macOS — wipes profiles, cache, memory
+rm -rf ~/.local/share/omniscout/                   # Linux
+```
+
+## FAQ
+
+**我的数据会被发到云端吗？**
+不会。唯一的出站流量是 DuckDuckGo 搜索与你明确抓取的 URL。一次性模型下载缓存在本地。
+
+**不用 Chrome 能用 OmniScout 吗？**
 需要 Chromium 系浏览器。安装 Chrome/Chromium，或用 `omniscout install --browser custom --browser-executable <path>` 配置自定义路径。
 
 **如何更新？**
@@ -93,13 +177,13 @@ omniscout browser screenshot https://example.com --full-length --out /tmp/full.p
 pip install --upgrade omniscout
 ```
 
-**如何清除所有数据？**
+**如何清空所有数据？**
 ```bash
 rm -rf ~/Library/Application\ Support/omniscout/   # macOS
 rm -rf ~/.local/share/omniscout/                   # Linux
 ```
 
-**去哪里获取帮助？**
-- [命令行概览](/zh-CN/docs/cli/overview)
-- [示例](/zh-CN/docs/cli/examples)
+**去哪里求助？**
+- [CLI 概览](/docs/cli/overview)
+- [示例](/docs/cli/examples)
 - [GitHub issues](https://github.com/sriramramnath/omniscout/issues)

@@ -1,0 +1,69 @@
+---
+title: ワークフローと自動化
+description: macroの記録、実行の再生、URLの監視、autoによる振り分け。
+icon: Workflow
+---
+
+## macroの記録と再生
+
+対話的な実行を再利用可能なスクリプトに変えます：
+
+```bash
+omniscout record start --name my_macro
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout record stop my_macro
+
+omniscout macro list
+omniscout macro run my_macro
+```
+
+`record start/stop`はセッションの成功したdaemon操作を名前付きmacroに記録します。`macro run`でdaemon経由で再生します。生の操作履歴の低レベル再生には`omniscout replay …`と`omniscout daemon replay`を使います。
+
+## ワークフローの継続性
+
+マルチステップフローは確認・エクスポート可能な継続状態を保持します：
+
+```bash
+omniscout context            # show current workflow state
+omniscout reset              # reset it and start fresh
+omniscout workflow export    # export steps as JSON (share or persist a process)
+```
+
+選ぶ手間を省きたいワンライナーは`auto`が最適なコマンドに振り分けます：
+
+```bash
+omniscout auto "latest AI news"
+```
+
+トップレベルの`open`と`snapshot`はデフォルトセッションのブラウザへのショートカットです：
+
+```bash
+omniscout open https://example.com
+omniscout open 3              # open the 3rd result of the last search
+omniscout snapshot --refs-only
+```
+
+## URLの変更を監視します
+
+```bash
+omniscout monitor monitor https://example.com/pricing
+```
+
+`monitor`はURLを継続的に抽出し、内容が変わるたびにJSON行を出力します — 価格監視、変更履歴アラート、ステータスページ向けに`jq`やスクリプトにパイプします。
+
+## クロールジョブ
+
+```bash
+omniscout crawl ...           # run and inspect local crawl jobs
+omniscout extract-jobs ...    # inspect background extract jobs
+omniscout index ...           # manage the local search index
+```
+
+[抽出](/docs/cli/extraction)の一括取得モード（`--out`サイトエクスポート、`--query`モード）を裏で実行します：1つのシェルを占有せず、結果をあとで確認できます。
+
+## エージェント向けヒント
+
+- 一度記録すれば`macro run`で何度でも再利用できます — 不安定なマルチステップフローを確定的にする最も安い方法です。
+- `workflow export`でチケット、PR、評価データセットに添付できるJSON成果物を得られます。
+- デバッグ時は再実行より`daemon trace`を優先します：直近1万アクションはすでに記録されています。

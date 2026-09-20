@@ -4,11 +4,21 @@
   "pages": [
     "index",
     "overview",
+    "installation",
+    "quickstart",
+    "search",
+    "extraction",
+    "research",
+    "browser",
+    "computer",
+    "sessions",
+    "memory",
+    "workflows",
+    "configuration",
     "agents",
     "examples",
     "commands",
     "architecture",
-    "computer",
     "troubleshooting"
   ]
 }

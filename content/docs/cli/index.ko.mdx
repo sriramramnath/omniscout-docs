@@ -1,8 +1,10 @@
 ---
 title: "OmniScout CLI"
-description: AI 에이전트를 위한 로컬 우선 브라우저 제어, 시맨틱 검색 및 리서치.
+description: AI 에이전트를 위한 로컬 우선 브라우저 제어, 의미 검색, 리서치.
 icon: BookOpen
 ---
+
+AI 에이전트를 위한 로컬 우선 브라우저 제어, 의미 검색, 리서치. 클라우드 계정도 API 키도 없습니다 — 설치하고 바로 시작하세요.
 
 ## 설치
 
@@ -11,50 +13,61 @@ pip install omniscout
 omniscout install --skill
 ```
 
-## 사용법
+전체 설정: [설치](/docs/cli/installation). 5분 투어: [빠른 시작](/docs/cli/quickstart).
+
+## 사용
 
 ```bash
 omniscout daemon start
 
-# 검색
+# Search
 omniscout answer "what is the capital of france"
 
-# 추출
+# Extract
 omniscout extract https://example.com
 
-# 브라우저
+# Browser
 omniscout browser navigate https://example.com
 omniscout browser snapshot --refs-only
 omniscout browser click '@e3'
 omniscout browser screenshot --out /tmp/page.png
 
-# 리서치
+# Research
 omniscout research "AI agents in 2026"
 
-# 지식 그래프
+# Knowledge graph
 omniscout graph "Cursor"
 ```
 
-## 구성 요소
+## 구성품
 
-| 명령어 | 설명 |
-|---|---|
-| `omniscout answer` | 인용과 함께하는 직접 Q&A |
-| `omniscout search` | 리랭킹이 적용된 웹 검색 |
-| `omniscout extract` | URL을 가져와 깔끔한 콘텐츠 반환 |
-| `omniscout research` | 다단계 리서치 파이프라인 |
-| `omniscout graph` | 지식 그래프 구축 |
-| `omniscout browser` | 브라우저 제어 |
-| `omniscout computer` | 데스크톱 자동화 (macOS) |
-| `omniscout remember` | 메모리에 URL 저장 |
-| `omniscout daemon` | 백그라운드 서비스 관리 |
+| 명령어 | 설명 | 가이드 |
+|---|---|---|
+| `omniscout answer` / `search` | 인용이 있는 직접 Q&A / 랭크된 히트 | [검색](/docs/cli/search) |
+| `omniscout extract` | URL을 가져와 깨끗한 콘텐츠 반환 | [추출](/docs/cli/extraction) |
+| `omniscout research` / `graph` | 다단계 파이프라인 / 지식 그래프 | [리서치](/docs/cli/research) |
+| `omniscout browser` | 브라우저 제어 | [브라우저](/docs/cli/browser) |
+| `omniscout computer` | 데스크톱 자동화 (macOS) | [컴퓨터](/docs/cli/computer) |
+| `omniscout daemon` / `session` / `profile` | 백그라운드 서비스, 세션, 프로필 | [세션](/docs/cli/sessions) |
+| `omniscout remember` / `memory` | 페이지 저장 및 회상 | [메모리](/docs/cli/memory) |
+| `omniscout record` / `macro` / `monitor` | 재사용 흐름, 변경 알림 | [워크플로](/docs/cli/workflows) |
+
+## 가이드
+
+- [OmniScout란](/docs/cli/overview) — 개념과 설계 원칙
+- [AI 에이전트와 함께 사용하기](/docs/cli/agents) — 스킬, JSON 루프, 실행 디버깅
+- [예제 및 레시피](/docs/cli/examples) — 복사해서 쓰는 워크플로
+- [명령어 레퍼런스](/docs/cli/commands) — 모든 verb와 플래그
+- [동작 원리](/docs/cli/architecture) — daemon, 백엔드, ref, 데이터 흐름
+- [설정](/docs/cli/configuration) — config.toml, 환경 변수, 데이터 구조
+- [문제 해결](/docs/cli/troubleshooting) — 해결법과 FAQ
 
 ## JSON 출력
 
 ```bash
-export OMNISCOUT_JSON=1  # 에이전트용 구조화 출력
+export OMNISCOUT_JSON=1  # structured output for agents
 ```
 
 ## 로컬 우선
 
-클라우드 계정, API 키, 호스팅 서버가 필요 없습니다. 유일한 외부 트래픽은 DuckDuckGo 검색과 사용자가 직접 요청한 URL 가져오기뿐입니다.
+클라우드 계정, API 키, 호스팅 서버가 필요 없습니다. 유일한 외부 트래픽은 DuckDuckGo 검색과 직접 가져오기로 지정한 URL뿐입니다.

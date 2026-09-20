@@ -1,0 +1,93 @@
+---
+title: 검색 및 답변
+description: 로컬 리랭크가 적용된 웹 검색, 직접 Q&A, 사이트 매핑, 모델 예열.
+icon: Search
+---
+
+## 어떤 명령어가 필요할까요?
+
+| 명령어 | 반환값 | 사용 시점 |
+|---|---|---|
+| `answer` | 인용이 포함된 합성 답변 | 링크 목록이 아니라 사실 자체가 필요할 때 (권장) |
+| `search` | 랭크된 URL 히트 | 직접 열거나 크롤링하거나 인용할 링크가 필요할 때 |
+| `map` | 사이트의 읽기 쉬운 URL 목록 | 도메인 전체를 탐색하고 싶을 때 |
+| `warmup` | 없음 (모델을 미리 로드) | 일괄 호출 전에 첫 호출 지연을 줄이고 싶을 때 |
+
+## answer — 직접 Q&A
+
+```bash
+omniscout answer "Who is the prime minister of India?"
+omniscout answer "latest stable Rust version" --depth balanced
+```
+
+### Depth 모드
+
+`--depth`는 답변 뒤에서 얼마나 가져오는지를 조절합니다:
+
+| Depth | 동작 | 속도 |
+|---|---|---|
+| `fast` | 검색 스니펫만으로 답변 | 가장 빠름 |
+| `balanced` | 인덱스 + 상위 출처의 웹 fetch | 보통 |
+| `deep` | 답변 전에 상위 출처를 크롤링 | 가장 느리지만 가장 철저함 |
+| `auto` (기본값) | 질문에 따라 자동 선택 | 다양함 |
+
+### 답변 엔진
+
+두 가지 엔진으로 답변을 합성할 수 있습니다. 기본값은 설정에서 가져오며(`omniscout settings engines`), 호출마다 재정의할 수 있습니다:
+
+```bash
+omniscout answer "..." --probe      # Probe Zero Mini (local LLM)
+omniscout answer "..." --classic    # Classic extractive engine
+omniscout answer "..." --probe-pro  # Probe Pro: structured-claim pipeline with crawl + verify
+omniscout answer "..." --no-llm     # extractive fallback only, no LLM at all
+```
+
+고려할 검색 결과 수는 `--limit/-n`으로 바꾸세요(기본값 10). `--data`를 붙이면 출처, 타이밍, 검색 진단 정보가 출력에 포함됩니다.
+
+## search — 랭크된 웹 히트
+
+```bash
+omniscout search "vector database benchmarks 2026"
+omniscout search "AI agents 2026" --limit 5
+```
+
+결과는 웹에서 가져온 뒤 sentence-transformers 임베딩 모델로 **로컬에서 리랭크**되므로, 쿼리와 의미상 가장 가까운 히트가 위에 옵니다 — LLM 호출은 없습니다. 호출마다 `--no-rerank`로 리랭크를 끌 수 있습니다. `search`에는 번들 UI도 있습니다:
+
+```bash
+omniscout search ui   # open the local search UI (SearXNG at 127.0.0.1:8888)
+```
+
+### 검색 출처
+
+호출마다 `--source`로 출처를 고르세요(`ddg | index | memory | hybrid`):
+
+```bash
+omniscout search "query" --source ddg
+omniscout search "query" --source memory   # your remembered pages only
+```
+
+기본 출처는 `config.toml`에 있습니다(`default_source`: `searxng | ddg | wikipedia | web`). `--from/--to`(YYYY-MM-DD)와 `--country`로 쿼리에 시간·지역 힌트를 주세요.
+
+기본값을 바꾸려면 [설정](/docs/cli/configuration)을 참고하세요.
+
+## map — 사이트의 URL 크롤링
+
+```bash
+omniscout map stripe.com
+```
+
+`map`은 도메인의 URL 맵을 만듭니다 — 사이트에 무엇이 있는지 파악한 뒤 대상을 정해 `extract`나 `research`를 실행할 때 유용합니다.
+
+## warmup — 모델 미리 로드
+
+```bash
+omniscout warmup
+```
+
+임베딩 모델과 답변 모델을 daemon에 미리 로드합니다. 설치 직후(또는 데모 전)에 한 번 실행하면, 첫 실제 호출 때 모델을 다운로드·예열하느라 기다리지 않아도 됩니다.
+
+## 에이전트 팁
+
+- 사실과 인용이 필요하면 `search`보다 `answer`를 우선하세요.
+- `--json` 출력을 `jq`로 파이프して 필드를 고르세요: `omniscout search "topic" | jq '.hits[] | {title, url}'`.
+- 결과가 이상해 보이면 정보가 없다고 단정하기 전에 더 구체적인 쿼리나 다른 `--source`를 시도해 보세요.

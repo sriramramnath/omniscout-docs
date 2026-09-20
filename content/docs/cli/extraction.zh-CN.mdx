@@ -1,0 +1,85 @@
+---
+title: 提取
+description: 将任意 URL 或搜索查询转为干净 Markdown 或结构化 JSON。
+icon: FileText
+---
+
+`extract` 抓取页面并返回可读内容 — 无需浏览器会话。支持三种模式：单个 URL、搜索查询抓取、整站导出。
+
+## 单个 URL → Markdown
+
+```bash
+omniscout extract https://example.com
+omniscout extract https://example.com --format text
+omniscout extract https://example.com > /tmp/page.md
+```
+
+| `--format/-f` | 返回 |
+|---|---|
+| `markdown`（默认） | 干净的可读 Markdown |
+| `text` | 纯文本，无格式 |
+| `json` | 结构化字段（需配合 `--fields`） |
+| `structured` | 自动提取字段；用 `--fields` 限定 |
+
+## 结构化提取
+
+只提取指定字段，而非整页：
+
+```bash
+omniscout extract https://example.com --format structured --fields founder,pricing
+```
+
+如需 Exa 风格的 schema 驱动提取，可从文件或内联传入 JSON Schema：
+
+```bash
+omniscout extract https://stripe.com/pricing \
+  --schema-inline '{"type":"object","properties":{"pricing":{"type":"string"}}}'
+omniscout extract https://stripe.com/pricing --schema ./schema.json
+```
+
+加 `--data` 可在字段之外附带完整结果元数据（缓存状态、耗时、内容统计）。
+
+## 查询模式 — 跨搜索结果提取
+
+省略 URL、传入 `--query`，即可搜索全网，并对顶部结果做多层链接抓取后提取：
+
+```bash
+omniscout extract -q "SpaceX founder" --format structured --fields founder
+```
+
+用以下参数调节抓取：
+
+| 参数 | 含义 | 默认值 |
+|---|---|---|
+| `--results/-n` | 从搜索取用的种子 URL 数 | 5 |
+| `--depth` | 链接跳数：1 = 仅本页，2 = 直接链接，3+ = 更深 | URL 模式为 1，`--query` 为 3 |
+
+## 站点导出 — 整站抓取到单个文件
+
+传入 `--out` 即触发站点抓取模式：OmniScout 抓取同 host 链接，并将合并后的 Markdown 写入文件：
+
+```bash
+omniscout extract https://example.com --depth 2 --out /tmp/site.md
+```
+
+| 参数 | 含义 | 默认值 |
+|---|---|---|
+| `--max-pages` | 最多抓取页数 | 40 |
+| `--max-links` | 每页跟进的同 host 链接数 | 20 |
+| `--concurrency` | 并行抓取上限 | 4 |
+| `--include` / `--exclude` | 保留 / 跳过的路径子串（逗号分隔） | — |
+
+```bash
+omniscout extract https://example.com --depth 2 --out /tmp/site.md \
+  --include blog,docs --exclude tag,author
+```
+
+## 缓存
+
+提取后的页面缓存在磁盘（按内容哈希存于 `cache/pages/`）。页面未变化时重复运行即时返回。用 `--no-cache` 绕过缓存。
+
+## Agent 技巧
+
+- 先用纯 Markdown；只有需要类型化数据时才用 `--fields`/schema。
+- `extract` 输出可在 `--json` 下直接 pipe 给 `jq`：`omniscout extract https://... | jq '{title, word_count}'`。
+- 对 JS 重度页面提取效果差时，改用浏览器：`browser navigate` → `browser extract-visible`（可选 `--schema`） — 见[浏览器自动化](/docs/cli/browser)。

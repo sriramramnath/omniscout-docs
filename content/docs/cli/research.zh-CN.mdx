@@ -1,0 +1,62 @@
+---
+title: 研究与知识图谱
+description: 多步骤研究流水线与结构化实体图谱。
+icon: Network
+---
+
+## research — 一条命令跑完完整流水线
+
+```bash
+omniscout research "emerging quantum computing startups 2026"
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+一次调用跑完整个流水线：**搜索 → 抓取 → 提取 → 重排序 → 总结**。可用以下参数调节：
+
+| 参数 | 含义 | 默认值 |
+|---|---|---|
+| `--results/-k` | 抓取的来源数 | 8 |
+| `--depth` | 抓取深度（1 = 仅列表） | 1 |
+| `--query/-q` | 用 flag 而非位置参数传入主题 | — |
+| `--summarize` / `--no-summarize` | 是否运行摘录式总结 | summarize |
+| `--probe-pro` | 使用 Probe Pro 流水线以获得更好答案 | off |
+| `--probe` | 使用 Probe Zero Mini LLM 而非 Probe Pro | off |
+
+`research` 输出可直接 pipe 给 `jq`：`omniscout research "topic" | jq '.passages[0:3]'`。
+
+### 何时用 research、answer、extract
+
+- `answer` — 查一个事实，要快。
+- `research` — 需要跨多源调研一个主题，并拿到可引用的片段。
+- `extract` — 已知 URL，直接跳过搜索步骤。见[提取](/docs/cli/extraction)。
+
+## graph — 结构化知识图谱
+
+```bash
+omniscout graph "Cursor"                 # search the web and extract
+omniscout graph "Cursor" -w cursor.com  # crawl that site directly
+omniscout graph "Cursor" --data         # include sources, timing, diagnostics
+omniscout graph "Cursor" --llm          # optional LLM overlay on the evidence
+```
+
+`graph` 将公司、人物或产品映射为实体与关系的结构化 Unicode 树。传入裸域名（`cursor.com`）则只停留在站内，或用 `-w/--website` 将抓取限定到单个站点及其内链。`--results/-k` 控制抓取的来源 / 页面数（默认 5）。
+
+## benchmark — 对比问答模式
+
+```bash
+omniscout benchmark answers
+omniscout benchmark retrieval
+omniscout benchmark ablation   # full ablation matrix with persisted metrics
+```
+
+`benchmark` 针对 bundled gold 数据集评估答案质量、检索与格式化 — 便于在 agent 循环中定型前，比较 `--probe`、`--classic` 与 `--probe-pro`。`benchmark startup` 测量 CLI 启动开销；`benchmark format` 评分 Exa 风格格式化。
+
+## Probe Zero 与 Classic
+
+Probe Zero 是本地问答引擎（见 `omniscout settings engines`）：
+
+- **Probe Zero Mini** — 本地 LLM 综合，适合作为直接问答的默认选项。
+- **Classic** — 摘录式、无 LLM；模型预热后确定性强、可完全离线。
+- **Probe Pro** — 结构化 claim 流水线（抓取 → 验证 → 渲染），面向最难的问题。
+
+在 agent 循环中定型前，先用 `omniscout benchmark answers` 在 gold benchmark 上对比它们。

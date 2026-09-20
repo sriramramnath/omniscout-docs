@@ -1,0 +1,93 @@
+---
+title: Cloud quickstart
+description: API key, first search, first answer, and first browser session in minutes.
+icon: Rocket
+---
+
+OmniScout Cloud is the hosted API: semantic search over an owned index, grounded answers, and remote browser/computer sessions on Fly Sprites. The local CLI is unchanged — Cloud is additive.
+
+## 1. Get an API key
+
+1. Sign in at [api.omniscout.xyz](https://api.omniscout.xyz).
+2. Go to **Dashboard → API Keys** → **Create key**. Copy the value — it starts with `os_live_` and is shown only once.
+3. Export it:
+
+```bash
+export OMNISCOUT_API_KEY=os_live_YOUR_KEY
+export OMNISCOUT_BASE_URL=https://api.omniscout.xyz
+```
+
+How keys work and the second credential (session secrets): [Authentication](/docs/api/authentication).
+
+## 2. First search
+
+```bash
+curl -X POST $OMNISCOUT_BASE_URL/v0/search \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "rust async runtimes", "limit": 5}'
+```
+
+You get ranked hits with `url`, `title`, `snippet`, `score`, and `rank`, plus a `request_id` for support. See [Endpoints](/docs/api/endpoints#post-v0search).
+
+## 3. First answer
+
+```bash
+curl -X POST $OMNISCOUT_BASE_URL/v0/answer \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is the latest stable Rust version?"}'
+```
+
+You get an `answer` with `sources` and `confidence` — or `status: insufficient_information` with a null answer when evidence is thin. See [Endpoints](/docs/api/endpoints#post-v0answer).
+
+## 4. First browser session
+
+Sessions run the same daemon primitives as the CLI, on a remote Sprite. Lifecycle: **create → poll → act → destroy**.
+
+```bash
+# Create (API key only) — save session_id AND session_secret
+CREATE=$(curl -sS -X POST $OMNISCOUT_BASE_URL/v0/sessions \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"computer"}')
+
+SESSION_ID=$(echo "$CREATE" | jq -r .session_id)
+SESSION_SECRET=$(echo "$CREATE" | jq -r .session_secret)
+
+# Poll until ready
+curl -sS $OMNISCOUT_BASE_URL/v0/sessions/$SESSION_ID \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" | jq .status
+
+# Act (API key + session secret)
+curl -sS -X POST $OMNISCOUT_BASE_URL/v0/sessions/$SESSION_ID/actions \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"navigate","args":{"url":"https://example.com"}}'
+
+# Destroy (API key only)
+curl -sS -X DELETE $OMNISCOUT_BASE_URL/v0/sessions/$SESSION_ID \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY"
+```
+
+Types: `"browser"` is a lightweight browser-only Sprite; `"computer"` is unified (browser + desktop on one session id). Sessions expire after inactivity (default 30 min, 2 hr max) — every command extends the window.
+
+Prefer SDKs? See [SDKs](/docs/api/sdks) for the same flow in Python and TypeScript.
+
+## 5. Check usage
+
+```bash
+curl -sS $OMNISCOUT_BASE_URL/v0/usage \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" | jq .
+```
+
+Billing is usage-based only (infra cost × 1.30) — see [Usage & Billing](/docs/api/billing).
+
+## Next steps
+
+- [Authentication](/docs/api/authentication) — keys, session secrets, headers
+- [Endpoints](/docs/api/endpoints) — every route's schemas
+- [SDKs](/docs/api/sdks) — Python, TypeScript, curl
+- [Errors](/docs/api/errors) — error envelope and retry rules
+- [Rate limits](/docs/api/rate-limits) — abuse guards and spending caps

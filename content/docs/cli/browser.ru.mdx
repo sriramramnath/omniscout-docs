@@ -1,0 +1,171 @@
+---
+title: Автоматизация браузера
+description: Управление Chromium через @eN refs — навигация, клики, ввод, вкладки, сеть, вход, CAPTCHA.
+icon: Globe
+---
+
+`omniscout browser` управляет локальным Chromium через Patchright. Основной цикл неизменен:
+
+```bash
+omniscout browser navigate https://example.com   # 1. open a page
+omniscout browser snapshot --refs-only           # 2. list @eN element refs
+omniscout browser click '@e3'                    # 3. act on a ref
+omniscout browser screenshot --out /tmp/out.png  # 4. capture state
+```
+
+## Модель `@eN` refs
+
+`snapshot` возвращает accessibility-дерево страницы со стабильными refs элементов (`@e1`, `@e2`, …). Каждое взаимодействие нацелено на ref — никаких CSS-селекторов или угадывания пикселей. Два правила:
+
+1. **Делайте повторный snapshot после каждой навигации или крупного изменения DOM** — refs устаревают при изменении страницы.
+2. **Предпочитайте `--refs-only`** для плоского списка действий; убирайте его для полного дерева, когда нужна иерархия.
+
+```bash
+omniscout browser snapshot --refs-only
+omniscout browser snapshot --overlay   # draw @e labels on the page (debugging/demos)
+```
+
+## Навигация и история
+
+```bash
+omniscout browser navigate https://example.com --wait-until domcontentloaded
+omniscout browser open https://example.com      # alias of navigate
+omniscout browser back
+omniscout browser forward
+omniscout browser reload
+omniscout browser get url                       # current URL
+omniscout browser get title                     # page title
+```
+
+`navigate` принимает `--profile` (постоянный контекст входа), `--session` (группа вкладок), `--new-tab`, `--headful/--headless`, `--auto-captcha` и `--wait-until`. См. [Daemon и сессии](/docs/cli/sessions) про профили vs сессии.
+
+## Клики, ввод, выбор
+
+| Действие | Команда | Примечания |
+|---|---|---|
+| Клик | `browser click '@e3'` | `--button`, `--clicks`, `--mod` или `--coord x y` для vision-агентов |
+| Заполнение (замена) | `browser fill '@e5' "text"` | Заменяет существующий контент |
+| Ввод (добавление) | `browser type '@e5' "text"` | Добавляет; `--delay-ms` между нажатиями |
+| Вставка | `browser paste '@e5' "text"` | Вставляет в позицию курсора без очистки |
+| Выбор | `browser select '@e5' "option"` | Нативные элементы `<select>` |
+| Клавиши | `browser key Enter` | Комбинации вида `cmd+s`, `ctrl+c` |
+| Наведение | `browser hover '@e7'` | Или `--coord x y` |
+| Загрузка | `browser upload '@e9' file.pdf` | Прикрепляет файлы к `<input type=file>` |
+| Прокрутка | `browser scroll down` | Страница или элемент, с `--amount` |
+| Проверка состояния | `browser is '@e3' visible` | Видимость, доступность, checked, … |
+
+`fill` vs `type` vs `paste`: `fill` сначала очищает (формы), `type` дописывает как человек (чаты, редакторы), `paste` бросает текст в курсор (большие куски).
+
+## Чтение страницы
+
+```bash
+omniscout browser get text              # visible body text
+omniscout browser get html              # page HTML (truncated ~500KB)
+omniscout browser eval "document.title" # run JavaScript, return the value
+omniscout browser extract-visible       # visible text, optional --schema shaping
+```
+
+## Ожидание
+
+Никогда не делайте вслепую `sleep` — ждите нужное вам условие:
+
+```bash
+omniscout browser wait text "Order confirmed"
+omniscout browser wait selector "#results"
+omniscout browser wait networkidle
+omniscout browser wait url "*checkout*"
+omniscout browser wait --ms 2000 --timeout-ms 30000
+```
+
+`wait` также поддерживает `--ref`, `--url` (regex по текущему URL), `--idle` и `--mutation-quiet-ms` (ждать, пока DOM перестанет меняться).
+
+## Вкладки
+
+```bash
+omniscout browser navigate https://a.com --session multi
+omniscout browser navigate https://b.com --new-tab --session multi
+omniscout browser tab list --session multi
+omniscout browser tab switch 0 --session multi
+omniscout browser tab close 1 --session multi
+```
+
+## Захват сети и консоли
+
+```bash
+omniscout browser network start
+omniscout browser navigate https://vercel.com/pricing
+omniscout browser scroll down --amount 10
+omniscout browser network stop
+omniscout browser network list --filter "stripe|payment"
+omniscout browser network detail 3          # full payload for one entry
+omniscout browser network tail              # only entries since last tail
+
+omniscout browser console start
+omniscout browser console tail              # JS errors and console messages
+omniscout browser console list
+omniscout browser console stop
+```
+
+## Действия на естественном языке
+
+Для нечётких целей пусть daemon сам их разрешит:
+
+```bash
+omniscout browser observe "the search box"        # find candidate refs
+omniscout browser act "click the top story"       # resolve + act
+omniscout browser act "search box" --value "local-first agents"
+omniscout browser act "submit" --dry-run          # resolve without acting
+```
+
+Проверьте результат последующим `snapshot` — `act` удобен, но refs детерминированы.
+
+## Скриншоты, PDF, мышь
+
+```bash
+omniscout browser screenshot --out /tmp/page.png
+omniscout browser screenshot --full-page --out /tmp/full.png   # top-to-bottom
+omniscout browser screenshot --ref '@e3' --out /tmp/el.png     # one element
+omniscout browser screenshot --delay 2.5 --out /tmp/late.png  # wait for animations
+omniscout browser pdf --out /tmp/page.pdf --paper letter
+omniscout browser mouse move 400 300
+omniscout browser mouse scroll 400 300
+```
+
+## Вход и CAPTCHA
+
+Некоторым сайтам нужен разовый вход человека. Откройте видимое окно, аутентифицируйтесь, затем сигнализируйте о завершении из другого шелла — профиль сохранит cookies для повторного использования:
+
+```bash
+# Terminal A (blocks):
+omniscout browser login https://github.com/login --profile work
+
+# Terminal B (after you log in):
+omniscout browser login --done
+
+# Reuse later:
+omniscout browser navigate https://github.com/notifications --profile work
+```
+
+`--success-pattern` (regex URL) автоматически завершает вход; `--timeout-ms` по умолчанию 5 минут. Для CAPTCHA:
+
+```bash
+omniscout browser captcha --detect-only                    # just report
+omniscout browser captcha --solver 2captcha                # none | 2captcha | capsolver | manual
+export CAPTCHA_API_KEY=...                                 # or --api-key
+```
+
+`navigate` также принимает `--auto-captcha`, чтобы решать проверки сразу после загрузки.
+
+## Очистка
+
+```bash
+omniscout browser close                # close the default session
+omniscout browser close --all          # close everything
+```
+
+## Советы для агентов
+
+- Всегда делайте snapshot перед действием; никогда не переиспользуйте refs между навигациями.
+- Завершайте каждый запуск командой `browser close --all`, чтобы следующий запуск начинался чисто.
+- Используйте `--session`, чтобы изолировать параллельные процессы на одном daemon.
+- Под `--json` пропускайте snapshots через `jq`: `omniscout browser snapshot | jq '.refs[] | select(.role == "button")'`.

@@ -1,0 +1,62 @@
+---
+title: Research & knowledge graphs
+description: Multi-step research pipelines and structured entity graphs.
+icon: Network
+---
+
+## research — full pipeline in one command
+
+```bash
+omniscout research "emerging quantum computing startups 2026"
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+One call runs the whole pipeline: **search → crawl → extract → rerank → summarize**. Tune it with:
+
+| Flag | Meaning | Default |
+|---|---|---|
+| `--results/-k` | Sources to fetch | 8 |
+| `--depth` | Crawl depth (1 = listing only) | 1 |
+| `--query/-q` | Topic as a flag instead of a positional arg | — |
+| `--summarize` / `--no-summarize` | Run extractive summarization | summarize |
+| `--probe-pro` | Probe Pro pipeline for better answers | off |
+| `--probe` | Probe Zero Mini LLM instead of Probe Pro | off |
+
+`research` output pipes cleanly to `jq`: `omniscout research "topic" | jq '.passages[0:3]'`.
+
+### When to use research vs answer vs extract
+
+- `answer` — one fact, fast.
+- `research` — a topic you need surveyed across many sources, with passages you can cite.
+- `extract` — you already know the URL(s); skip the search step. See [Extraction](/docs/cli/extraction).
+
+## graph — structured knowledge graphs
+
+```bash
+omniscout graph "Cursor"                 # search the web and extract
+omniscout graph "Cursor" -w cursor.com  # crawl that site directly
+omniscout graph "Cursor" --data         # include sources, timing, diagnostics
+omniscout graph "Cursor" --llm          # optional LLM overlay on the evidence
+```
+
+`graph` maps a company, person, or product into a structured Unicode tree of entities and relationships. Pass a bare domain (`cursor.com`) to stay on-site, or `-w/--website` to restrict crawling to one site and its internal links. `--results/-k` controls how many sources/pages are fetched (default 5).
+
+## benchmark — compare answer modes
+
+```bash
+omniscout benchmark answers
+omniscout benchmark retrieval
+omniscout benchmark ablation   # full ablation matrix with persisted metrics
+```
+
+`benchmark` evaluates answer quality, retrieval, and formatting against the bundled gold dataset — useful when deciding between `--probe`, `--classic`, and `--probe-pro` for your workload. `benchmark startup` measures CLI startup overhead; `benchmark format` scores Exa-style formatting.
+
+## Probe Zero vs Classic
+
+Probe Zero is the local answer engine (see `omniscout settings engines`):
+
+- **Probe Zero Mini** — local LLM synthesis, good default for direct answers.
+- **Classic** — extractive, no LLM; deterministic and fully offline after model warmup.
+- **Probe Pro** — structured-claim pipeline (crawl → verify → render) for the hardest questions.
+
+Compare them on the gold benchmark with `omniscout benchmark answers` before standardizing in an agent loop.

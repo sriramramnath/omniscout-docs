@@ -1,0 +1,93 @@
+---
+title: Быстрый старт Cloud
+description: API-ключ, первый поиск, первый ответ и первая браузерная сессия за минуты.
+icon: Rocket
+---
+
+OmniScout Cloud — это хостинг-API: семантический поиск по собственному индексу, обоснованные ответы и удалённые браузерные/computer-сессии на Fly Sprites. Локальный CLI неизменен — Cloud дополняет его.
+
+## 1. Получите API-ключ
+
+1. Войдите на [api.omniscout.xyz](https://api.omniscout.xyz).
+2. Перейдите в **Dashboard → API Keys** → **Create key**. Скопируйте значение — оно начинается с `os_live_` и показывается только один раз.
+3. Экспортируйте его:
+
+```bash
+export OMNISCOUT_API_KEY=os_live_YOUR_KEY
+export OMNISCOUT_BASE_URL=https://api.omniscout.xyz
+```
+
+Как работают ключи и второй credential (секреты сессий): [Аутентификация](/docs/api/authentication).
+
+## 2. Первый поиск
+
+```bash
+curl -X POST $OMNISCOUT_BASE_URL/v0/search \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "rust async runtimes", "limit": 5}'
+```
+
+Вы получите ранжированные попадания с `url`, `title`, `snippet`, `score` и `rank`, плюс `request_id` для поддержки. См. [Endpoints](/docs/api/endpoints#post-v0search).
+
+## 3. Первый ответ
+
+```bash
+curl -X POST $OMNISCOUT_BASE_URL/v0/answer \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is the latest stable Rust version?"}'
+```
+
+Вы получите `answer` с `sources` и `confidence` — или `status: insufficient_information` с null-ответом, когда доказательств мало. См. [Endpoints](/docs/api/endpoints#post-v0answer).
+
+## 4. Первая браузерная сессия
+
+Сессии выполняют те же примитивы daemon, что и CLI, на удалённом Sprite. Жизненный цикл: **create → poll → act → destroy**.
+
+```bash
+# Create (API key only) — save session_id AND session_secret
+CREATE=$(curl -sS -X POST $OMNISCOUT_BASE_URL/v0/sessions \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"computer"}')
+
+SESSION_ID=$(echo "$CREATE" | jq -r .session_id)
+SESSION_SECRET=$(echo "$CREATE" | jq -r .session_secret)
+
+# Poll until ready
+curl -sS $OMNISCOUT_BASE_URL/v0/sessions/$SESSION_ID \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" | jq .status
+
+# Act (API key + session secret)
+curl -sS -X POST $OMNISCOUT_BASE_URL/v0/sessions/$SESSION_ID/actions \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"navigate","args":{"url":"https://example.com"}}'
+
+# Destroy (API key only)
+curl -sS -X DELETE $OMNISCOUT_BASE_URL/v0/sessions/$SESSION_ID \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY"
+```
+
+Типы: `"browser"` — лёгкий Sprite только с браузером; `"computer"` — единый (браузер + десктоп на одном id сессии). Сессии истекают после неактивности (по умолчанию 30 мин, максимум 2 ч) — каждая команда продлевает окно.
+
+Предпочитаете SDK? См. [SDKs](/docs/api/sdks) про тот же процесс на Python и TypeScript.
+
+## 5. Проверьте использование
+
+```bash
+curl -sS $OMNISCOUT_BASE_URL/v0/usage \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" | jq .
+```
+
+Биллинг только за использование (цена инфры × 1.30) — см. [Использование и биллинг](/docs/api/billing).
+
+## Дальнейшие шаги
+
+- [Аутентификация](/docs/api/authentication) — ключи, секреты сессий, заголовки
+- [Endpoints](/docs/api/endpoints) — схемы каждого маршрута
+- [SDKs](/docs/api/sdks) — Python, TypeScript, curl
+- [Ошибки](/docs/api/errors) — конверт ошибок и правила ретраев
+- [Лимиты](/docs/api/rate-limits) — защита от злоупотреблений и лимиты трат

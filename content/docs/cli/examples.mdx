@@ -4,7 +4,7 @@ description: Real workflows for OmniScout.
 icon: FlaskConical
 ---
 
-Copy-paste recipes for common tasks.
+Copy-paste recipes for common tasks. Concepts behind them: [Quickstart](/docs/cli/quickstart), [Browser automation](/docs/cli/browser), [Extraction](/docs/cli/extraction).
 
 ## Quick reference
 
@@ -20,24 +20,30 @@ omniscout browser close --all                       # 6. clean up
 ## Search and answer
 
 ```bash
-# One-line factual answer
+# One-line factual answer (preferred for facts)
 omniscout answer "who is the prime minister of india"
 omniscout answer "what is the capital of france"
+omniscout answer "latest stable Rust version" --depth deep --data
 
 # Web search with ranked hits
 omniscout search "AI agents 2026" --limit 5
+omniscout search "query" --source memory   # your remembered pages only
 ```
 
 ## Extract content from a page
 
 ```bash
 omniscout extract https://example.com > /tmp/page.md
+omniscout extract https://stripe.com/pricing --format structured --fields pricing
+omniscout extract -q "SpaceX founder" --format structured --fields founder
+omniscout extract https://example.com --depth 2 --out /tmp/site.md
 ```
 
 ## Research a topic
 
 ```bash
 omniscout research "vector database benchmarks 2026" --results 10
+omniscout research "quantum startups 2026" --depth 2 --probe-pro
 ```
 
 ## Build a knowledge graph
@@ -45,6 +51,7 @@ omniscout research "vector database benchmarks 2026" --results 10
 ```bash
 omniscout graph "Cursor"
 omniscout graph "cursor.com"          # site-only mode
+omniscout graph "Cursor" -w cursor.com --data
 ```
 
 ## Navigate and interact
@@ -57,14 +64,35 @@ omniscout browser screenshot --out /tmp/hn.png
 omniscout browser close --all
 ```
 
+## Read first, then act
+
+```bash
+omniscout browser navigate https://example.com
+omniscout browser get title
+omniscout browser get text | head -40
+omniscout browser snapshot --refs-only
+```
+
 ## Fill a form
 
 ```bash
 omniscout browser navigate https://duckduckgo.com
 omniscout browser snapshot --refs-only
-SEARCH_REF=$(jq -r '.refs[] | select(.role == "searchbox") | .ref' | head -1)
-omniscout browser fill "$SEARCH_REF" "local-first AI agents"
+omniscout browser fill '@e2' "local-first AI agents"
 omniscout browser key Enter
+omniscout browser wait text "results"
+omniscout browser get text | head -20
+```
+
+Find the search-box ref from the snapshot output — don't guess `@e` numbers. (`fill` replaces; `type` appends; `paste` inserts at the cursor.)
+
+## Wait properly
+
+```bash
+omniscout browser navigate https://example.com/app
+omniscout browser wait networkidle
+omniscout browser wait text "Dashboard"
+omniscout browser snapshot --refs-only
 ```
 
 ## Log in and reuse a profile
@@ -89,12 +117,30 @@ omniscout browser navigate https://vercel.com/pricing
 omniscout browser scroll down --amount 10
 omniscout browser network stop
 omniscout browser network list --filter "stripe|payment"
+omniscout browser network detail 3
+```
+
+## Debug page errors
+
+```bash
+omniscout browser console start
+omniscout browser navigate https://example.com/app
+omniscout browser console tail
+omniscout browser console stop
 ```
 
 ## Take a full-page screenshot
 
 ```bash
-omniscout browser screenshot https://example.com --full-length --out /tmp/full.png
+omniscout browser screenshot https://example.com --full-page --out /tmp/full.png
+```
+
+## Element screenshot and PDF
+
+```bash
+omniscout browser snapshot --refs-only
+omniscout browser screenshot --ref '@e3' --out /tmp/element.png
+omniscout browser pdf --out /tmp/page.pdf --paper letter
 ```
 
 ## Multiple tabs
@@ -104,6 +150,59 @@ omniscout browser navigate https://example.com --session multi
 omniscout browser navigate https://news.ycombinator.com --new-tab --session multi
 omniscout browser tab list --session multi
 omniscout browser tab switch 0 --session multi
+```
+
+## Record a reusable macro
+
+```bash
+omniscout record start --name signup-flow
+omniscout browser navigate https://example.com/signup
+omniscout browser snapshot --refs-only
+# ... interact ...
+omniscout record stop signup-flow
+omniscout macro run signup-flow
+```
+
+## Remember and recall
+
+```bash
+omniscout remember https://example.com/blog/post
+omniscout memory "what did I read about rerankers?"
+omniscout memory note "decision: use Probe Pro for evals"
+```
+
+## Desktop automation (macOS)
+
+```bash
+omniscout computer navigate "Notes" --session notes
+omniscout computer wait 300
+omniscout computer type "Hello from OmniScout!" --session notes
+omniscout computer screenshot --out /tmp/notes.png --session notes
+```
+
+## Python and shell integration
+
+```bash
+export OMNISCOUT_JSON=1
+
+omniscout search "topic"          | jq '.hits[] | {title, url}'
+omniscout browser snapshot        | jq '.refs[] | select(.role == "button")'
+omniscout extract https://...     | jq '{title, word_count}'
+omniscout research "topic"        | jq '.passages[0:3]'
+```
+
+```python
+import json, subprocess
+
+def scout(*args):
+    out = subprocess.run(
+        ["omniscout", "--json", *args],
+        capture_output=True, text=True, check=True,
+    )
+    return json.loads(out.stdout)
+
+hits = scout("search", "local-first AI agents")["hits"]
+print([h["url"] for h in hits[:3]])
 ```
 
 ## JSON for agents

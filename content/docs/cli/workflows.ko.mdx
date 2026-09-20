@@ -1,0 +1,69 @@
+---
+title: 워크플로 및 자동화
+description: 매크로 기록, 실행 replay, URL 모니터링, auto 라우팅.
+icon: Workflow
+---
+
+## 매크로 기록 및 replay
+
+직접 실행한 과정을 재사용 가능한 스크립트로 바꾸세요:
+
+```bash
+omniscout record start --name my_macro
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout record stop my_macro
+
+omniscout macro list
+omniscout macro run my_macro
+```
+
+`record start/stop`은 세션의 성공한 daemon 동작을 이름 있는 매크로로 캡처하고, `macro run`은 daemon을 통해 replay합니다. 원시 동작 히스토리의 저수준 replay에는 `omniscout replay …`와 `omniscout daemon replay`를 사용하세요.
+
+## 워크플로 연속성
+
+다단계 흐름은 조회하고 내보낼 수 있는 연속성 상태를 유지합니다:
+
+```bash
+omniscout context            # show current workflow state
+omniscout reset              # reset it and start fresh
+omniscout workflow export    # export steps as JSON (share or persist a process)
+```
+
+고민 없이 한 줄 요청을 최적 명령어로 라우팅하려면 `auto`를 쓰세요:
+
+```bash
+omniscout auto "latest AI news"
+```
+
+최상위 `open`과 `snapshot`은 기본 세션 브라우저로 들어가는 단축 명령어입니다:
+
+```bash
+omniscout open https://example.com
+omniscout open 3              # open the 3rd result of the last search
+omniscout snapshot --refs-only
+```
+
+## URL 변경 모니터링
+
+```bash
+omniscout monitor monitor https://example.com/pricing
+```
+
+`monitor`는 URL을 계속 추출하다가 콘텐츠가 바뀌면 JSON 라인을 내보냅니다 — 가격 감시, 변경 로그 알림, 상태 페이지용으로 `jq`나 스크립트에 파이프하세요.
+
+## 크롤 작업
+
+```bash
+omniscout crawl ...           # run and inspect local crawl jobs
+omniscout extract-jobs ...    # inspect background extract jobs
+omniscout index ...           # manage the local search index
+```
+
+크롤은 [추출](/docs/cli/extraction)의 대량 가져오기 모드(`--out` 사이트 내보내기, `--query` 모드)를 뒷받침합니다: 한 셸을 막지 않고 백그라운드에서 실행하고 결과를 조회하세요.
+
+## 에이전트 팁
+
+- 한 번 기록하고 `macro run`으로 계속 쓰세요 — 불안정한 다단계 흐름을 결정적으로 만드는 가장 저렴한 방법입니다.
+- `workflow export`는 티켓, PR, 평가 데이터셋에 첨부할 JSON 아티팩트를 줍니다.
+- 디버깅할 때는 다시 실행하기보다 `daemon trace`를 우선하세요: 최근 10k 동작이 이미 기록되어 있습니다.

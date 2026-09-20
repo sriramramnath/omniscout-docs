@@ -1,0 +1,62 @@
+---
+title: リサーチとナレッジグラフ
+description: マルチステップのリサーチパイプラインと構造化エンティティグラフ。
+icon: Network
+---
+
+## research — フルパイプラインを1コマンドで実行します
+
+```bash
+omniscout research "emerging quantum computing startups 2026"
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+1回の呼び出しでパイプライン全体を実行します：**検索 → クロール → 抽出 → リランク → 要約**。以下で調整します：
+
+| フラグ | 意味 | デフォルト |
+|---|---|---|
+| `--results/-k` | 取得する出典数です | 8 |
+| `--depth` | クロール深さです（1＝一覧のみ） | 1 |
+| `--query/-q` | 位置引数の代わりにフラグでトピックを指定します | — |
+| `--summarize` / `--no-summarize` | 抽出型要約を実行します | summarize |
+| `--probe-pro` | 高精度な回答向けProbe Proパイプラインです | off |
+| `--probe` | Probe Proの代わりにProbe Zero Mini LLMを使います | off |
+
+`research`の出力は`jq`にきれいにパイプできます：`omniscout research "topic" | jq '.passages[0:3]'`。
+
+### research・answer・extractの使い分け
+
+- `answer` — 1つの事実を高速に調べます。
+- `research` — 引用可能なパッセージ付きで、多くの出典を横断してトピックを概観します。
+- `extract` — URLがすでに分かっている場合に検索ステップを省略します。[抽出](/docs/cli/extraction)をご覧ください。
+
+## graph — 構造化ナレッジグラフ
+
+```bash
+omniscout graph "Cursor"                 # search the web and extract
+omniscout graph "Cursor" -w cursor.com  # crawl that site directly
+omniscout graph "Cursor" --data         # include sources, timing, diagnostics
+omniscout graph "Cursor" --llm          # optional LLM overlay on the evidence
+```
+
+`graph`は企業・人物・製品をエンティティと関係性の構造化Unicodeツリーにマッピングします。ドメインのみ（`cursor.com`）を渡すとサイト内に留まり、`-w/--website`で1サイトとその内部リンクにクロールを制限します。`--results/-k`で取得する出典・ページ数を制御します（デフォルト5）。
+
+## benchmark — 回答モードを比較します
+
+```bash
+omniscout benchmark answers
+omniscout benchmark retrieval
+omniscout benchmark ablation   # full ablation matrix with persisted metrics
+```
+
+`benchmark`はバンドルされたゴールドデータセットに対して回答品質、検索、書式を評価します — エージェントループで`--probe`、`--classic`、`--probe-pro`のどれを使うか決める際に便利です。`benchmark startup`はCLI起動オーバーヘッドを測定し、`benchmark format`はExa形式の書式を採点します。
+
+## Probe ZeroとClassicの比較
+
+Probe Zeroはローカル回答エンジンです（`omniscout settings engines`をご覧ください）：
+
+- **Probe Zero Mini** — ローカルLLM統合で、直接回答の良いデフォルトです。
+- **Classic** — 抽出型でLLM不要。確定的で、モデルウォームアップ後は完全オフラインです。
+- **Probe Pro** — 最難関の質問向け構造化クレームパイプライン（クロール → 検証 → 描画）です。
+
+エージェントループで標準化する前に、`omniscout benchmark answers`でゴールドベンチマーク上に比較します。

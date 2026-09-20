@@ -1,0 +1,85 @@
+---
+title: 抽出
+description: 任意のURLや検索クエリをクリーンなMarkdownや構造化JSONに変換します。
+icon: FileText
+---
+
+`extract`はページを取得して読みやすいコンテンツを返します — ブラウザセッションは不要です。単一URL、検索クエリによるクロール、サイト全体のエクスポートという3つのモードで動作します。
+
+## 単一URL → Markdown
+
+```bash
+omniscout extract https://example.com
+omniscout extract https://example.com --format text
+omniscout extract https://example.com > /tmp/page.md
+```
+
+| `--format/-f` | 戻り値 |
+|---|---|
+| `markdown`（デフォルト） | クリーンで読みやすいMarkdownです |
+| `text` | 書式なしのプレーンテキストです |
+| `json` | 構造化フィールドです（`--fields`が必要です） |
+| `structured` | 自動抽出フィールドです。`--fields`で絞り込めます |
+
+## 構造化抽出
+
+ページ全体ではなく特定フィールドだけを取得します：
+
+```bash
+omniscout extract https://example.com --format structured --fields founder,pricing
+```
+
+Exa形式のスキーマ駆動抽出では、JSON Schemaをファイルまたはインラインで渡します：
+
+```bash
+omniscout extract https://stripe.com/pricing \
+  --schema-inline '{"type":"object","properties":{"pricing":{"type":"string"}}}'
+omniscout extract https://stripe.com/pricing --schema ./schema.json
+```
+
+`--data`を付けると、フィールドとあわせて完全な結果メタデータ（キャッシュ状態、タイミング、コンテンツ統計）を含めます。
+
+## クエリモード — 検索ヒットを横断して抽出します
+
+URLを省略して`--query`を渡すと、Web検索して上位ヒットから多層リンククロールで抽出します：
+
+```bash
+omniscout extract -q "SpaceX founder" --format structured --fields founder
+```
+
+クロールは以下で調整します：
+
+| フラグ | 意味 | デフォルト |
+|---|---|---|
+| `--results/-n` | 検索から取得するシードURL数です | 5 |
+| `--depth` | リンクホップ数：1＝ページのみ、2＝直接リンク、3以上＝深掘りです | URLモードでは1、`--query`では3です |
+
+## サイトエクスポート — サイト全体を1ファイルにクロールします
+
+`--out`を渡すとサイトクロールモードになります：OmniScoutが同一ホストのリンクをクロールし、結合したMarkdownをファイルに書き込みます：
+
+```bash
+omniscout extract https://example.com --depth 2 --out /tmp/site.md
+```
+
+| フラグ | 意味 | デフォルト |
+|---|---|---|
+| `--max-pages` | 取得する最大ページ数です | 40 |
+| `--max-links` | ページごとにたどる同一ホストリンク数です | 20 |
+| `--concurrency` | 並列取得の上限です | 4 |
+| `--include` / `--exclude` | 保持／除外するパスの部分文字列（カンマ区切り）です | — |
+
+```bash
+omniscout extract https://example.com --depth 2 --out /tmp/site.md \
+  --include blog,docs --exclude tag,author
+```
+
+## キャッシュ
+
+抽出済みページはディスクにキャッシュされます（`cache/pages/`配下でコンテンツハッシュ管理）。ページが変わらない限り再実行は即時完了します。`--no-cache`でバイパスできます。
+
+## エージェント向けヒント
+
+- まずは素のMarkdownから始めます。型付きデータが必要な場合にのみ`--fields`やスキーマを使います。
+- `extract`の出力は`--json`で`jq`にきれいにパイプできます：`omniscout extract https://... | jq '{title, word_count}'`。
+- JavaScriptの多いページで抽出がうまくいかない場合は、代わりにブラウザを操作します：`browser navigate` → `browser extract-visible`（任意で`--schema`付き） — [ブラウザ自動化](/docs/cli/browser)をご覧ください。

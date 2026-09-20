@@ -4,7 +4,11 @@ description: Common issues and how to fix them.
 icon: LifeBuoy
 ---
 
-## `@eN` ref not found
+Fixes are ordered by where they bite: browser interaction, login/CAPTCHA, install/runtime, search/extract, daemon, and data. If nothing here helps, run commands with `-v` and attach `omniscout daemon trace` output to your [GitHub issue](https://github.com/sriramramnath/omniscout/issues).
+
+## Browser interaction
+
+### `@eN` ref not found
 
 The page changed since your last `snapshot`. Re-snapshot and use the new ref:
 
@@ -13,7 +17,46 @@ omniscout browser snapshot --refs-only
 omniscout browser click '@e7'
 ```
 
-## Login never completes
+Never reuse refs across `navigate`, `reload`, or form submits.
+
+### Snapshot shows no useful refs
+
+The page may still be loading. Wait for content before snapshotting:
+
+```bash
+omniscout browser wait networkidle
+omniscout browser wait text "expected heading"
+omniscout browser snapshot --refs-only
+```
+
+For canvas/WebGL pages with no accessibility tree, fall back to `screenshot` + `--coord` clicks, or `observe`/`act`.
+
+### Click did nothing
+
+Check the element is actionable first, then try keyboard alternatives:
+
+```bash
+omniscout browser is '@e3' visible
+omniscout browser is '@e3' enabled
+omniscout browser hover '@e3'
+omniscout browser key Enter
+```
+
+### Screenshot is blank
+
+```bash
+# Wait for loading
+omniscout browser screenshot https://example.com --delay 3 --out /tmp/page.png
+
+# Full page
+omniscout browser screenshot https://example.com --full-page --out /tmp/full.png
+```
+
+Blank + `wait networkidle` still blank usually means the daemon lost the tab — `browser close --all` and navigate again.
+
+## Login & CAPTCHA
+
+### Login never completes
 
 Use the `--done` signal from another shell:
 
@@ -25,7 +68,9 @@ omniscout browser login https://app.example.com --profile work
 omniscout browser login --done
 ```
 
-## CAPTCHA blocks forever
+If the site redirects oddly, pass `--success-pattern "dashboard|/app"` so the login resolves on URL match instead of waiting the full 5-minute `--timeout-ms`.
+
+### CAPTCHA blocks forever
 
 Solve it in the headful window, or use a third-party solver:
 
@@ -34,27 +79,55 @@ export TWOCAPTCHA_API_KEY=...
 omniscout browser captcha --solver 2captcha
 ```
 
-## Extension says `backend_unavailable`
+Start with `omniscout browser captcha --detect-only` to confirm it's actually a CAPTCHA and not a bot-wall. `navigate --auto-captcha` resolves challenges right after load.
+
+### Extension says `backend_unavailable`
 
 1. Open `chrome://extensions` — confirm the extension is loaded
 2. Click the extension icon — reconnect if disconnected
-3. Or drop `--backend extension` to use Playwright instead
+3. Or drop `--backend extension` to use Patchright instead
 
-## Python version error
+## Install & runtime
+
+### Python version error
 
 ```bash
 python --version  # needs 3.11+
 pip install omniscout
 ```
 
-## Chrome not found
+### Chrome not found
 
 ```bash
 omniscout settings browsers          # see what's installed
 omniscout settings set browser edge  # or brave, vivaldi, etc.
 ```
 
-## Daemon won't start
+For a custom path: `browser = "custom"` plus `browser_executable` in `config.toml` (see [Configuration](/docs/cli/configuration)).
+
+### First search is slow
+
+That's the one-time embedding-model download. Preload it: `omniscout warmup`. Offline afterwards unless `OMNISCOUT_EMBED_LOCAL_ONLY=0`.
+
+## Search & extraction
+
+### Search returns no results
+
+```bash
+omniscout search "more specific query"
+omniscout search "query" --source ddg
+omniscout search "query" --no-rerank   # check if the reranker is hiding hits
+```
+
+### Extract returns junk
+
+- Try `--format text` (drops broken markup) or `--no-cache` (stale cache).
+- For JS-heavy pages, use the browser: `navigate` → `extract-visible` instead of `extract`.
+- For whole-site pulls, use site-export mode with `--include/--exclude` filters (see [Extraction](/docs/cli/extraction)).
+
+## Daemon, profiles, sessions
+
+### Daemon won't start
 
 ```bash
 omniscout daemon stop
@@ -63,21 +136,32 @@ lsof -i :7720                       # check if port is in use
 omniscout daemon start --port 7721   # use different port
 ```
 
-## Search returns no results
+If another tool owns port 7720, export `OMNISCOUT_DAEMON_PORT=7721` so every command uses the new port.
+
+### Stale tabs piling up
 
 ```bash
-omniscout search "more specific query"
-omniscout search "query" --source ddg
+omniscout session list
+omniscout session kill <id>
+omniscout browser close --all
 ```
 
-## Screenshot is blank
+### Lost logins after restart
+
+Sessions don't survive daemon restarts — profiles do. Log in with `--profile <name>` and pass the same profile on later runs (see [Daemon & sessions](/docs/cli/sessions)).
+
+## JSON & agents
+
+- Empty `--json` output with errors on screen: errors go to `stderr` by design — check the exit code and `stderr`, not `stdout`.
+- Add `-v` for verbose daemon/HTTP logging when a command hangs.
+
+## Nuclear options
 
 ```bash
-# Wait for loading
-omniscout browser screenshot https://example.com --delay 3 --out /tmp/page.png
-
-# Full page
-omniscout browser screenshot https://example.com --full-length --out /tmp/full.png
+pip install --upgrade omniscout
+omniscout daemon restart
+rm -rf ~/Library/Application\ Support/omniscout/   # macOS — wipes profiles, cache, memory
+rm -rf ~/.local/share/omniscout/                   # Linux
 ```
 
 ## FAQ

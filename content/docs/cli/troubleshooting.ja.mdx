@@ -4,102 +4,186 @@ description: よくある問題と解決方法。
 icon: LifeBuoy
 ---
 
-## `@eN`参照が見つからない
+対処は発生箇所順です：ブラウザ操作、ログイン／CAPTCHA、インストール／実行時、検索／抽出、daemon、データです。ここで解決しない場合は`-v`付きでコマンドを実行し、`omniscout daemon trace`の出力を添えて[GitHub issue](https://github.com/sriramramnath/omniscout/issues)に報告します。
 
-前回の`snapshot`以降にページが変化しています。再スナップショットを取って新しい参照を使ってください：
+## ブラウザ操作
+
+### `@eN` refが見つかりません
+
+前回の`snapshot`以降にページが変わっています。再取得して新しいrefを使います：
 
 ```bash
 omniscout browser snapshot --refs-only
 omniscout browser click '@e7'
 ```
 
-## ログインが完了しない
+`navigate`、`reload`、フォーム送信をまたいでrefを再利用しません。
 
-別のシェルから`--done`シグナルを送ってください：
+### snapshotに有効なrefがありません
+
+ページがまだ読み込み中の可能性があります。内容を待ってから取得します：
 
 ```bash
-# ターミナルA：
+omniscout browser wait networkidle
+omniscout browser wait text "expected heading"
+omniscout browser snapshot --refs-only
+```
+
+アクセシビリティツリーのないcanvas／WebGLページでは`screenshot`＋`--coord`クリック、または`observe`／`act`にフォールバックします。
+
+### クリックしても何も起きません
+
+最初に要素が操作可能か確認し、キーボード代替を試します：
+
+```bash
+omniscout browser is '@e3' visible
+omniscout browser is '@e3' enabled
+omniscout browser hover '@e3'
+omniscout browser key Enter
+```
+
+### スクリーンショットが真っ白です
+
+```bash
+# Wait for loading
+omniscout browser screenshot https://example.com --delay 3 --out /tmp/page.png
+
+# Full page
+omniscout browser screenshot https://example.com --full-page --out /tmp/full.png
+```
+
+真っ白のまま＋`wait networkidle`でも真っ白な場合は通常daemonがタブを見失っています — `browser close --all`してから再度移動します。
+
+## ログインとCAPTCHA
+
+### ログインが完了しません
+
+別のシェルから`--done`信号を使います：
+
+```bash
+# Terminal A:
 omniscout browser login https://app.example.com --profile work
 
-# ターミナルB（ログイン後）：
+# Terminal B (after you log in):
 omniscout browser login --done
 ```
 
-## CAPTCHAで止まる
+サイトが変わったリダイレクトをする場合は`--success-pattern "dashboard|/app"`を渡し、5分の`--timeout-ms`を待ち切らずURL一致でログインを解決します。
 
-ヘッドフルウィンドウで解決するか、サードパーティのソルバーを使ってください：
+### CAPTCHAで止まり続けます
+
+ヘッドフルウィンドウで解くか、サードパーティソルバーを使います：
 
 ```bash
 export TWOCAPTCHA_API_KEY=...
 omniscout browser captcha --solver 2captcha
 ```
 
-## 拡張機能が`backend_unavailable`と表示する
+まず`omniscout browser captcha --detect-only`でCAPTCHAなのかbot壁なのかを確認します。`navigate --auto-captcha`は読み込み直後に課題を解決します。
 
-1. `chrome://extensions`を開く — 拡張機能が読み込まれていることを確認
-2. 拡張機能アイコンをクリック — 切断時は再接続
-3. または`--backend extension`を外してPlaywrightを使う
+### 拡張機能が`backend_unavailable`と言います
 
-## Pythonバージョンエラー
+1. `chrome://extensions`を開きます — 拡張機能が読み込まれていることを確認します
+2. 拡張機能アイコンをクリックします — 切断されていれば再接続します
+3. または`--backend extension`を外してPatchrightを使います
+
+## インストールと実行時
+
+### Pythonバージョンエラーです
 
 ```bash
-python --version  # 3.11以降が必要
+python --version  # needs 3.11+
 pip install omniscout
 ```
 
-## Chromeが見つからない
+### Chromeが見つかりません
 
 ```bash
-omniscout settings browsers          # インストール済みを確認
-omniscout settings set browser edge  # またはbrave、vivaldiなど
+omniscout settings browsers          # see what's installed
+omniscout settings set browser edge  # or brave, vivaldi, etc.
 ```
 
-## デーモンが起動しない
+カスタムパスの場合：`config.toml`で`browser = "custom"`＋`browser_executable`を設定します（[設定](/docs/cli/configuration)をご覧ください）。
 
-```bash
-omniscout daemon stop
-omniscout daemon start
-lsof -i :7720                       # ポート使用中か確認
-omniscout daemon start --port 7721   # 別ポートを使う
-```
+### 初回検索が遅いです
 
-## 検索結果が0件
+埋め込みモデルの初回ダウンロードが原因です。事前に読み込みます：`omniscout warmup`。`OMNISCOUT_EMBED_LOCAL_ONLY=0`でない限り以降はオフラインです。
+
+## 検索と抽出
+
+### 検索結果がありません
 
 ```bash
 omniscout search "more specific query"
 omniscout search "query" --source ddg
+omniscout search "query" --no-rerank   # check if the reranker is hiding hits
 ```
 
-## スクリーンショットが真っ白
+### 抽出結果が壊れています
+
+- `--format text`（壊れたマークアップを除去）や`--no-cache`（古いキャッシュ）を試します。
+- JSの多いページではブラウザを使います：`extract`の代わりに`navigate` → `extract-visible`を使います。
+- サイト全体の取得では`--include/--exclude`フィルター付きサイトエクスポートモードを使います（[抽出](/docs/cli/extraction)をご覧ください）。
+
+## daemon、プロファイル、セッション
+
+### daemonが起動しません
 
 ```bash
-# 読み込みを待つ
-omniscout browser screenshot https://example.com --delay 3 --out /tmp/page.png
-
-# フルページ
-omniscout browser screenshot https://example.com --full-length --out /tmp/full.png
+omniscout daemon stop
+omniscout daemon start
+lsof -i :7720                       # check if port is in use
+omniscout daemon start --port 7721   # use different port
 ```
 
-## よくある質問
+他のツールがポート7720を使っている場合は`OMNISCOUT_DAEMON_PORT=7721`をエクスポートし、すべてのコマンドで新しいポートを使います。
+
+### 古いタブが溜まります
+
+```bash
+omniscout session list
+omniscout session kill <id>
+omniscout browser close --all
+```
+
+### 再起動後にログインが消えます
+
+セッションはdaemon再起動をまたぎません — プロファイルは残ります。`--profile <name>`でログインし、以降の実行でも同じプロファイルを渡します（[daemonとセッション](/docs/cli/sessions)をご覧ください）。
+
+## JSONとエージェント
+
+- 画面にエラーが出て`--json`出力が空です：エラーは設計上`stderr`に出ます — `stdout`ではなく終了コードと`stderr`を確認します。
+- コマンドがハングする場合は`-v`でdaemon／HTTPの詳細ログを有効化します。
+
+## 最終手段
+
+```bash
+pip install --upgrade omniscout
+omniscout daemon restart
+rm -rf ~/Library/Application\ Support/omniscout/   # macOS — wipes profiles, cache, memory
+rm -rf ~/.local/share/omniscout/                   # Linux
+```
+
+## FAQ
 
 **データはクラウドに送信されますか？**
-いいえ。外部への通信はDuckDuckGo検索と明示的に取得したURLのみです。1回限りのモデルダウンロードはローカルにキャッシュされます。
+いいえ。外部送信はDuckDuckGo検索と明示的に取得したURLのみです。1回限りのモデルダウンロードはローカルにキャッシュします。
 
 **ChromeなしでOmniScoutを使えますか？**
-Chromium系ブラウザが必要です。Chrome/Chromiumをインストールするか、`omniscout install --browser custom --browser-executable <path>`でカスタムパスを設定してください。
+Chromium系ブラウザが必要です。Chrome／Chromiumをインストールするか、`omniscout install --browser custom --browser-executable <path>`でカスタムパスを設定します。
 
 **アップデート方法は？**
 ```bash
 pip install --upgrade omniscout
 ```
 
-**すべてのデータを消去するには？**
+**全データを消去する方法は？**
 ```bash
 rm -rf ~/Library/Application\ Support/omniscout/   # macOS
 rm -rf ~/.local/share/omniscout/                   # Linux
 ```
 
-**ヘルプはどこで入手できますか？**
-- [CLI概要](/ja/docs/cli/overview)
-- [使用例](/ja/docs/cli/examples)
+**ヘルプはどこで得られますか？**
+- [CLI概要](/docs/cli/overview)
+- [実例](/docs/cli/examples)
 - [GitHub issues](https://github.com/sriramramnath/omniscout/issues)

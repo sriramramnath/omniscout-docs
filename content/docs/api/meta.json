@@ -3,8 +3,11 @@
   "icon": "Cloud",
   "pages": [
     "index",
+    "quickstart",
     "authentication",
     "endpoints",
+    "sdks",
+    "errors",
     "rate-limits",
     "billing"
   ]
