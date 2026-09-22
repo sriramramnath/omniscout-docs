@@ -1,0 +1,93 @@
+---
+title: 搜索与问答
+description: 带本地重排序的网页搜索、直接问答、站点映射与模型预热。
+icon: Search
+---
+
+## 该用哪个命令？
+
+| 命令 | 返回 | 适用场景 |
+|---|---|---|
+| `answer` | 带引用的综合答案 | 需要事实而非链接列表时（优先使用） |
+| `search` | 排序后的 URL 结果 | 需要自行打开、抓取或引用的链接时 |
+| `map` | 站点的可读 URL | 需要探索整个域名时 |
+| `warmup` | 无（预加载模型） | 批量调用前，降低首次调用延迟 |
+
+## answer — 直接问答
+
+```bash
+omniscout answer "Who is the prime minister of India?"
+omniscout answer "latest stable Rust version" --depth balanced
+```
+
+### 深度模式
+
+`--depth` 控制答案背后做多少抓取：
+
+| 深度 | 行为 | 速度 |
+|---|---|---|
+| `fast` | 仅根据搜索片段作答 | 最快 |
+| `balanced` | 索引 + 抓取顶部来源 | 中等 |
+| `deep` | 作答前抓取顶部来源 | 最慢、最全面 |
+| `auto`（默认） | 根据问题自动选择 | 不定 |
+
+### 问答引擎
+
+两种引擎可综合答案。默认引擎来自设置（`omniscout settings engines`），可按调用覆盖：
+
+```bash
+omniscout answer "..." --probe      # Probe Zero Mini (local LLM)
+omniscout answer "..." --classic    # Classic extractive engine
+omniscout answer "..." --probe-pro  # Probe Pro: structured-claim pipeline with crawl + verify
+omniscout answer "..." --no-llm     # extractive fallback only, no LLM at all
+```
+
+用 `--limit/-n` 调整参与综合的搜索结果数（默认 10），用 `--data` 在输出中附带来源、耗时与检索诊断信息。
+
+## search — 排序后的网页结果
+
+```bash
+omniscout search "vector database benchmarks 2026"
+omniscout search "AI agents 2026" --limit 5
+```
+
+结果从网上获取，并使用 sentence-transformers embedding 模型在**本地重排序**，因此顶部结果与查询语义最接近 — 不涉及 LLM 调用。可用 `--no-rerank` 按次禁用重排序。`search` 还附带一个本地 UI：
+
+```bash
+omniscout search ui   # open the local search UI (SearXNG at 127.0.0.1:8888)
+```
+
+### 搜索来源
+
+按次用 `--source` 选择来源（`ddg | index | memory | hybrid`）：
+
+```bash
+omniscout search "query" --source ddg
+omniscout search "query" --source memory   # your remembered pages only
+```
+
+默认来源位于 `config.toml`（`default_source`：`searxng | ddg | wikipedia | web`）。用 `--from/--to`（YYYY-MM-DD）与 `--country` 为查询附加时间与地域提示。
+
+修改默认来源见[配置](/docs/configuration)。
+
+## map — 抓取站点的 URL
+
+```bash
+omniscout map stripe.com
+```
+
+`map` 生成一个域名的 URL 地图 — 在运行有针对性的 `extract` 或 `research` 之前，若想先了解站点上有什么内容，很有用。
+
+## warmup — 预加载模型
+
+```bash
+omniscout warmup
+```
+
+将 embedding 与问答模型预加载到 daemon 中。安装后运行一次（或演示前运行），让首次真实调用直接可用，而不必在调用时下载与预热模型。
+
+## Agent 技巧
+
+- 需要带引用的事实时，优先使用 `answer` 而非 `search`。
+- 用 `jq` 挑选 `--json` 输出字段：`omniscout search "topic" | jq '.hits[] | {title, url}'`。
+- 若结果不理想，先尝试更具体的查询或更换 `--source`，不要直接认定没有相关信息。

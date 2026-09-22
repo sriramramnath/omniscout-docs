@@ -1,0 +1,81 @@
+---
+title: Daemon、会话与 Profile
+description: 后台 daemon、常驻会话、持久 profile 与调试工具。
+icon: Server
+---
+
+## Daemon 生命周期
+
+daemon（默认 `127.0.0.1:7720`）让浏览器常驻，使操作保持亚秒级：
+
+```bash
+omniscout daemon start     # idempotent — returns status if already up
+omniscout daemon status    # health, version, active sessions
+omniscout daemon restart
+omniscout daemon stop      # SIGTERM, then SIGKILL after 5s
+omniscout daemon logs      # tail the daemon log (add --follow)
+```
+
+多数命令在 daemon 未运行时会自动启动。用 `OMNISCOUT_DAEMON_PORT` 覆盖端口（以及 `omniscout daemon start --port 7721`）；用 `OMNISCOUT_DAEMON_AUTO_START=0` 禁用自动启动。
+
+## 调试：trace、replay、watch
+
+daemon 的每个操作都会记录到 JSONL 历史（最近 10k 条命令）：
+
+```bash
+omniscout daemon trace     # inspect the action history
+omniscout daemon replay    # re-run recorded actions
+omniscout daemon watch     # subscribe to the live event stream (SSE)
+```
+
+这是最快看清 agent 实际做了什么的方式 — `trace` 用于事后取证，`watch` 用于实时监控。
+
+## 会话与 Profile
+
+| | 会话（`--session`） | Profile（`--profile`） |
+|---|---|---|
+| 是什么 | live daemon 中的命名标签页组 | 磁盘上的持久浏览器 user-data-dir |
+| daemon 重启后保留？ | 否 | 是 |
+| 保留 cookie / 登录态？ | 存活期间保留 | 跨运行保留 |
+| 管理命令 | `omniscout session …` | `omniscout profile …` |
+
+用**会话**隔离共享同一 daemon 的并行工作流；用 **profile** 隔离身份（工作 vs 个人）或在重启间保留登录态。
+
+### 会话
+
+```bash
+omniscout session start          # start a session, prints id + WS endpoint
+omniscout session list           # active sessions
+omniscout session attach <id>    # connection info (CDP WS endpoint)
+omniscout session kill <id>      # kill one (or all) sessions
+```
+
+在任意 `browser`/`computer` 命令上加 `--session <name>` 即可在该会话内运行。顶层快捷命令 `open`、`snapshot`、`context` 与 `reset` 操作默认会话的工作流状态。
+
+### Profile
+
+```bash
+omniscout profile create work
+omniscout profile list
+omniscout profile delete old
+```
+
+然后为任意浏览器运行附加 profile：
+
+```bash
+omniscout browser navigate https://github.com/notifications --profile work
+omniscout browser login https://github.com/login --profile work  # log in once, reuse
+```
+
+Profile 存放在数据目录下的 `profiles/`。不要放进仓库 — 其中包含 cookie。
+
+## 设置
+
+```bash
+omniscout settings show        # current settings + resolved browser target
+omniscout settings browsers    # supported browsers, and which are installed
+omniscout settings engines     # supported answer engines
+omniscout settings set browser brave
+```
+
+设置持久化到 `config.toml` — 所有键与环境变量覆盖见[配置](/docs/configuration)。

@@ -1,0 +1,73 @@
+---
+title: "OmniScout CLI"
+description: Локальное управление браузером, семантический поиск и исследования для ИИ-агентов.
+icon: BookOpen
+---
+
+Локальное управление браузером, семантический поиск и исследования для ИИ-агентов. Без облачного аккаунта, без API-ключа — установите и работайте.
+
+## Установка
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+Полная настройка: [Установка](/docs/installation). Тур за пять минут: [Быстрый старт](/docs/quickstart).
+
+## Использование
+
+```bash
+omniscout daemon start
+
+# Search
+omniscout answer "what is the capital of france"
+
+# Extract
+omniscout extract https://example.com
+
+# Browser
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# Research
+omniscout research "AI agents in 2026"
+
+# Knowledge graph
+omniscout graph "Cursor"
+```
+
+## Что внутри
+
+| Команда | Что делает | Руководство |
+|---|---|---|
+| `omniscout answer` / `search` | Прямые вопросы-ответы с цитатами / ранжированные попадания | [Поиск](/docs/search/search) |
+| `omniscout extract` | Загрузка URL и возврат чистого контента | [Извлечение](/docs/search/extraction) |
+| `omniscout research` / `graph` | Многошаговый пайплайн / граф знаний | [Исследования](/docs/search/research) |
+| `omniscout browser` | Управление браузером | [Браузер](/docs/automation/browser) |
+| `omniscout computer` | Автоматизация рабочего стола (macOS) | [Computer](/docs/automation/computer) |
+| `omniscout daemon` / `session` / `profile` | Фоновый сервис, сессии, профили | [Сессии](/docs/automation/sessions) |
+| `omniscout remember` / `memory` | Сохранение и recall страниц | [Память](/docs/search/memory) |
+| `omniscout record` / `macro` / `monitor` | Переиспользуемые процессы, алёрты изменений | [Рабочие процессы](/docs/automation/workflows) |
+
+## Руководства
+
+- [Что такое OmniScout](/docs/overview) — концепции и принципы дизайна
+- [Использование с ИИ-агентами](/docs/agents) — skills, JSON-цикл, отладка запусков
+- [Примеры и рецепты](/docs/examples) — готовые рабочие процессы
+- [Справочник команд](/docs/commands) — каждый глагол, каждый флаг
+- [Как это работает](/docs/overview) — daemon, бэкенды, refs, поток данных
+- [Конфигурация](/docs/configuration) — config.toml, env-переменные, структура данных
+- [Устранение неполадок](/docs/troubleshooting) — исправления и FAQ
+
+## Вывод JSON
+
+```bash
+export OMNISCOUT_JSON=1  # structured output for agents
+```
+
+## Local-first
+
+Без облачного аккаунта, API-ключа или хостинг-сервера. Единственный исходящий трафик — поиски DuckDuckGo и URL, которые вы явно загружаете.

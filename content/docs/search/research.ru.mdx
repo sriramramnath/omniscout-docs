@@ -1,0 +1,62 @@
+---
+title: Исследования и графы знаний
+description: Многошаговые исследовательские пайплайны и структурированные графы сущностей.
+icon: Network
+---
+
+## research — полный пайплайн одной командой
+
+```bash
+omniscout research "emerging quantum computing startups 2026"
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+Один вызов выполняет весь пайплайн: **search → crawl → extract → rerank → summarize**. Настройте его:
+
+| Флаг | Значение | По умолчанию |
+|---|---|---|
+| `--results/-k` | Источников для загрузки | 8 |
+| `--depth` | Глубина обхода (1 = только листинг) | 1 |
+| `--query/-q` | Тема флагом вместо позиционного аргумента | — |
+| `--summarize` / `--no-summarize` | Выполнять экстрактивную суммаризацию | summarize |
+| `--probe-pro` | Пайплайн Probe Pro для лучших ответов | выкл |
+| `--probe` | Probe Zero Mini LLM вместо Probe Pro | выкл |
+
+Вывод `research` чисто пропускается в `jq`: `omniscout research "topic" | jq '.passages[0:3]'`.
+
+### Когда использовать research vs answer vs extract
+
+- `answer` — один факт, быстро.
+- `research` — тема, которую нужно обследовать по многим источникам, с пассажами для цитирования.
+- `extract` — URL уже известны; шаг поиска пропускается. См. [Извлечение](/docs/search/extraction).
+
+## graph — структурированные графы знаний
+
+```bash
+omniscout graph "Cursor"                 # search the web and extract
+omniscout graph "Cursor" -w cursor.com  # crawl that site directly
+omniscout graph "Cursor" --data         # include sources, timing, diagnostics
+omniscout graph "Cursor" --llm          # optional LLM overlay on the evidence
+```
+
+`graph` отображает компанию, человека или продукт в структурированное Unicode-дерево сущностей и связей. Передайте голый домен (`cursor.com`), чтобы оставаться на сайте, или `-w/--website`, чтобы ограничить обход одним сайтом и его внутренними ссылками. `--results/-k` управляет числом загружаемых источников/страниц (по умолчанию 5).
+
+## benchmark — сравнение режимов ответов
+
+```bash
+omniscout benchmark answers
+omniscout benchmark retrieval
+omniscout benchmark ablation   # full ablation matrix with persisted metrics
+```
+
+`benchmark` оценивает качество ответов, retrieval и форматирование на встроенном gold-датасете — полезно при выборе между `--probe`, `--classic` и `--probe-pro` для вашей нагрузки. `benchmark startup` измеряет накладные расходы старта CLI; `benchmark format` оценивает форматирование в стиле Exa.
+
+## Probe Zero vs Classic
+
+Probe Zero — локальный движок ответов (см. `omniscout settings engines`):
+
+- **Probe Zero Mini** — локальный синтез LLM, хороший выбор по умолчанию для прямых ответов.
+- **Classic** — экстрактивный, без LLM; детерминированный и полностью офлайн после прогрева моделей.
+- **Probe Pro** — пайплайн структурированных утверждений (crawl → verify → render) для самых сложных вопросов.
+
+Сравните их на gold-бенчмарке командой `omniscout benchmark answers`, прежде чем стандартизировать в цикле агента.

@@ -1,0 +1,85 @@
+---
+title: Извлечение
+description: Превращайте любой URL или поисковый запрос в чистый Markdown или структурированный JSON.
+icon: FileText
+---
+
+`extract` загружает страницу и возвращает читаемый контент — без браузерной сессии. Работает в трёх режимах: одиночный URL, обход по поисковому запросу и экспорт целого сайта.
+
+## Одиночный URL → Markdown
+
+```bash
+omniscout extract https://example.com
+omniscout extract https://example.com --format text
+omniscout extract https://example.com > /tmp/page.md
+```
+
+| `--format/-f` | Возвращает |
+|---|---|
+| `markdown` (по умолчанию) | Чистый читаемый Markdown |
+| `text` | Простой текст без форматирования |
+| `json` | Структурированные поля (требует `--fields`) |
+| `structured` | Автоматически извлечённые поля; добавьте `--fields`, чтобы ограничить |
+
+## Структурированное извлечение
+
+Забирайте конкретные поля вместо всей страницы:
+
+```bash
+omniscout extract https://example.com --format structured --fields founder,pricing
+```
+
+Для извлечения по схеме в стиле Exa передайте JSON Schema из файла или инлайн:
+
+```bash
+omniscout extract https://stripe.com/pricing \
+  --schema-inline '{"type":"object","properties":{"pricing":{"type":"string"}}}'
+omniscout extract https://stripe.com/pricing --schema ./schema.json
+```
+
+Добавьте `--data`, чтобы включить полную метадату результата (статус кэша, тайминги, статистику контента) вместе с полями.
+
+## Режим запроса — извлечение по поисковым хитам
+
+Опустите URL и передайте `--query`, чтобы найти веб, а затем извлечь данные из топ-попаданий с многоуровневым обходом ссылок:
+
+```bash
+omniscout extract -q "SpaceX founder" --format structured --fields founder
+```
+
+Настройте обход:
+
+| Флаг | Значение | По умолчанию |
+|---|---|---|
+| `--results/-n` | Стартовые URL из поиска | 5 |
+| `--depth` | Прыжки по ссылкам: 1 = только страница, 2 = прямые ссылки, 3+ = глубже | 1 для режима URL, 3 для `--query` |
+
+## Экспорт сайта — обход целого сайта в один файл
+
+Передайте `--out`, чтобы включить режим обхода сайта: OmniScout обходит ссылки того же хоста и пишет объединённый Markdown в файл:
+
+```bash
+omniscout extract https://example.com --depth 2 --out /tmp/site.md
+```
+
+| Флаг | Значение | По умолчанию |
+|---|---|---|
+| `--max-pages` | Максимум загружаемых страниц | 40 |
+| `--max-links` | Ссылок того же хоста на страницу | 20 |
+| `--concurrency` | Лимит параллельных загрузок | 4 |
+| `--include` / `--exclude` | Подстроки путей через запятую — оставить/пропустить | — |
+
+```bash
+omniscout extract https://example.com --depth 2 --out /tmp/site.md \
+  --include blog,docs --exclude tag,author
+```
+
+## Кэширование
+
+Извлечённые страницы кэшируются на диске (с хешированием контента в `cache/pages/`). Повторные запуски мгновенны, если страница не изменилась. Обойдите флагом `--no-cache`.
+
+## Советы для агентов
+
+- Начинайте с обычного Markdown; к `--fields`/схемам переходите, только когда нужны типизированные данные.
+- Вывод `extract` чисто пропускается через `jq` под `--json`: `omniscout extract https://... | jq '{title, word_count}'`.
+- Для JS-тяжёлых страниц, которые плохо извлекаются, управляйте браузером вместо этого: `browser navigate` → `browser extract-visible` (опционально с `--schema`) — см. [Автоматизация браузера](/docs/automation/browser).

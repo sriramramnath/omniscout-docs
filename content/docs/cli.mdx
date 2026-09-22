@@ -1,0 +1,72 @@
+---
+title: "OmniScout CLI"
+description: Local-first browser control, search, and research for AI agents.
+icon: BookOpen
+---
+
+Local-first browser control, search, and research for AI agents. No cloud account, no API key — install and go.
+
+## Install
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+Full setup: [Installation](/docs/installation). Five-minute tour: [Quickstart](/docs/quickstart).
+
+## Use
+
+```bash
+omniscout daemon start
+
+# Search
+omniscout answer "what is the capital of france"
+
+# Extract
+omniscout extract https://example.com
+
+# Browser
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# Research
+omniscout research "AI agents in 2026"
+
+# Knowledge graph
+omniscout graph "Cursor"
+```
+
+## What's in the box
+
+| Command | What it does | Guide |
+|---|---|---|
+| `omniscout answer` / `search` | Direct Q&A with citations / ranked hits | [Search](/docs/search/search) |
+| `omniscout extract` | Fetch a URL and return clean content | [Extraction](/docs/search/extraction) |
+| `omniscout research` / `graph` | Research a topic / knowledge graph | [Research](/docs/search/research) |
+| `omniscout browser` | Control a browser | [Browser](/docs/automation/browser) |
+| `omniscout computer` | Desktop automation (macOS) | [Computer](/docs/automation/computer) |
+| `omniscout daemon` / `session` / `profile` | Get ready, sessions, saved logins | [Sessions](/docs/automation/sessions) |
+| `omniscout remember` / `memory` | Store and recall pages | [Memory](/docs/search/memory) |
+| `omniscout record` / `macro` / `monitor` | Reusable flows, change alerts | [Workflows](/docs/automation/workflows) |
+
+## Guides
+
+- [What is OmniScout](/docs/overview) — concepts and design principles
+- [Using with AI agents](/docs/agents) — skills, JSON loop, debugging runs
+- [Examples & recipes](/docs/examples) — copy-paste workflows
+- [Commands reference](/docs/commands) — every verb, every flag
+- [Configuration](/docs/configuration) — config.toml, env vars, storage
+- [Troubleshooting](/docs/troubleshooting) — fixes and FAQ
+
+## JSON output
+
+```bash
+export OMNISCOUT_JSON=1  # structured output for agents
+```
+
+## Local-first
+
+No cloud account or API key required. The only outbound traffic is searches you run and URLs you explicitly fetch.

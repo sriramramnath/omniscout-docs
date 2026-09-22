@@ -23,10 +23,51 @@ export default async function proxy(request: NextRequest, event: NextFetchEvent)
     return NextResponse.redirect(new URL(`/en${pathname}`, request.url));
   }
 
-  // legacy: old Docus URLs (/en/cli/*, /en/api/*) -> locale docs URLs
-  const legacy = pathname.match(/^\/en\/(cli|api|sdk)(\/.*)?$/);
-  if (legacy) {
-    return NextResponse.redirect(new URL(`/en/docs/${legacy[1]}${legacy[2] ?? ''}`, request.url));
+  // legacy: old docs URLs -> current locations (folders: search, automation)
+  const moved: Record<string, string> = {
+    // search group
+    '/search': '/search/search',
+    '/extraction': '/search/extraction',
+    '/research': '/search/research',
+    '/memory': '/search/memory',
+    // automation group
+    '/browser': '/automation/browser',
+    '/computer': '/automation/computer',
+    '/sessions': '/automation/sessions',
+    '/workflows': '/automation/workflows',
+    // removed page
+    '/architecture': '/overview',
+    // previously nested cloud URLs (briefly lived under /docs/cloud/*)
+    '/cloud/authentication': '/authentication',
+    '/cloud/billing': '/billing',
+    '/cloud/endpoints': '/endpoints',
+    '/cloud/errors': '/errors',
+    '/cloud/rate-limits': '/rate-limits',
+    '/cloud/sdks': '/sdks',
+    '/cloud/quickstart': '/cloud-quickstart',
+  };
+  const legacyDocs = pathname.match(/^\/en(\/docs)?\/(cli|api|sdk)(\/.*)?$/);
+  if (legacyDocs) {
+    const [, , group, rest = ''] = legacyDocs;
+    // normalize old section prefixes to flat names first
+    let flat = rest;
+    if (group === 'api') {
+      if (!rest || rest === '/') flat = '/cloud';
+      else if (rest === '/quickstart') flat = '/cloud-quickstart';
+    } else if (group === 'cli') {
+      if (!rest || rest === '/') flat = '/cli';
+    }
+    const target = moved[flat] ? `/en/docs${moved[flat]}` : `/en/docs${flat}`;
+    const current = pathname.startsWith('/en/docs') ? pathname : null;
+    if (current !== target) {
+      return NextResponse.redirect(new URL(target, request.url));
+    }
+  }
+  // direct hits on moved flat URLs (e.g. bookmarks from the flat layout)
+  for (const [from, to] of Object.entries(moved)) {
+    if (pathname === `/en/docs${from}` || pathname === `/en/docs${from}/`) {
+      return NextResponse.redirect(new URL(`/en/docs${to}`, request.url));
+    }
   }
 
   const res = await i18nMiddleware(request, event);

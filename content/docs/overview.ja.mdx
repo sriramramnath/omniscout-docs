@@ -1,0 +1,78 @@
+---
+title: OmniScoutとは？
+description: OmniScout — AIエージェント向けローカルファーストのブラウザ操作、意味検索、リサーチ。
+icon: Info
+---
+
+OmniScoutは自己完結型の**ターミナルネイティブなWebインターフェース**です：AIエージェント向けのローカルなブラウザブレインです。Web検索、構造化データ抽出、実際のブラウザ操作、デスクトップアプリの自動化、記憶のすべてを、お使いのラップトップから離れずに行います。
+
+## 全体の構成
+
+- **CLI** — あなた（またはエージェント）が入力する`omniscout`コマンドです。すべてのコマンドはJSONを話します。
+- **daemon** — `127.0.0.1:7720`で動作する長時間稼働のバックグラウンドプロセスで、ブラウザをウォームに保つため操作は1秒未満です。
+- **バックエンド** — Patchright（デフォルトの分離Chromium）または、実際のログイン状態の既存ブラウザを操作する拡張機能です。
+
+全体像は[仕組み](/docs/overview)をご覧ください：`@eN` ref、セッション、プロファイル、操作履歴、イベントストリームを説明します。
+
+## インストール
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+完全なセットアップ — ブラウザ、daemon、モデル — は[インストール](/docs/installation)で説明します。5分のツアーは[クイックスタート](/docs/quickstart)です。
+
+## できること
+
+| 分野 | コマンド | ガイド |
+|---|---|---|
+| 引用付きQ&A | `answer` | [検索とQ&A](/docs/search/search) |
+| ランク付きWebヒット | `search`、`map` | [検索とQ&A](/docs/search/search) |
+| ページ → Markdown／JSON | `extract` | [抽出](/docs/search/extraction) |
+| マルチソースリサーチ | `research`、`graph` | [リサーチとグラフ](/docs/search/research) |
+| ブラウザ操作 | `browser`、`open`、`snapshot` | [ブラウザ自動化](/docs/automation/browser) |
+| デスクトップ自動化（macOS） | `computer` | [コンピューター](/docs/automation/computer) |
+| バックグラウンドサービス | `daemon`、`session`、`profile` | [daemonとセッション](/docs/automation/sessions) |
+| 個人Webメモリ | `remember`、`memory`、`index` | [メモリ](/docs/search/memory) |
+| 再利用可能フロー | `record`、`macro`、`replay`、`workflow`、`monitor` | [ワークフロー](/docs/automation/workflows) |
+| セットアップと調整 | `install`、`setup`、`settings`、`warmup`、`benchmark` | [設定](/docs/configuration) |
+
+## 設計原則
+
+- **ローカルファースト** — クラウドアカウント、APIキー、ホストサーバーは不要です。状態、埋め込み、メモリはお使いのマシンに留まります。外部送信は実行した検索と取得したURLのみです。
+- **エージェント対応** — あらゆる場所での`--json`、安定した`@eN`要素ref、trace／replay付きの記録済み操作履歴、Claude Code・Cursor・Codex・Gemini CLI向けスキルファイルです。
+- **実際のブラウザ** — あなたのChromium、あなたのCookie、あなたの拡張機能です。プロファイルで一度ログインすれば、ずっと再利用できます。
+
+## 使い方
+
+```bash
+# Start the daemon (once)
+omniscout daemon start
+
+# Search the web
+omniscout answer "what is the capital of france"
+
+# Extract content from a URL
+omniscout extract https://example.com
+
+# Control a browser
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# Research a topic
+omniscout research "AI agents in 2026"
+
+# Build a knowledge graph
+omniscout graph "Cursor"
+```
+
+## 次のステップ
+
+- [インストール](/docs/installation) — 必要条件、ブラウザ、daemon、モデルについて説明します
+- [クイックスタート](/docs/quickstart) — 5分で初回実行します
+- [AIエージェントでの利用](/docs/agents) — Claude Code、Cursor、Codex向けのそのまま使えるプロンプトです
+- [コマンドリファレンス](/docs/commands) — すべての動詞とフラグを網羅します
+- [実例とレシピ](/docs/examples) — よくあるワークフロー集です

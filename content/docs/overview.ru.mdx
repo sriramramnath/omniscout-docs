@@ -1,0 +1,78 @@
+---
+title: Что такое OmniScout?
+description: OmniScout — локальное управление браузером, семантический поиск и исследования для ИИ-агентов.
+icon: Info
+---
+
+OmniScout — это автономный, **терминальный интерфейс для веба**: локальный мозг браузера для ИИ-агентов. Он ищет в вебе, извлекает структурированные данные, управляет настоящим браузером, автоматизирует десктопные приложения и всё запоминает — не покидая ваш ноутбук.
+
+## Как это складывается
+
+- **CLI** — команда `omniscout`, которую вводите вы (или ваш агент). Каждая команда говорит на JSON.
+- **Daemon** — долгоживущий фоновый процесс на `127.0.0.1:7720`, который держит браузер тёплым, поэтому действия субсекундны.
+- **Бэкенды** — Patchright (по умолчанию, изолированный Chromium) или расширение, управляющее вашим существующим браузером с вашими реальными входами.
+
+См. [Как это работает](/docs/overview) для полной картины: `@eN` refs, сессии, профили, история действий и поток событий.
+
+## Установка
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+Полная настройка — браузеры, daemon, модели — описана в [Установка](/docs/installation). Тур за 5 минут — [Быстрый старт](/docs/quickstart).
+
+## Что вы можете делать
+
+| Область | Команды | Руководство |
+|---|---|---|
+| Вопросы-ответы с цитатами | `answer` | [Поиск и ответы](/docs/search/search) |
+| Ранжированные веб-попадания | `search`, `map` | [Поиск и ответы](/docs/search/search) |
+| Страница → Markdown/JSON | `extract` | [Извлечение](/docs/search/extraction) |
+| Исследование многих источников | `research`, `graph` | [Исследования и графы](/docs/search/research) |
+| Управление браузером | `browser`, `open`, `snapshot` | [Автоматизация браузера](/docs/automation/browser) |
+| Автоматизация рабочего стола (macOS) | `computer` | [Computer](/docs/automation/computer) |
+| Фоновый сервис | `daemon`, `session`, `profile` | [Daemon и сессии](/docs/automation/sessions) |
+| Личная веб-память | `remember`, `memory`, `index` | [Память](/docs/search/memory) |
+| Переиспользуемые процессы | `record`, `macro`, `replay`, `workflow`, `monitor` | [Рабочие процессы](/docs/automation/workflows) |
+| Настройка и тюнинг | `install`, `setup`, `settings`, `warmup`, `benchmark` | [Конфигурация](/docs/configuration) |
+
+## Принципы дизайна
+
+- **Local-first** — без облачного аккаунта, API-ключа или хостинг-сервера. Состояние, эмбеддинги и память остаются на вашей машине; единственный исходящий трафик — выполняемые вами поиски и загружаемые URL.
+- **Готовность к агентам** — `--json` везде, стабильные `@eN` refs элементов, записанная история действий с trace/replay и файлы skills для Claude Code, Cursor, Codex и Gemini CLI.
+- **Настоящий браузер** — ваш Chromium, ваши cookies, ваши расширения. Войдите один раз с профилем, переиспользуйте вечно.
+
+## Использование
+
+```bash
+# Start the daemon (once)
+omniscout daemon start
+
+# Search the web
+omniscout answer "what is the capital of france"
+
+# Extract content from a URL
+omniscout extract https://example.com
+
+# Control a browser
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# Research a topic
+omniscout research "AI agents in 2026"
+
+# Build a knowledge graph
+omniscout graph "Cursor"
+```
+
+## Дальнейшие шаги
+
+- [Установка](/docs/installation) — требования, браузеры, daemon, модели
+- [Быстрый старт](/docs/quickstart) — первый запуск за пять минут
+- [Использование с ИИ-агентами](/docs/agents) — готовые промпты для Claude Code, Cursor, Codex
+- [Справочник команд](/docs/commands) — каждый глагол, каждый флаг
+- [Примеры и рецепты](/docs/examples) — типовые рабочие процессы

@@ -1,0 +1,46 @@
+---
+title: 速率限制与支出保护
+description: OmniScout 云滥用防护、并发上限与支出限制。
+---
+
+OmniScout Cloud **不**使用订阅层级或每月包含的 API 额度。客户按消耗的资源付费（见[用量与计费](/zh-CN/docs/billing)）。
+
+## 滥用防护（非定价计划）
+
+这些限制用于保护平台免受滥用。它们**不是**计费配额。
+
+| 控制项 | 默认值 | 环境变量覆盖 |
+|---|---|---|
+| 并发会话数 | 3 | `MAX_CONCURRENT_SESSIONS` |
+| 会话空闲 TTL | 30 分钟 | `SESSION_INACTIVITY_MS` |
+| 会话最长 TTL | 2 小时 | `SESSION_MAX_TTL_MS` |
+| 每日搜索上限（旧防护） | 1,000 | `DAILY_SEARCH_LIMIT` |
+| 每日问答上限（旧防护） | 100 | `DAILY_ANSWER_LIMIT` |
+| 每日会话命令上限（旧防护） | 5,000 | `DAILY_SESSION_COMMAND_LIMIT` |
+
+每日端点上限是旧的滥用防护，可能会被移除；计费用量在 Convex 台账中单独统计。
+
+## 支出限制
+
+账号可配置每月美元支出上限。超出后，计费操作将返回：
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "payment_required",
+    "code": "spending_limit_exceeded",
+    "message": "Spending limit exceeded",
+    "retryable": false
+  }
+}
+```
+
+## 需要付款
+
+如果 Stripe 报告 `past_due` 或 `unpaid` 账单状态，新的计费消费可能被以 `402 payment_required` 阻止。
+
+## 跟踪用量
+
+- API：携带 API 密钥请求 `GET /v0/usage`
+- 控制台：[用量](https://api.omniscout.xyz/dashboard/usage)与[计费](https://api.omniscout.xyz/dashboard/billing)

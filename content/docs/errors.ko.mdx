@@ -1,0 +1,61 @@
+---
+title: 에러
+description: 에러 envelope, 상태 코드, request id, 재시도 규칙.
+icon: TriangleAlert
+---
+
+## Envelope
+
+모든 에러 — Cloud API든 CLI JSON 모드든 — `request_id`가 있는 머신이 읽을 수 있는 envelope를 가집니다. 지원 요청에 포함하세요:
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "unauthorized",
+    "message": "Invalid API key"
+  }
+}
+```
+
+세션과 결제 에러에는 `code`와 `retryable`이 추가됩니다:
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "payment_required",
+    "code": "spending_limit_exceeded",
+    "message": "Spending limit exceeded",
+    "retryable": false
+  }
+}
+```
+
+## 상태 코드
+
+| 상태 | 의미 | 대처법 |
+|---|---|---|
+| `400` | 잘못된 액션/인자 (예: 브라우저 전용 세션에 `computer.*`) | 요청을 고치세요 — 그대로 재시도하지 마세요 |
+| `401` | 누락/잘못된 API 키 또는 잘못된 `x-session-secret` | 키를 교체하고 생성 시 저장한 secret을 다시 확인하세요 |
+| `402` | 지출 상한 초과 또는 결제 `past_due` | 상한을 올리거나 결제를 정리하세요 — [사용량 및 결제](/docs/billing) 참고 |
+| `429` | Abuse 가드 발동 | 물러났다가 재시도하세요 — [Rate limit](/docs/rate-limits) 참고 |
+| `5xx` | 플랫폼 오류 | 지수 백오프로 재시도하세요 |
+
+## 재시도 규칙
+
+- **재시도:** `429`와 `5xx` — 지터가 있는 지수 백오프 후 약 3회 시도하고 중단.
+- **재시도 금지:** `400`, `401`, `402` (`retryable: false`) — 먼저 요청이나 계정을 고쳐야 합니다.
+- **세션:** `failed` 세션 상태는 terminal입니다 — 계속 폴링하지 말고 삭제 후 새로 만드세요.
+- **답변:** `status: insufficient_information`은 에러가 아닙니다 — 근거가 빈약했다는 뜻입니다. 그대로 재시도하지 말고 쿼리를 좁히거나 출처를 추가하세요.
+
+## 디버깅 체크리스트
+
+1. 실패한 응답에서 `request_id`를 복사합니다.
+2. 전체 출력으로 다시 실행합니다: 계정 상태는 `GET /v0/usage`, 세션 상태는 `GET /v0/sessions/{id}`.
+3. [Rate limit](/docs/rate-limits) (abuse 가드, TTL)과 [사용량 및 결제](/docs/billing) (지출 상한)를 확인합니다.
+4. 대시보드에서 해당 요청을 찾은 뒤 `request_id`와 함께 이슈를 올립니다.
+
+## 인터랙티브 레퍼런스
+
+OpenAPI 3.1 스펙(라우트 스키마에서 생성되며 항상 동기화됨)은 [api.omniscout.xyz/docs](https://api.omniscout.xyz/docs)에 있습니다 — JSON은 [api.omniscout.xyz/api/openapi](https://api.omniscout.xyz/api/openapi)에서 볼 수 있습니다.

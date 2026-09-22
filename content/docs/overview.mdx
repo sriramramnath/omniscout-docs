@@ -1,0 +1,76 @@
+---
+title: What is OmniScout?
+description: OmniScout — local-first browser control, semantic search, and research for AI agents.
+icon: Info
+---
+
+OmniScout is a self-contained, **terminal-native interface for the web**: a local browser brain for AI agents. It searches the web, extracts structured data, controls a real browser, automates desktop apps, and remembers everything — without leaving your laptop.
+
+## How it fits together
+
+- **CLI** — the `omniscout` command you (or your agent) type. Every command speaks JSON.
+- **Browser** — stays ready so actions run fast.
+- **Search & answers** — web search, page extraction, research, and knowledge graphs.
+
+## Install
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+Full setup — browsers, daemon, models — is covered in [Installation](/docs/installation). The 5-minute tour is [Quickstart](/docs/quickstart).
+
+## What you can do
+
+| Area | Commands | Guide |
+|---|---|---|
+| Q&A with citations | `answer` | [Search & answer](/docs/search/search) |
+| Ranked web hits | `search`, `map` | [Search & answer](/docs/search/search) |
+| Page → Markdown/JSON | `extract` | [Extraction](/docs/search/extraction) |
+| Multi-source research | `research`, `graph` | [Research & graphs](/docs/search/research) |
+| Browser control | `browser`, `open`, `snapshot` | [Browser automation](/docs/automation/browser) |
+| Desktop automation (macOS) | `computer` | [Computer](/docs/automation/computer) |
+| Background service | `daemon`, `session`, `profile` | [Daemon & sessions](/docs/automation/sessions) |
+| Personal web memory | `remember`, `memory`, `index` | [Memory](/docs/search/memory) |
+| Reusable flows | `record`, `macro`, `replay`, `workflow`, `monitor` | [Workflows](/docs/automation/workflows) |
+| Setup & tuning | `install`, `setup`, `settings`, `warmup`, `benchmark` | [Configuration](/docs/configuration) |
+
+## Design principles
+
+- **Local-first** — no cloud account or API key. Everything stays on your machine; the only outbound traffic is searches you run and URLs you fetch.
+- **Agent-ready** — `--json` everywhere, stable `@eN` element refs, and skill files for Claude Code, Cursor, Codex, and Gemini CLI.
+- **Real browser** — your Chromium, your cookies, your extensions. Log in once, reuse forever.
+
+## Use
+
+```bash
+# Start the daemon (once)
+omniscout daemon start
+
+# Search the web
+omniscout answer "what is the capital of france"
+
+# Extract content from a URL
+omniscout extract https://example.com
+
+# Control a browser
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# Research a topic
+omniscout research "AI agents in 2026"
+
+# Build a knowledge graph
+omniscout graph "Cursor"
+```
+
+## Next steps
+
+- [Installation](/docs/installation) — requirements, browsers, daemon, models
+- [Quickstart](/docs/quickstart) — first run in five minutes
+- [Using with AI agents](/docs/agents) — drop-in prompts for Claude Code, Cursor, Codex
+- [Commands reference](/docs/commands) — every verb, every flag
+- [Examples & recipes](/docs/examples) — common workflows

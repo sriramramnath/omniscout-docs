@@ -1,0 +1,61 @@
+---
+title: 错误
+description: 错误信封、状态码、请求 ID 与重试规则。
+icon: TriangleAlert
+---
+
+## 信封
+
+每个错误 — Cloud API 或 CLI JSON 模式 — 都带有机器可读信封与 `request_id`。求助时请附上：
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "unauthorized",
+    "message": "Invalid API key"
+  }
+}
+```
+
+会话与计费错误会额外带 `code` 与 `retryable`：
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "payment_required",
+    "code": "spending_limit_exceeded",
+    "message": "Spending limit exceeded",
+    "retryable": false
+  }
+}
+```
+
+## 状态码
+
+| 状态 | 含义 | 应对 |
+|---|---|---|
+| `400` | 错误的操作 / 参数（如在纯浏览器会话上调用 `computer.*`） | 修正请求 — 不要原样重试 |
+| `401` | 缺失 / 无效的 API key，或错误的 `x-session-secret` | 轮换 key；重读创建时保存的 secret |
+| `402` | 超出支出上限或账单 `past_due` | 提高上限 / 结清账单 — 见[用量与计费](/docs/billing) |
+| `429` | 触发防滥用 | 退避后重试 — 见[限流](/docs/rate-limits) |
+| `5xx` | 平台错误 | 指数退避重试 |
+
+## 重试规则
+
+- **重试：** `429` 与 `5xx` — 带抖动的指数退避，约 3 次后放弃。
+- **不重试：** `400`、`401`、`402`（`retryable: false`） — 先修请求或账户。
+- **会话：** `failed` 会话状态是终态 — 销毁并新建，而非无限轮询。
+- **问答：** `status: insufficient_information` 不是错误 — 只是证据不足。收窄查询或补充来源，而非原样重试。
+
+## 调试清单
+
+1. 复制失败响应中的 `request_id`。
+2. 全量重跑：`GET /v0/usage` 查账户状态，`GET /v0/sessions/{id}` 查会话状态。
+3. 检查[限流](/docs/rate-limits)（防滥用、TTL）与[用量与计费](/docs/billing)（支出上限）。
+4. 在 dashboard 中查找该请求，然后带 `request_id` 提 issue。
+
+## 交互式参考
+
+OpenAPI 3.1 规范（由路由 schema 生成，始终同步）位于 [api.omniscout.xyz/docs](https://api.omniscout.xyz/docs) — JSON 见 [api.omniscout.xyz/api/openapi](https://api.omniscout.xyz/api/openapi)。

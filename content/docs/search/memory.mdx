@@ -1,0 +1,59 @@
+---
+title: Memory
+description: Remember pages and notes, then semantically search them later.
+icon: Brain
+---
+
+Browser memory stores pages you've visited and notes you've written. Store now, recall later.
+
+## Remember a page
+
+```bash
+omniscout remember https://example.com/blog/post
+```
+
+`remember` visits the URL, extracts its content, and stores it. Search it later with `memory`:
+
+```bash
+omniscout memory "neural networks in production"
+```
+
+`memory` ranks stored pages by similarity to your query, so paraphrases match — you don't need the exact title or URL.
+
+## Search your own memory first
+
+The `search` command can target memory instead of the web:
+
+```bash
+omniscout search "query" --source memory
+```
+
+Useful in agents: check what you've already seen (`--source memory`) before spending time on a fresh web search.
+
+## Manage the corpus
+
+`memory` is a command group, not just a query:
+
+```bash
+omniscout memory "query"     # search remembered pages
+omniscout memory list        # list records
+omniscout memory show <id>   # show one record
+omniscout memory note "idea: compare options"   # standalone note
+omniscout memory delete <id> # delete records
+omniscout memory stats        # corpus statistics
+omniscout memory clear        # wipe the entire corpus
+```
+
+Attach a note to the active page (or write a standalone one) with `memory note` — notes are indexed too, so decisions and context resurface in later searches.
+
+## Related commands
+
+Related commands:
+
+```bash
+omniscout index ...          # manage the search index
+omniscout crawl ...          # run and inspect crawl jobs
+omniscout extract-jobs ...   # inspect background extract jobs
+```
+
+Memory, saved pages, and caches all live in the data dir — see [Configuration](/docs/configuration). They never leave your machine; the only outbound traffic is searches you run and URLs you fetch.

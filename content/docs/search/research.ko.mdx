@@ -1,0 +1,62 @@
+---
+title: 리서치 및 지식 그래프
+description: 다단계 리서치 파이프라인과 구조화된 엔티티 그래프.
+icon: Network
+---
+
+## research — 한 명령어로 전체 파이프라인
+
+```bash
+omniscout research "emerging quantum computing startups 2026"
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+한 번의 호출로 전체 파이프라인을 실행합니다: **검색 → 크롤 → 추출 → 리랭크 → 요약**. 옵션으로 조정하세요:
+
+| 플래그 | 의미 | 기본값 |
+|---|---|---|
+| `--results/-k` | 가져올 출처 수 | 8 |
+| `--depth` | 크롤 depth (1 = 목록만) | 1 |
+| `--query/-q` | 주제를 위치 인자 대신 플래그로 전달 | — |
+| `--summarize` / `--no-summarize` | 추출 요약을 실행 | summarize |
+| `--probe-pro` | 더 좋은 답변을 위한 Probe Pro 파이프라인 | off |
+| `--probe` | Probe Pro 대신 Probe Zero Mini LLM 사용 | off |
+
+`research` 출력은 `jq`로 깔끔하게 파이프됩니다: `omniscout research "topic" | jq '.passages[0:3]'`.
+
+### research, answer, extract 중 언제 무엇을 쓸까요
+
+- `answer` — 하나의 사실을 빠르게.
+- `research` — 여러 출처에 걸쳐 조사하고 인용 가능한 passage가 필요할 때.
+- `extract` — URL을 이미 알고 있어서 검색 단계를 건너뛸 때. [추출](/docs/search/extraction)을 참고하세요.
+
+## graph — 구조화된 지식 그래프
+
+```bash
+omniscout graph "Cursor"                 # search the web and extract
+omniscout graph "Cursor" -w cursor.com  # crawl that site directly
+omniscout graph "Cursor" --data         # include sources, timing, diagnostics
+omniscout graph "Cursor" --llm          # optional LLM overlay on the evidence
+```
+
+`graph`는 회사, 인물, 제품을 엔티티와 관계의 구조화된 Unicode 트리로 만듭니다. 베어 도메인(`cursor.com`)을 전달하면 해당 사이트에 머물고, `-w/--website`로 하나의 사이트와 내부 링크로 크롤링을 제한합니다. `--results/-k`는 가져올 출처/페이지 수입니다(기본값 5).
+
+## benchmark — 답변 모드 비교
+
+```bash
+omniscout benchmark answers
+omniscout benchmark retrieval
+omniscout benchmark ablation   # full ablation matrix with persisted metrics
+```
+
+`benchmark`는 번들 gold 데이터셋 기준으로 답변 품질, 검색, 서식을 평가합니다 — 에이전트 루프에 `--probe`, `--classic`, `--probe-pro` 중 무엇을 쓸지 정할 때 유용합니다. `benchmark startup`은 CLI 시작 오버헤드를, `benchmark format`은 Exa 스타일 서식을 측정합니다.
+
+## Probe Zero와 Classic
+
+Probe Zero는 로컬 답변 엔진입니다(`omniscout settings engines` 참고):
+
+- **Probe Zero Mini** — 로컬 LLM 합성, 직접 답변의 좋은 기본값.
+- **Classic** — 추출식, LLM 없음. 결정적이고 모델 예열 후에는 완전 오프라인.
+- **Probe Pro** — 가장 어려운 질문을 위한 구조화된 claim 파이프라인(크롤 → 검증 → 렌더링).
+
+에이전트 루프에 표준으로 정하기 전에 `omniscout benchmark answers`로 gold 벤치마크에서 비교해 보세요.

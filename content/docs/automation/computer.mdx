@@ -1,0 +1,72 @@
+---
+title: Computer commands
+description: Desktop automation for macOS via the `omniscout computer` sub-command.
+icon: Monitor
+---
+
+`omniscout computer` controls native macOS applications, windows, the clipboard, and the screen — the desktop counterpart to [Browser automation](/docs/automation/browser). Commands use the same JSON output and `--session` model.
+
+Check support first: `omniscout computer doctor` diagnoses the environment. Desktop automation currently supports macOS.
+
+## Open, type, keys
+
+```bash
+omniscout computer navigate /Applications/Notes.app   # app, file, dir, or URL
+omniscout computer navigate "Notes" --session notes
+omniscout computer type "Meeting notes" --session notes
+omniscout computer key cmd+s
+omniscout computer wait 300                            # milliseconds
+```
+
+- `navigate` opens anything the OS can open: app paths/names, files, directories, URLs.
+- `type` types into the currently focused window; `key` sends combos (`cmd+s`, `ctrl+c`, `cmd+space`, …).
+- `wait` sleeps a fixed number of milliseconds — prefer it only for animations; there are no DOM conditions on the desktop.
+
+## Clipboard & screenshots
+
+```bash
+omniscout computer clipboard set "Hello from Scout"
+omniscout computer clipboard get
+omniscout computer screenshot --out /tmp/desktop.png
+omniscout computer screenshot --region 100,100,800,600 --out /tmp/crop.png  # part of the screen
+```
+
+Clipboard round-trips are the simplest way to move text between the desktop and your shell (or an agent): set, paste with `key cmd+v`, get to verify.
+
+## Windows
+
+```bash
+omniscout computer window list
+omniscout computer window activate "Notes"
+omniscout computer window close "Notes"
+```
+
+List first (titles must match), then activate to focus before typing.
+
+## UI element interaction
+
+For element-level control instead of blind typing, snapshot the page and act on `@eN` refs — the same model as browser automation:
+
+```bash
+omniscout computer ui snapshot
+omniscout computer ui click '@e4'
+omniscout computer ui drag '@e2' '@e7'
+omniscout computer ui is '@e4' button
+```
+
+## Full example
+
+```bash
+# Open Notes and type a message
+omniscout computer navigate "Notes" --session notes
+omniscout computer wait 300
+omniscout computer type "Hello from OmniScout!" --session notes
+omniscout computer key cmd+s
+omniscout computer screenshot --out /tmp/notes.png --session notes
+```
+
+## Cloud equivalent
+
+On OmniScout Cloud, the same primitives run on a remote Sprite via `computer.*` actions on a unified session — see [Endpoints](/docs/endpoints#computer-sessions).
+
+See `omniscout computer --help` (and `omniscout computer ui --help`) for all options.

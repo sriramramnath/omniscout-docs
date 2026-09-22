@@ -1,0 +1,62 @@
+---
+title: Research & knowledge graphs
+description: Multi-step research and structured entity graphs.
+icon: Network
+---
+
+## research — full research in one command
+
+```bash
+omniscout research "emerging quantum computing startups 2026"
+omniscout research "vector database benchmarks 2026" --results 10
+```
+
+One call researches across many sources. Tune it with:
+
+| Flag | Meaning | Default |
+|---|---|---|
+| `--results/-k` | Sources to use | 8 |
+| `--depth` | How thoroughly to explore (1 = overview only) | 1 |
+| `--query/-q` | Topic as a flag instead of a positional arg | — |
+| `--summarize` / `--no-summarize` | Include a summary | summarize |
+| `--probe-pro` | Better answers for hard questions | off |
+| `--probe` | Alternative answer mode | off |
+
+`research` output pipes cleanly to `jq`: `omniscout research "topic" | jq '.passages[0:3]'`.
+
+### When to use research vs answer vs extract
+
+- `answer` — one fact, fast.
+- `research` — a topic you need surveyed across many sources, with passages you can cite.
+- `extract` — you already know the URL(s); skip the search step. See [Extraction](/docs/search/extraction).
+
+## graph — structured knowledge graphs
+
+```bash
+omniscout graph "Cursor"                 # search the web and extract
+omniscout graph "Cursor" -w cursor.com  # use that site directly
+omniscout graph "Cursor" --data         # include sources and timing
+omniscout graph "Cursor" --llm          # optional AI overlay on the results
+```
+
+`graph` maps a company, person, or product into a structured tree of entities and relationships. Pass a bare domain (`cursor.com`) to stay on-site, or `-w/--website` to use one site and its internal links. `--results/-k` controls how many sources are used (default 5).
+
+## benchmark — compare answer modes
+
+```bash
+omniscout benchmark answers
+omniscout benchmark retrieval
+omniscout benchmark ablation   # full ablation matrix with persisted metrics
+```
+
+`benchmark` compares answer modes against sample questions — useful when deciding between `--probe`, `--classic`, and `--probe-pro` for your workload.
+
+## Probe Zero vs Classic
+
+Probe Zero is an answer mode (see `omniscout settings engines`):
+
+- **Probe Zero Mini** — good default for direct answers.
+- **Classic** — deterministic, works offline after setup.
+- **Probe Pro** — for the hardest questions.
+
+Compare them with `omniscout benchmark answers` before standardizing in an agent loop.

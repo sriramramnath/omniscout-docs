@@ -1,0 +1,184 @@
+---
+title: Troubleshooting
+description: Common issues and how to fix them.
+icon: LifeBuoy
+---
+
+Fixes are ordered by where they bite: browser interaction, login/CAPTCHA, install/runtime, search/extract, and data. If nothing here helps, run commands with `-v` and attach `omniscout daemon trace` output to your [GitHub issue](https://github.com/sriramramnath/omniscout/issues).
+
+## Browser interaction
+
+### `@eN` ref not found
+
+The page changed since your last `snapshot`. Re-snapshot and use the new ref:
+
+```bash
+omniscout browser snapshot --refs-only
+omniscout browser click '@e7'
+```
+
+Never reuse refs across `navigate`, `reload`, or form submits.
+
+### Snapshot shows no useful refs
+
+The page may still be loading. Wait for content before snapshotting:
+
+```bash
+omniscout browser wait networkidle
+omniscout browser wait text "expected heading"
+omniscout browser snapshot --refs-only
+```
+
+For pages with no listed elements, fall back to `screenshot` + `--coord` clicks, or `observe`/`act`.
+
+### Click did nothing
+
+Check the element is actionable first, then try keyboard alternatives:
+
+```bash
+omniscout browser is '@e3' visible
+omniscout browser is '@e3' enabled
+omniscout browser hover '@e3'
+omniscout browser key Enter
+```
+
+### Screenshot is blank
+
+```bash
+# Wait for loading
+omniscout browser screenshot https://example.com --delay 3 --out /tmp/page.png
+
+# Full page
+omniscout browser screenshot https://example.com --full-page --out /tmp/full.png
+```
+
+Blank + `wait networkidle` still blank usually means the tab was lost — `browser close --all` and navigate again.
+
+## Login & CAPTCHA
+
+### Login never completes
+
+Use the `--done` signal from another shell:
+
+```bash
+# Terminal A:
+omniscout browser login https://app.example.com --profile work
+
+# Terminal B (after you log in):
+omniscout browser login --done
+```
+
+If the site redirects oddly, pass `--success-pattern "dashboard|/app"` so the login resolves on URL match instead of waiting the full 5-minute `--timeout-ms`.
+
+### CAPTCHA blocks forever
+
+Solve it in the headful window, or use a third-party solver:
+
+```bash
+export TWOCAPTCHA_API_KEY=...
+omniscout browser captcha --solver 2captcha
+```
+
+Start with `omniscout browser captcha --detect-only` to confirm it's actually a CAPTCHA and not a bot-wall. `navigate --auto-captcha` resolves challenges right after load.
+
+### Extension says `backend_unavailable`
+
+1. Open `chrome://extensions` — confirm the extension is loaded
+2. Click the extension icon — reconnect if disconnected
+3. Or run without `--backend extension` to use the default browser instead
+
+## Install & runtime
+
+### Python version error
+
+```bash
+python --version  # needs 3.11+
+pip install omniscout
+```
+
+### Chrome not found
+
+```bash
+omniscout settings browsers          # see what's installed
+omniscout settings set browser edge  # or brave, vivaldi, etc.
+```
+
+For a custom path: `browser = "custom"` plus `browser_executable` in `config.toml` (see [Configuration](/docs/configuration)).
+
+### First search is slow
+
+Run once after install so the first search is fast: `omniscout warmup`.
+
+## Search & extraction
+
+### Search returns no results
+
+```bash
+omniscout search "more specific query"
+omniscout search "query" --source ddg
+```
+
+### Extract returns junk
+
+- Try `--format text` (drops broken markup) or `--no-cache` (stale cache).
+- For JS-heavy pages, use the browser: `navigate` → `extract-visible` instead of `extract`.
+- For whole-site pulls, use site-export mode with `--include/--exclude` filters (see [Extraction](/docs/search/extraction)).
+
+## Getting ready, profiles, sessions
+
+### Won't start
+
+```bash
+omniscout daemon stop
+omniscout daemon start
+```
+
+### Stale tabs piling up
+
+```bash
+omniscout session list
+omniscout session kill <id>
+omniscout browser close --all
+```
+
+### Lost logins after restart
+
+Sessions don't survive restarts — profiles do. Log in with `--profile <name>` and pass the same profile on later runs (see [Sessions](/docs/automation/sessions)).
+
+## JSON & agents
+
+- Empty `--json` output with errors on screen: errors go to `stderr` by design — check the exit code and `stderr`, not `stdout`.
+- Add `-v` for verbose logging when a command hangs.
+
+## Nuclear options
+
+```bash
+pip install --upgrade omniscout
+omniscout daemon restart
+rm -rf ~/Library/Application\ Support/omniscout/   # macOS — wipes profiles, cache, memory
+rm -rf ~/.local/share/omniscout/                   # Linux
+```
+
+## FAQ
+
+**Is my data sent to the cloud?**
+No. The only outbound traffic is searches you run and URLs you explicitly fetch.
+
+**Can I use OmniScout without Chrome?**
+You need a Chromium-family browser. Install Chrome/Chromium, or configure a custom path with `omniscout install --browser custom --browser-executable <path>`.
+
+**How do I update?**
+```bash
+pip install --upgrade omniscout
+```
+
+**How do I clear all data?**
+```bash
+rm -rf ~/Library/Application\ Support/omniscout/   # macOS
+rm -rf ~/.local/share/omniscout/                   # Linux
+```
+
+**Where do I get help?**
+- [CLI overview](/docs/overview)
+- [Examples](/docs/examples)
+- [GitHub issues](https://github.com/sriramramnath/omniscout/issues)

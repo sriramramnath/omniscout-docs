@@ -1,0 +1,61 @@
+---
+title: エラー
+description: エラー形式、ステータスコード、リクエストID、再試行規則について説明します。
+icon: TriangleAlert
+---
+
+## エラー形式
+
+すべてのエラー — Cloud APIでもCLIのJSONモードでも — は`request_id`付きの機械可読形式を持ちます。サポート依頼にはこれを含めます：
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "unauthorized",
+    "message": "Invalid API key"
+  }
+}
+```
+
+セッションと課金のエラーには`code`と`retryable`が付きます：
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "payment_required",
+    "code": "spending_limit_exceeded",
+    "message": "Spending limit exceeded",
+    "retryable": false
+  }
+}
+```
+
+## ステータスコード
+
+| ステータス | 意味 | 対処 |
+|---|---|---|
+| `400` | 不正なアクション／引数です（例：ブラウザ専用セッションでの`computer.*`） | リクエストを修正します — そのまま再試行しません |
+| `401` | APIキー欠落／無効、または`x-session-secret`誤りです | キーを更新します。作成時に保存したシークレットを再確認します |
+| `402` | 支出上限超過または課金`past_due`です | 上限を引き上げる／課金を精算します — [使用量と課金](/docs/billing)をご覧ください |
+| `429` | 不正利用防止に抵触しました | バックオフして再試行します — [レート制限](/docs/rate-limits)をご覧ください |
+| `5xx` | プラットフォームエラーです | 指数バックオフで再試行します |
+
+## 再試行規則
+
+- **再試行します：** `429`と`5xx` — ジッター付き指数バックオフで、約3回で諦めます。
+- **再試行しません：** `400`、`401`、`402`（`retryable: false`） — 先にリクエストやアカウントを修正します。
+- **セッション：** `failed`状態のセッションは終端です — 延々とポーリングせず破棄して新規作成します。
+- **回答：** `status: insufficient_information`はエラーではありません — 根拠が薄かっただけです。そのまま再試行せずクエリを狭めるか出典を追加します。
+
+## デバッグチェックリスト
+
+1. 失敗応答から`request_id`をコピーします。
+2. 完全な出力で再実行します：アカウント状態は`GET /v0/usage`、セッション状態は`GET /v0/sessions/{id}`です。
+3. [レート制限](/docs/rate-limits)（不正利用防止、TTL）と[使用量と課金](/docs/billing)（支出上限）を確認します。
+4. ダッシュボードでリクエストを探し、`request_id`付きでissueを報告します。
+
+## 対話式リファレンス
+
+OpenAPI 3.1仕様（ルートスキーマから生成、常に同期）は[api.omniscout.xyz/docs](https://api.omniscout.xyz/docs)にあります — JSONは[api.omniscout.xyz/api/openapi](https://api.omniscout.xyz/api/openapi)です。

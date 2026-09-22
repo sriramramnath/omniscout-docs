@@ -1,0 +1,46 @@
+---
+title: レート制限と利用保護
+description: OmniScout Cloudの不正利用防止、同時実行上限、利用上限。
+---
+
+OmniScout Cloudはサブスクリプション段階や月次API無料枠を**使いません**。お客様は消費したリソース分を支払います（[利用量と請求](/ja/docs/billing)を参照）。
+
+## 不正利用防止（料金プランではない）
+
+これらの制限はプラットフォームを不正利用から守るためのものです。課金対象の上限では**ありません**。
+
+| 管理項目 | デフォルト | 環境変数による上書き |
+|---|---|---|
+| 同時セッション数 | 3 | `MAX_CONCURRENT_SESSIONS` |
+| セッション非アクティブTTL | 30分 | `SESSION_INACTIVITY_MS` |
+| セッション最大TTL | 2時間 | `SESSION_MAX_TTL_MS` |
+| 日次検索上限（従来ガード） | 1,000 | `DAILY_SEARCH_LIMIT` |
+| 日次回答上限（従来ガード） | 100 | `DAILY_ANSWER_LIMIT` |
+| 日次セッションコマンド上限（従来ガード） | 5,000 | `DAILY_SESSION_COMMAND_LIMIT` |
+
+日次エンドポイント上限は従来の不正利用ガードであり、廃止される場合があります。課金対象の利用量はConvex台帳で別途追跡されます。
+
+## 利用上限
+
+アカウントは月次USD利用上限を設定できます。上限超過時、課金対象操作は次を返します：
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "payment_required",
+    "code": "spending_limit_exceeded",
+    "message": "Spending limit exceeded",
+    "retryable": false
+  }
+}
+```
+
+## 支払いが必要
+
+Stripeが`past_due`または`unpaid`の請求ステータスを報告した場合、新規の課金対象消費は`402 payment_required`でブロックされる場合があります。
+
+## 利用量の確認
+
+- API：APIキーで`GET /v0/usage`
+- ダッシュボード：[Usage](https://api.omniscout.xyz/dashboard/usage)と[Billing](https://api.omniscout.xyz/dashboard/billing)

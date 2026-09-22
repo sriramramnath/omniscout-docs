@@ -1,0 +1,142 @@
+---
+title: Commands reference
+description: Every command in OmniScout's CLI.
+icon: List
+---
+
+Use `omniscout --help` to see all commands, or `omniscout <command> --help` (and `omniscout browser <action> --help`) for options. Each section below links to the guide with full flags and examples.
+
+## Top-level commands
+
+| Command | What it does | Guide |
+|---|---|---|
+| `answer` | Q&A with citations (preferred over `search`) | [Search](/docs/search/search) |
+| `search` | Web search, most relevant results first (+ `ui`) | [Search](/docs/search/search) |
+| `map` | List a site's pages (`--limit`, `--depth`) | [Search](/docs/search/search) |
+| `warmup` | Get ready before a batch of calls | [Search](/docs/search/search) |
+| `extract` | URL/query → Markdown or structured JSON | [Extraction](/docs/search/extraction) |
+| `research` | Research a topic from many sources | [Research](/docs/search/research) |
+| `graph` | Structured knowledge graph for an entity | [Research](/docs/search/research) |
+| `benchmark` | Evaluate answer/retrieval/format modes | [Research](/docs/search/research) |
+| `open` | Open a URL (or Nth last-search result) in the browser | [Workflows](/docs/automation/workflows) |
+| `snapshot` | Page elements with `@e` refs (default session) | [Browser](/docs/automation/browser) |
+| `context` | Show workflow continuity state | [Workflows](/docs/automation/workflows) |
+| `reset` | Reset continuity state | [Workflows](/docs/automation/workflows) |
+| `auto` | Route input to the best command | [Workflows](/docs/automation/workflows) |
+| `browser` | Full browser automation vocabulary | [Browser](/docs/automation/browser) |
+| `computer` | Desktop automation (macOS) | [Computer](/docs/automation/computer) |
+| `daemon` | Start/stop/status/logs/trace/replay/watch | [Sessions](/docs/automation/sessions) |
+| `session` | start/list/attach/kill sessions | [Sessions](/docs/automation/sessions) |
+| `profile` | create/list/delete saved logins | [Sessions](/docs/automation/sessions) |
+| `settings` | show/browsers/engines/set | [Sessions](/docs/automation/sessions) |
+| `install` | Verify a browser is available (+ `--skill`) | [Installation](/docs/installation) |
+| `setup` | Choose a browser, prepare the extension | [Installation](/docs/installation) |
+| `remember` | Visit a URL and store it in memory | [Memory](/docs/search/memory) |
+| `memory` | Search/list/note/delete memories | [Memory](/docs/search/memory) |
+| `index` | Manage the search index | [Memory](/docs/search/memory) |
+| `extract-jobs` | Inspect background extract jobs | [Memory](/docs/search/memory) |
+| `crawl` | Run and inspect site page lists | [Workflows](/docs/automation/workflows) |
+| `record` | Record actions into a named macro | [Workflows](/docs/automation/workflows) |
+| `macro` | List/run saved macros | [Workflows](/docs/automation/workflows) |
+| `replay` | Replay recorded browser actions | [Workflows](/docs/automation/workflows) |
+| `workflow` | Export/view continuity workflow | [Workflows](/docs/automation/workflows) |
+| `monitor` | Emit JSON lines when a URL's content changes | [Workflows](/docs/automation/workflows) |
+| `distill` | Collect/prepare/eval/train distilled answer models | — |
+
+## Global options
+
+All commands support:
+
+- `--json` — emit machine-readable JSON to stdout
+- `--verbose`, `-v` — verbose stderr logging
+- `--version` — print version and exit
+
+Set `OMNISCOUT_JSON=1` in the environment to make JSON output the default. See [Configuration](/docs/configuration) for the full JSON contract and every environment variable.
+
+## Browser commands
+
+Full guide: [Browser automation](/docs/automation/browser).
+
+| Command | What it does |
+|---------|--------------|
+| `browser navigate <url>` / `open` | Open a URL (`--profile`, `--session`, `--new-tab`, `--headful`, `--wait-until`, `--auto-captcha`) |
+| `browser back/forward/reload` | History navigation |
+| `browser snapshot [--refs-only]` | Interactive elements with `@eN` refs (`--overlay` to visualize) |
+| `browser observe "<hint>"` | Find candidate refs for a natural-language instruction |
+| `browser act "<instruction>"` | Resolve + perform a page action (`--value`, `--dry-run`) |
+| `browser click <ref>` | Click (`--button`, `--clicks`, `--mod`, `--coord`) |
+| `browser fill <ref> <value>` | Replace field content |
+| `browser type <ref> <text>` | Append text (`--delay-ms`) |
+| `browser paste <ref> <text>` | Insert at cursor |
+| `browser select <ref> <option>` | Native `<select>` |
+| `browser scroll [up\|down]` | Scroll page/element (`--amount`, `--ref`) |
+| `browser key <combo>` | Keyboard shortcut (`Enter`, `cmd+s`, …) |
+| `browser hover <ref>` | Mouse over element/coordinate |
+| `browser upload <ref> <files>` | Attach files to `<input type=file>` |
+| `browser is <ref> <state>` | visible/hidden/enabled/disabled/checked/editable |
+| `browser get title/url/text/html` | Read page properties |
+| `browser eval <js>` | Run JavaScript, return the value |
+| `browser extract-visible` | Visible text, optional `--schema` shaping |
+| `browser find-image` | Locate an image template in the viewport |
+| `browser screenshot [-o PATH]` | PNG/JPEG (`--full-page`, `--ref`, `--delay`, `--format`) |
+| `browser pdf [-o PATH]` | Render to PDF (`--paper`, `--landscape`, `--scale`) |
+| `browser wait …` | `text`, `selector`, `networkidle`, `url` (+ `--ms`, `--timeout-ms`) |
+| `browser mouse scroll/move` | Raw mouse input at coordinates |
+| `browser tab list/close/switch` | Tab management within a session |
+| `browser network start/stop/list/tail/detail` | Request/response capture |
+| `browser console start/stop/list/tail` | Console + JS error capture |
+| `browser login <url>` | Headful login, blocks (`--profile`, `--done`, `--success-pattern`) |
+| `browser captcha` | Detect/solve (`none\|2captcha\|capsolver\|manual`, `--detect-only`) |
+| `browser close [--all]` | Close one session or everything |
+
+## Computer commands (macOS)
+
+Full guide: [Computer](/docs/automation/computer).
+
+| Command | What it does |
+|---------|--------------|
+| `computer navigate <target>` | Open an app, file, dir, or URL |
+| `computer type <text>` | Type into the focused window |
+| `computer key <combo>` | Send a keyboard shortcut |
+| `computer wait <ms>` | Sleep milliseconds |
+| `computer screenshot` | Capture the screen |
+| `computer clipboard` | `get` / `set` the system clipboard |
+| `computer window list/activate/close` | Window management |
+| `computer ui snapshot/click/drag/is` | `@eN` refs for native UI |
+| `computer doctor` | Diagnose the environment |
+| `computer backend` | List automation backends |
+
+## Daemon commands
+
+Full guide: [Daemon & sessions](/docs/automation/sessions).
+
+| Command | What it does |
+|---|---|
+| `daemon start/stop/restart` | Lifecycle (idempotent start) |
+| `daemon status` | Health, version, active sessions |
+| `daemon logs` | Tail the log |
+| `daemon trace` | Action history |
+| `daemon replay` | Re-run recorded actions |
+| `daemon watch` | Follow along live |
+
+## MCP server
+
+Use OmniScout from any MCP client (Claude Desktop, Cursor, opencode, ...)
+with no second install. The server exposes search, research, extraction,
+browser automation, and desktop control as tools.
+
+| Command | What it does |
+|---|---|
+| `mcp` | Serve over stdio (the default for MCP clients) |
+| `mcp serve --transport streamable-http --port 7721` | Serve over Streamable HTTP |
+
+## Environment variables
+
+| Variable | Purpose |
+|---|---|
+| `OMNISCOUT_JSON=1` | Force JSON output on every command |
+| `OMNISCOUT_DATA_DIR` | Override data dir |
+| `OMNISCOUT_BROWSER` | Browser id (overrides config) |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | CAPTCHA solver key |
+
+Full list with config keys and data layout: [Configuration](/docs/configuration).

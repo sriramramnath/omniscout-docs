@@ -1,0 +1,81 @@
+---
+title: Sessions & profiles
+description: Long-lived sessions, persistent profiles, and debugging tools.
+icon: Server
+---
+
+## Getting ready
+
+OmniScout stays ready so browser actions run fast:
+
+```bash
+omniscout daemon start     # idempotent — returns status if already up
+omniscout daemon status    # health, version, active sessions
+omniscout daemon restart
+omniscout daemon stop
+omniscout daemon logs      # tail the log (add --follow)
+```
+
+Most commands get ready on their own if needed.
+
+## Debugging: trace, replay, watch
+
+Every action is recorded so you can review it later:
+
+```bash
+omniscout daemon trace     # inspect the action history
+omniscout daemon replay    # re-run recorded actions
+omniscout daemon watch     # follow along live while the agent works
+```
+
+These are the fastest way to see what an agent actually did — `trace` for forensics, `watch` for live monitoring.
+
+## Sessions vs profiles
+
+| | Session (`--session`) | Profile (`--profile`) |
+|---|---|---|
+| What | A named tab group | Saved browser logins on disk |
+| Survives restart? | No | Yes |
+| Keeps cookies/logins? | While alive | Across runs |
+| Manage with | `omniscout session …` | `omniscout profile …` |
+
+Use **sessions** to isolate parallel workflows; use **profiles** to separate identities (work vs personal) or keep logins across restarts.
+
+### Sessions
+
+```bash
+omniscout session start          # start a session, prints id
+omniscout session list           # active sessions
+omniscout session attach <id>    # connection info
+omniscout session kill <id>      # kill one (or all) sessions
+```
+
+Pass `--session <name>` on any `browser`/`computer` command to run inside that session. Top-level shortcuts `open`, `snapshot`, `context`, and `reset` operate on the default session's workflow state.
+
+### Profiles
+
+```bash
+omniscout profile create work
+omniscout profile list
+omniscout profile delete old
+```
+
+Then attach a profile to any browser run:
+
+```bash
+omniscout browser navigate https://github.com/notifications --profile work
+omniscout browser login https://github.com/login --profile work  # log in once, reuse
+```
+
+Profiles are stored in the data dir. Keep them outside the repository — they contain cookies.
+
+## Settings
+
+```bash
+omniscout settings show        # current settings + resolved browser target
+omniscout settings browsers    # supported browsers, and which are installed
+omniscout settings engines     # supported answer engines
+omniscout settings set browser brave
+```
+
+Settings persist to `config.toml` — see [Configuration](/docs/configuration) for every key and environment override.

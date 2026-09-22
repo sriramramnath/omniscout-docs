@@ -1,0 +1,63 @@
+---
+title: Configuration
+description: config.toml, environment variables, storage, and JSON output.
+icon: Settings
+---
+
+## config.toml
+
+Create `config.toml` in your platform's config directory:
+
+| Platform | Path |
+|---|---|
+| macOS | `~/Library/Application Support/omniscout/config.toml` |
+| Linux | `~/.config/omniscout/config.toml` |
+
+```toml
+search_limit = 10
+research_results = 8
+request_throttle_seconds = 1.0
+browser = "chrome"                    # chrome | edge | brave | vivaldi | opera | arc | chromium | custom
+# browser_executable = "/path/to/browser"  # only needed for 'custom'
+```
+
+Prefer the CLI over hand-editing — `omniscout settings set` writes the same file:
+
+```bash
+omniscout settings set browser brave
+omniscout settings show
+```
+
+Check install state with `omniscout install`, `omniscout settings browsers`, and `omniscout settings engines`.
+
+## Environment variables
+
+| Variable | Purpose |
+|---|---|
+| `OMNISCOUT_JSON=1` | Force JSON output on every command |
+| `OMNISCOUT_DATA_DIR` | Override the data directory |
+| `OMNISCOUT_BROWSER` | Browser id (overrides config) |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | CAPTCHA solver key |
+| `OMNISCOUT_API_KEY` | Cloud API key (Cloud SDK/CLI use) |
+| `OMNISCOUT_BASE_URL` | Cloud base URL (default production) |
+
+## JSON output
+
+Every command speaks JSON — the agent integration surface:
+
+```bash
+omniscout --json answer "What is local-first software?"
+export OMNISCOUT_JSON=1   # same for all commands in this shell
+```
+
+With JSON on, `stdout` is a structured payload and logs go to `stderr` (add `-v/--verbose` for more). Pipe through `jq`:
+
+```bash
+omniscout search "topic" | jq '.hits[] | {title, url}'
+```
+
+See [Using with AI agents](/docs/agents) for the full agent loop.
+
+## Storage
+
+Saved logins, memory, saved pages, and logs all live in the data dir. Keep them outside version control.

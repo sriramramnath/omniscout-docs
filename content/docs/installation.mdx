@@ -1,0 +1,98 @@
+---
+title: Installation
+description: Install OmniScout, verify your browser, and get the daemon running.
+icon: Download
+---
+
+## Requirements
+
+- **Python 3.11+** — check with `python --version`
+- **A Chromium-based browser** — Chrome, Brave, Edge, Vivaldi, Opera, Arc, or Chromium
+- **macOS or Linux** — desktop automation (`computer`) currently supports macOS only
+
+## Install
+
+```bash
+pip install omniscout
+```
+
+Verify the install:
+
+```bash
+omniscout --version
+omniscout --help
+```
+
+## Set up a browser
+
+OmniScout drives a real browser two ways:
+
+| Option | When to use it |
+|---|---|
+| **Default** | Zero setup, isolated automation |
+| **Extension** (opt-in) | Sites where you're already logged in |
+
+Check which browsers are installed and verify Chromium availability:
+
+```bash
+omniscout settings browsers
+omniscout install
+```
+
+To drive your existing browser instead, point OmniScout at it and load the extension:
+
+```bash
+omniscout setup --browser dia
+```
+
+This downloads the extension and opens the browser's extensions page. Choose `Load unpacked`, select the printed folder, and confirm the popup says connected. See [How it works](/docs/overview) for how the options differ.
+
+## Get ready
+
+OmniScout stays ready so every action runs fast:
+
+```bash
+omniscout daemon start
+omniscout daemon status
+```
+
+You only need to do this once — later commands get ready on their own. See [Sessions](/docs/automation/sessions) for lifecycle and logs.
+
+## Get ready for search
+
+Run once after install so the first search is fast:
+
+```bash
+omniscout warmup
+```
+
+## Install agent skills (optional)
+
+If an AI agent will drive OmniScout, install the skill files so Claude Code, Cursor, Codex, and Gemini CLI auto-discover it:
+
+```bash
+omniscout install --skill
+```
+
+See [Using with AI agents](/docs/agents) for the full agent setup.
+
+## Update and uninstall
+
+```bash
+pip install --upgrade omniscout   # update
+pip uninstall omniscout           # remove the package
+```
+
+To wipe all local state (profiles, caches, indexes, memory):
+
+```bash
+rm -rf ~/Library/Application\ Support/omniscout/   # macOS
+rm -rf ~/.local/share/omniscout/                   # Linux
+```
+
+Or override the location with `OMNISCOUT_DATA_DIR`. See [Configuration](/docs/configuration).
+
+## Next steps
+
+- [Quickstart](/docs/quickstart) — your first search, extract, and browser run in 5 minutes
+- [Troubleshooting](/docs/troubleshooting) — fixes for install and browser issues

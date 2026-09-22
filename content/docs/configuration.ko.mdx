@@ -1,0 +1,88 @@
+---
+title: 설정
+description: config.toml, 환경 변수, 데이터 구조, JSON 출력.
+icon: Settings
+---
+
+## config.toml
+
+플랫폼의 설정 디렉터리에 `config.toml`을 만드세요:
+
+| 플랫폼 | 경로 |
+|---|---|
+| macOS | `~/Library/Application Support/omniscout/config.toml` |
+| Linux | `~/.config/omniscout/config.toml` |
+
+```toml
+default_source = "searxng"   # searxng | ddg | wikipedia | web
+search_limit = 10
+research_results = 8
+request_throttle_seconds = 1.0
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+browser = "chrome"                    # chrome | edge | brave | vivaldi | opera | arc | chromium | custom
+# browser_executable = "/path/to/browser"  # only needed for 'custom'
+```
+
+직접 편집보다 CLI를 권장합니다 — `omniscout settings set`은 같은 파일에 씁니다:
+
+```bash
+omniscout settings set browser brave
+omniscout settings show
+```
+
+설치 상태와 엔진은 `omniscout install`, `omniscout settings browsers`, `omniscout settings engines`로 확인하세요.
+
+## 환경 변수
+
+| 변수 | 용도 |
+|---|---|
+| `OMNISCOUT_JSON=1` | 모든 명령어에 JSON 출력 강제 |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | daemon 자동 시작 안 함 |
+| `OMNISCOUT_DAEMON_PORT` | daemon 포트 (기본값 7720) |
+| `OMNISCOUT_DATA_DIR` | 데이터 디렉터리 재정의 |
+| `OMNISCOUT_BROWSER` | 브라우저 id (설정 재정의) |
+| `OMNISCOUT_EMBED_LOCAL_ONLY=0` | 런타임 Hugging Face 가져오기 허용 |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | CAPTCHA 솔버 키 |
+| `OMNISCOUT_API_KEY` | Cloud API 키 (Cloud SDK/CLI용) |
+| `OMNISCOUT_BASE_URL` | Cloud base URL (기본값 production) |
+
+기존 `HARNESS_*` 계열도 계속 허용됩니다.
+
+## JSON 출력 규약
+
+모든 명령어는 JSON을 말합니다 — 에이전트 연동 표면입니다:
+
+```bash
+omniscout --json answer "What is local-first software?"
+export OMNISCOUT_JSON=1   # same for all commands in this shell
+```
+
+JSON을 켜면 `stdout`은 구조화된 페이로드가 되고 로그는 `stderr`로 갑니다(`-v/--verbose`를 붙이면 더 자세해집니다). `jq`로 파이프하세요:
+
+```bash
+omniscout search "topic" | jq '.hits[] | {title, url}'
+```
+
+CLI를 거치지 않고 daemon과 직접 대화할 수도 있습니다:
+
+```bash
+curl -X POST http://127.0.0.1:7720/command \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"navigate","args":{"url":"https://example.com"},"session":"demo"}'
+```
+
+전체 에이전트 루프(JSON, trace/replay/watch, 에러 종류)는 [AI 에이전트와 함께 사용하기](/docs/agents)를 참고하세요.
+
+## 디스크 상태
+
+| 경로 (데이터 디렉터리 아래) | 용도 |
+|---|---|
+| `profiles/` | 영속 브라우저 user-data-dir |
+| `qdrant/` | 임베디드 벡터 인덱스 |
+| `models/sentence-transformers/` | 미리 가져온 임베딩 모델 |
+| `memory.sqlite` | 브라우저 memory (방문 + 메모) |
+| `sessions.sqlite` | long-lived 세션 레지스트리 |
+| `cache/pages/` | 콘텐츠 해시 HTML 캐시 |
+| `daemon/` | PID, 포트, 로그, 동작 히스토리, 세션 복원 |
+
+프로필과 모델/캐시 데이터는 버전 관리 밖에 두세요.

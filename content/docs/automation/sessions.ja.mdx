@@ -1,0 +1,81 @@
+---
+title: daemon、セッション、プロファイル
+description: バックグラウンドdaemon、長時間稼働セッション、永続プロファイル、デバッグツール。
+icon: Server
+---
+
+## daemonのライフサイクル
+
+daemon（デフォルト`127.0.0.1:7720`）はブラウザを開いたまま保持し、操作を1秒未満に保ちます：
+
+```bash
+omniscout daemon start     # idempotent — returns status if already up
+omniscout daemon status    # health, version, active sessions
+omniscout daemon restart
+omniscout daemon stop      # SIGTERM, then SIGKILL after 5s
+omniscout daemon logs      # tail the daemon log (add --follow)
+```
+
+ほとんどのコマンドはdaemonが停止していれば自動起動します。`OMNISCOUT_DAEMON_PORT`でポートを変更し（`omniscout daemon start --port 7721`も同様）、`OMNISCOUT_DAEMON_AUTO_START=0`で自動起動を無効化します。
+
+## デバッグ：trace、replay、watch
+
+daemonのすべての操作はJSONL履歴（直近1万コマンド）に記録されます：
+
+```bash
+omniscout daemon trace     # inspect the action history
+omniscout daemon replay    # re-run recorded actions
+omniscout daemon watch     # subscribe to the live event stream (SSE)
+```
+
+エージェントが実際に何をしたかを知る最速の方法です — 事後調査には`trace`、ライブ監視には`watch`を使います。
+
+## セッションとプロファイルの比較
+
+| | セッション（`--session`） | プロファイル（`--profile`） |
+|---|---|---|
+| 内容 | 稼働中daemon内の名前付きタブグループです | ディスク上の永続ブラウザユーザーデータディレクトリです |
+| daemon再起動後も残りますか？ | いいえ | はい |
+| Cookie・ログインを保持しますか？ | 存続中のみです | 実行をまたいで保持します |
+| 管理方法 | `omniscout session …`です | `omniscout profile …`です |
+
+1つのdaemonを共有する並列ワークフローの分離には**セッション**を、IDの分離（仕事用と個人用）や再起動をまたぐログイン保持には**プロファイル**を使います。
+
+### セッション
+
+```bash
+omniscout session start          # start a session, prints id + WS endpoint
+omniscout session list           # active sessions
+omniscout session attach <id>    # connection info (CDP WS endpoint)
+omniscout session kill <id>      # kill one (or all) sessions
+```
+
+任意の`browser`／`computer`コマンドに`--session <name>`を付けてそのセッション内で実行します。トップレベルの`open`、`snapshot`、`context`、`reset`はデフォルトセッションのワークフロー状態を操作します。
+
+### プロファイル
+
+```bash
+omniscout profile create work
+omniscout profile list
+omniscout profile delete old
+```
+
+任意のブラウザ実行にプロファイルを付与します：
+
+```bash
+omniscout browser navigate https://github.com/notifications --profile work
+omniscout browser login https://github.com/login --profile work  # log in once, reuse
+```
+
+プロファイルはデータディレクトリ配下の`profiles/`にあります。Cookieを含むためリポジトリ外に保管します。
+
+## 設定
+
+```bash
+omniscout settings show        # current settings + resolved browser target
+omniscout settings browsers    # supported browsers, and which are installed
+omniscout settings engines     # supported answer engines
+omniscout settings set browser brave
+```
+
+設定は`config.toml`に保存されます — すべてのキーと環境変数による上書きは[設定](/docs/configuration)をご覧ください。

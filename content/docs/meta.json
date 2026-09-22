@@ -1,7 +1,24 @@
 {
   "pages": [
     "index",
+    "overview",
     "cli",
-    "api"
+    "installation",
+    "quickstart",
+    "search",
+    "automation",
+    "configuration",
+    "agents",
+    "examples",
+    "commands",
+    "troubleshooting",
+    "cloud",
+    "cloud-quickstart",
+    "authentication",
+    "endpoints",
+    "sdks",
+    "errors",
+    "rate-limits",
+    "billing"
   ]
 }

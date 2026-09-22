@@ -1,0 +1,124 @@
+---
+title: AIエージェントでのOmniScout利用
+description: Claude Code、Cursor、Codex、KimiがOmniScoutを操作するためのそのまま使えるプロンプトとスキルファイル。
+icon: Bot
+---
+
+OmniScoutはAIエージェントの操作を前提に作られています：すべてのコマンドはJSONを話し、要素refは安定し、操作履歴の全体を確認できます。セットアップ方法は次のとおりです。
+
+## 1. インストールします
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+`--skill`フラグは手順書をエージェントのスキルディレクトリにコピーします：
+
+| エージェント | 場所 |
+|---|---|
+| Claude Code | `~/.claude/skills/scout/SKILL.md` |
+| Cursor | `~/.cursor/skills-cursor/scout/SKILL.md` |
+| Codex CLI | `~/.codex/skills/scout/SKILL.md` |
+| Gemini CLI / Antigravity | `~/.gemini/config/skills/scout/SKILL.md` |
+
+次のセッションからエージェントが自動で読み込みます。その他のエージェント（Pi、OpenCode、Windsurf、Cline、Copilot Agent Mode、シェル操作可能なアシスタント）は、バンドルされた`SKILL.md`をシステムプロンプトに貼り付けます。
+
+## 2. daemonを起動します
+
+```bash
+omniscout daemon start
+```
+
+## 3. 常にJSONを使います
+
+ループ開始時に`OMNISCOUT_JSON=1`を設定します（または呼び出しごとに`--json`を渡します）。`stdout`が構造化ペイロードになり、ログは`stderr`に出ます：
+
+```bash
+export OMNISCOUT_JSON=1
+omniscout search "robotics simulators"
+omniscout browser snapshot | jq '.refs[] | select(.role == "button")'
+```
+
+形式はPydantic契約（`models.py`）です — パーサーが依存できる安定フィールドです。すべての応答は次の呼び出しに十分な文脈（ref、URL、ID）を持ちます。
+
+## 4. プロンプトを投げます
+
+### 質問をリサーチします
+
+```text
+Use OmniScout to research "state of open-source browser agents in 2026" and summarize the top 5 passages with their source URLs.
+```
+
+### 移動してクリックします
+
+```text
+Open https://news.ycombinator.com using OmniScout, snapshot interactive elements, click the top story, and screenshot the result to /tmp/hn-top.png.
+```
+
+### 一度ログインして再利用します
+
+```text
+Run `omniscout browser login https://github.com --profile work`, pause for me to authenticate, then screenshot my notifications page with that profile.
+```
+
+### ナレッジグラフを構築します
+
+```text
+Build a knowledge graph for "Cursor" with OmniScout. Run `omniscout graph "Cursor" --json --data`, show the tree, and cite sources.
+```
+
+### フォームに入力します
+
+```text
+Use OmniScout to open https://duckduckgo.com, fill the search box with "local-first AI agents", press Enter, wait for results, and list the top 5 results.
+```
+
+### ネットワークトラフィックを取得します
+
+```text
+Open the Vercel pricing page with OmniScout, capture network traffic while scrolling, then list requests matching stripe|payment|checkout.
+```
+
+## エージェントループ
+
+信頼できるループは次のとおりです：
+
+1. `daemon start`（冪等 — 毎セッション実行して安全です）。
+2. `export OMNISCOUT_JSON=1`。
+3. 実行：`navigate` → `snapshot --refs-only` → `click/fill` → 再取得。
+4. 観察：`screenshot`、`get text`、`network tail`、`console tail`。
+5. クリーンアップ：`browser close --all`。
+
+並列タスクは`--session <name>`で分離し、タブとrefが衝突しないようにします。
+
+## エージェント実行のデバッグ
+
+- `omniscout daemon trace` — 直近1万アクションのJSONL履歴を確認します（エージェントは実際に何をしたか？）。
+- `omniscout daemon replay`／`omniscout replay …` — 記録済みフローを再実行して失敗を再現します。
+- `omniscout daemon watch` — エージェントの動作中にライブイベントストリームを追跡します。
+- `omniscout context` — 現在のワークフロー継続状態を表示します。`omniscout reset`で最初からやり直します。
+
+## エラーの種類
+
+次を想定して対処します：
+
+| 失敗 | 信号 | 対処 |
+|---|---|---|
+| 古い`@eN` refです | "ref not found" | 再取得して新しいrefを使います |
+| ページ未読み込みです | 空のスクリーンショット／テキスト欠落です | 先に`browser wait text/networkidle`を実行します |
+| ログイン切れです | ログインページへリダイレクトされます | `browser login --profile …`を再実行します |
+| CAPTCHAです | チャレンジを検出しました | ヘッドフルで解くか`--solver 2captcha`を使います |
+| daemon停止です | 接続拒否です | `daemon start`を実行します（`--port`も確認します） |
+| 結果なしです | 空のヒットです | クエリを狭めるか別の`--source`を試します |
+
+完全な一覧：[トラブルシューティング](/docs/troubleshooting)。
+
+## エージェント向けヒント
+
+- 構造化出力のため最初に`OMNISCOUT_JSON=1`を設定します。
+- `omniscout browser snapshot --refs-only`で要素を探し、`@eN` refでクリックします。
+- `navigate`のたびに再取得します — refは無効になります。
+- 固定スリープより`wait text/networkidle`を優先します。
+- 繰り返すフローは即興で再現せず`record`／`macro run`で記録します。
+- 終了時は`omniscout browser close --all`でセッションを閉じます。

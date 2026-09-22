@@ -1,0 +1,171 @@
+---
+title: 브라우저 자동화
+description: "@eN ref로 Chromium 구동 — 이동, 클릭, 입력, 탭, 네트워크, 로그인, CAPTCHA."
+icon: Globe
+---
+
+`omniscout browser`는 Patchright를 통해 로컬 Chromium을 구동합니다. 핵심 루프는 항상 같습니다:
+
+```bash
+omniscout browser navigate https://example.com   # 1. open a page
+omniscout browser snapshot --refs-only           # 2. list @eN element refs
+omniscout browser click '@e3'                    # 3. act on a ref
+omniscout browser screenshot --out /tmp/out.png  # 4. capture state
+```
+
+## `@eN` ref 모델
+
+`snapshot`은 페이지의 접근성 트리를 안정적인 요소 ref(`@e1`, `@e2`, …)와 함께 반환합니다. 모든 상호작용은 ref를 대상으로 합니다 — CSS 선택자나 픽셀 추측은 쓰지 마세요. 두 가지 규칙:
+
+1. **내비게이션이나 큰 DOM 변경 뒤에는 항상 다시 snapshot** — 페이지가 바뀌면 ref가 무효화됩니다.
+2. 실행 가능한 플랫 목록에는 **`--refs-only`를 우선**하고, 계층 구조가 필요할 때만 빼고 전체 트리를 보세요.
+
+```bash
+omniscout browser snapshot --refs-only
+omniscout browser snapshot --overlay   # draw @e labels on the page (debugging/demos)
+```
+
+## 내비게이션 및 히스토리
+
+```bash
+omniscout browser navigate https://example.com --wait-until domcontentloaded
+omniscout browser open https://example.com      # alias of navigate
+omniscout browser back
+omniscout browser forward
+omniscout browser reload
+omniscout browser get url                       # current URL
+omniscout browser get title                     # page title
+```
+
+`navigate`는 `--profile`(영속 로그인 컨텍스트), `--session`(탭 그룹), `--new-tab`, `--headful/--headless`, `--auto-captcha`, `--wait-until`을 받습니다. 프로필과 세션 차이는 [Daemon 및 세션](/docs/automation/sessions)을 참고하세요.
+
+## 클릭, 입력, 선택
+
+| 동작 | 명령어 | 참고 |
+|---|---|---|
+| 클릭 | `browser click '@e3'` | vision 에이전트용 `--button`, `--clicks`, `--mod` 또는 `--coord x y` |
+| 채우기(교체) | `browser fill '@e5' "text"` | 기존 내용을 교체합니다 |
+| 입력(추가) | `browser type '@e5' "text"` | 이어서 입력합니다, 키 입력 사이 `--delay-ms` |
+| 붙여넣기 | `browser paste '@e5' "text"` | 커서 위치에 지우지 않고 삽입합니다 |
+| 선택 | `browser select '@e5' "option"` | 네이티브 `<select>` 요소 |
+| 키 | `browser key Enter` | `cmd+s`, `ctrl+c` 같은 콤보 |
+| 호버 | `browser hover '@e7'` | 또는 `--coord x y` |
+| 업로드 | `browser upload '@e9' file.pdf` | `<input type=file>`에 파일을 첨부합니다 |
+| 스크롤 | `browser scroll down` | `--amount`와 함께 페이지 또는 요소 스크롤 |
+| 상태 확인 | `browser is '@e3' visible` | 표시 여부, 활성화, 체크 여부 등 |
+
+`fill`과 `type`, `paste` 차이: `fill`은 먼저 지웁니다(폼), `type`은 사람처럼 이어 씁니다(채팅, 에디터), `paste`는 큰 텍스트를 커서에 바로 넣습니다.
+
+## 페이지 읽기
+
+```bash
+omniscout browser get text              # visible body text
+omniscout browser get html              # page HTML (truncated ~500KB)
+omniscout browser eval "document.title" # run JavaScript, return the value
+omniscout browser extract-visible       # visible text, optional --schema shaping
+```
+
+## 대기
+
+막연히 `sleep`하지 마세요 — 실제로 필요한 조건을 기다리세요:
+
+```bash
+omniscout browser wait text "Order confirmed"
+omniscout browser wait selector "#results"
+omniscout browser wait networkidle
+omniscout browser wait url "*checkout*"
+omniscout browser wait --ms 2000 --timeout-ms 30000
+```
+
+`wait`는 `--ref`, `--url`(현재 URL에 대한 정규식), `--idle`, `--mutation-quiet-ms`(DOM 변경이 멈출 때까지 대기)도 지원합니다.
+
+## 탭
+
+```bash
+omniscout browser navigate https://a.com --session multi
+omniscout browser navigate https://b.com --new-tab --session multi
+omniscout browser tab list --session multi
+omniscout browser tab switch 0 --session multi
+omniscout browser tab close 1 --session multi
+```
+
+## 네트워크 및 콘솔 캡처
+
+```bash
+omniscout browser network start
+omniscout browser navigate https://vercel.com/pricing
+omniscout browser scroll down --amount 10
+omniscout browser network stop
+omniscout browser network list --filter "stripe|payment"
+omniscout browser network detail 3          # full payload for one entry
+omniscout browser network tail              # only entries since last tail
+
+omniscout browser console start
+omniscout browser console tail              # JS errors and console messages
+omniscout browser console list
+omniscout browser console stop
+```
+
+## 자연어 동작
+
+대상이 모호하면 daemon이 해석하도록 하세요:
+
+```bash
+omniscout browser observe "the search box"        # find candidate refs
+omniscout browser act "click the top story"       # resolve + act
+omniscout browser act "search box" --value "local-first agents"
+omniscout browser act "submit" --dry-run          # resolve without acting
+```
+
+이후 `snapshot`으로 검증하세요 — `act`는 편리하지만 ref가 결정적입니다.
+
+## 스크린샷, PDF, 마우스
+
+```bash
+omniscout browser screenshot --out /tmp/page.png
+omniscout browser screenshot --full-page --out /tmp/full.png   # top-to-bottom
+omniscout browser screenshot --ref '@e3' --out /tmp/el.png     # one element
+omniscout browser screenshot --delay 2.5 --out /tmp/late.png  # wait for animations
+omniscout browser pdf --out /tmp/page.pdf --paper letter
+omniscout browser mouse move 400 300
+omniscout browser mouse scroll 400 300
+```
+
+## 로그인 및 CAPTCHA
+
+일부 사이트는 한 번의 사람 로그인이 필요합니다. headful 창을 열고 인증한 뒤 다른 셸에서 완료 신호를 보내세요 — 프로필이 쿠키를 보관해 재사용할 수 있습니다:
+
+```bash
+# Terminal A (blocks):
+omniscout browser login https://github.com/login --profile work
+
+# Terminal B (after you log in):
+omniscout browser login --done
+
+# Reuse later:
+omniscout browser navigate https://github.com/notifications --profile work
+```
+
+`--success-pattern`(URL 정규식)이면 로그인이 자동 해결되고, `--timeout-ms` 기본값은 5분입니다. CAPTCHA의 경우:
+
+```bash
+omniscout browser captcha --detect-only                    # just report
+omniscout browser captcha --solver 2captcha                # none | 2captcha | capsolver | manual
+export CAPTCHA_API_KEY=...                                 # or --api-key
+```
+
+`navigate`는 로드 직후 챌린지를 해결하는 `--auto-captcha`도 받습니다.
+
+## 정리
+
+```bash
+omniscout browser close                # close the default session
+omniscout browser close --all          # close everything
+```
+
+## 에이전트 팁
+
+- 동작 전에 항상 snapshot하고, 내비게이션 전후로 ref를 재사용하지 마세요.
+- 실행이 끝나면 항상 `browser close --all`로 끝내 다음 실행이 깨끗하게 시작되도록 하세요.
+- 하나의 daemon을 공유하는 병렬 워크플로는 `--session`으로 격리하세요.
+- `--json`에서는 snapshot을 `jq`로 파이프하세요: `omniscout browser snapshot | jq '.refs[] | select(.role == "button")'`.

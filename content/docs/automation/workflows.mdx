@@ -1,0 +1,69 @@
+---
+title: Workflows & automation
+description: Record macros, replay runs, monitor URLs, and route with auto.
+icon: Workflow
+---
+
+## Record and replay macros
+
+Turn an interactive run into a reusable script:
+
+```bash
+omniscout record start --name my_macro
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout record stop my_macro
+
+omniscout macro list
+omniscout macro run my_macro
+```
+
+`record start/stop` captures successful daemon actions for a session into a named macro; `macro run` replays it through the daemon. For lower-level replay of the raw action history, use `omniscout replay …` and `omniscout daemon replay`.
+
+## Workflow continuity
+
+Multi-step flows keep continuity state you can inspect and export:
+
+```bash
+omniscout context            # show current workflow state
+omniscout reset              # reset it and start fresh
+omniscout workflow export    # export steps as JSON (share or persist a process)
+```
+
+`auto` routes a one-line request to the best command when you don't want to choose:
+
+```bash
+omniscout auto "latest AI news"
+```
+
+Top-level `open` and `snapshot` are shortcuts into the default session's browser:
+
+```bash
+omniscout open https://example.com
+omniscout open 3              # open the 3rd result of the last search
+omniscout snapshot --refs-only
+```
+
+## Monitor a URL for changes
+
+```bash
+omniscout monitor monitor https://example.com/pricing
+```
+
+`monitor` continuously extracts the URL and emits a JSON line whenever the content changes — pipe it into `jq` or a script for price watches, changelog alerts, and status pages.
+
+## Crawl jobs
+
+```bash
+omniscout crawl ...           # run and inspect local crawl jobs
+omniscout extract-jobs ...    # inspect background extract jobs
+omniscout index ...           # manage the local search index
+```
+
+Crawls back the bulk-fetch modes of [Extraction](/docs/search/extraction) (`--out` site export, `--query` mode): run them in the background and inspect results, instead of blocking one shell.
+
+## Agent tips
+
+- Record once, `macro run` forever — macros are the cheapest way to make flaky multi-step flows deterministic.
+- `workflow export` gives you a JSON artifact to attach to tickets, PRs, or eval datasets.
+- Prefer `daemon trace` over re-running when debugging: the last 10k actions are already recorded.

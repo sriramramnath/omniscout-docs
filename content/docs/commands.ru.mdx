@@ -1,0 +1,134 @@
+---
+title: Справочник команд
+description: Каждая команда CLI OmniScout.
+icon: List
+---
+
+Используйте `omniscout --help`, чтобы увидеть все команды, или `omniscout <command> --help` (и `omniscout browser <action> --help`) для опций. Каждый раздел ниже ссылается на руководство с полными флагами и примерами.
+
+## Команды верхнего уровня
+
+| Команда | Что делает | Руководство |
+|---|---|---|
+| `answer` | Вопросы-ответы с цитатами (предпочтительнее `search`) | [Поиск](/docs/search/search) |
+| `search` | Веб-поиск с локальным семантическим реранком (+ `ui`) | [Поиск](/docs/search/search) |
+| `map` | Обход сайта в карту URL (`--limit`, `--depth`) | [Поиск](/docs/search/search) |
+| `warmup` | Предзагрузка embedding-моделей/моделей ответов в daemon | [Поиск](/docs/search/search) |
+| `extract` | URL/запрос/обход сайта → Markdown или структурированный JSON | [Извлечение](/docs/search/extraction) |
+| `research` | Search → crawl → extract → rerank → summarize | [Исследования](/docs/search/research) |
+| `graph` | Структурированный граф знаний для сущности | [Исследования](/docs/search/research) |
+| `benchmark` | Оценка режимов ответов/retrieval/формата | [Исследования](/docs/search/research) |
+| `open` | Открытие URL (или N-го результата последнего поиска) в браузере | [Рабочие процессы](/docs/automation/workflows) |
+| `snapshot` | Accessibility-снимок с `@e` refs (сессия по умолчанию) | [Браузер](/docs/automation/browser) |
+| `context` | Показ состояния непрерывности workflow | [Рабочие процессы](/docs/automation/workflows) |
+| `reset` | Сброс состояния непрерывности | [Рабочие процессы](/docs/automation/workflows) |
+| `auto` | Маршрутизация ввода к лучшей команде | [Рабочие процессы](/docs/automation/workflows) |
+| `browser` | Полный словарь автоматизации Chromium | [Браузер](/docs/automation/browser) |
+| `computer` | Нативная автоматизация рабочего стола (macOS) | [Computer](/docs/automation/computer) |
+| `daemon` | Start/stop/status/logs/trace/replay/watch | [Сессии](/docs/automation/sessions) |
+| `session` | start/list/attach/kill долгоживущих сессий | [Сессии](/docs/automation/sessions) |
+| `profile` | create/list/delete постоянных профилей | [Сессии](/docs/automation/sessions) |
+| `settings` | show/browsers/engines/set | [Сессии](/docs/automation/sessions) |
+| `install` | Проверка доступности локального Chromium (+ `--skill`) | [Установка](/docs/installation) |
+| `setup` | Выбор браузера, подготовка бэкенда расширения | [Установка](/docs/installation) |
+| `remember` | Посещение URL и сохранение в память браузера | [Память](/docs/search/memory) |
+| `memory` | Поиск/список/заметки/удаление воспоминаний | [Память](/docs/search/memory) |
+| `index` | Управление локальным поисковым индексом | [Память](/docs/search/memory) |
+| `extract-jobs` | Просмотр фоновых задач извлечения | [Память](/docs/search/memory) |
+| `crawl` | Запуск и просмотр локальных задач обхода | [Рабочие процессы](/docs/automation/workflows) |
+| `record` | Запись действий daemon в именованный macro | [Рабочие процессы](/docs/automation/workflows) |
+| `macro` | Список/запуск сохранённых макросов | [Рабочие процессы](/docs/automation/workflows) |
+| `replay` | Повтор записанных действий браузера | [Рабочие процессы](/docs/automation/workflows) |
+| `workflow` | Экспорт/просмотр workflow непрерывности | [Рабочие процессы](/docs/automation/workflows) |
+| `monitor` | Выдача JSON-строк при изменении контента URL | [Рабочие процессы](/docs/automation/workflows) |
+| `distill` | Сбор/подготовка/оценка/обучение дистиллированных моделей ответов | — |
+
+## Глобальные опции
+
+Все команды поддерживают:
+
+- `--json` — вывод машиночитаемого JSON в stdout
+- `--verbose`, `-v` — подробное логирование в stderr
+- `--version` — вывод версии и выход
+
+Установите `OMNISCOUT_JSON=1` в окружении, чтобы сделать вывод JSON по умолчанию. См. [Конфигурация](/docs/configuration) про полный JSON-контракт и каждую переменную окружения.
+
+## Команды браузера
+
+Полное руководство: [Автоматизация браузера](/docs/automation/browser).
+
+| Команда | Что делает |
+|---------|--------------|
+| `browser navigate <url>` / `open` | Открытие URL (`--profile`, `--session`, `--new-tab`, `--headful`, `--wait-until`, `--auto-captcha`) |
+| `browser back/forward/reload` | Навигация по истории |
+| `browser snapshot [--refs-only]` | Интерактивные элементы с `@eN` refs (`--overlay` для визуализации) |
+| `browser observe "<hint>"` | Поиск кандидатов refs для инструкции на естественном языке |
+| `browser act "<instruction>"` | Разрешение + выполнение действия на странице (`--value`, `--dry-run`) |
+| `browser click <ref>` | Клик (`--button`, `--clicks`, `--mod`, `--coord`) |
+| `browser fill <ref> <value>` | Замена содержимого поля |
+| `browser type <ref> <text>` | Добавление текста (`--delay-ms`) |
+| `browser paste <ref> <text>` | Вставка в позицию курсора |
+| `browser select <ref> <option>` | Нативный `<select>` |
+| `browser scroll [up\|down]` | Прокрутка страницы/элемента (`--amount`, `--ref`) |
+| `browser key <combo>` | Сочетание клавиш (`Enter`, `cmd+s`, …) |
+| `browser hover <ref>` | Наведение мыши на элемент/координату |
+| `browser upload <ref> <files>` | Прикрепление файлов к `<input type=file>` |
+| `browser is <ref> <state>` | visible/hidden/enabled/disabled/checked/editable |
+| `browser get title/url/text/html` | Чтение свойств страницы |
+| `browser eval <js>` | Выполнение JavaScript, возврат значения |
+| `browser extract-visible` | Видимый текст, опциональное формирование через `--schema` |
+| `browser find-image` | Поиск шаблона изображения во вьюпорте |
+| `browser screenshot [-o PATH]` | PNG/JPEG (`--full-page`, `--ref`, `--delay`, `--format`) |
+| `browser pdf [-o PATH]` | Рендер в PDF (`--paper`, `--landscape`, `--scale`) |
+| `browser wait …` | `text`, `selector`, `networkidle`, `url` (+ `--ms`, `--timeout-ms`) |
+| `browser mouse scroll/move` | Сырой ввод мыши по координатам |
+| `browser tab list/close/switch` | Управление вкладками внутри сессии |
+| `browser network start/stop/list/tail/detail` | Захват запросов/ответов |
+| `browser console start/stop/list/tail` | Захват консоли + JS-ошибок |
+| `browser login <url>` | Видимый вход, блокирует (`--profile`, `--done`, `--success-pattern`) |
+| `browser captcha` | Обнаружение/решение (`none\|2captcha\|capsolver\|manual`, `--detect-only`) |
+| `browser close [--all]` | Закрытие одной сессии или всего |
+
+## Команды компьютера (macOS)
+
+Полное руководство: [Computer](/docs/automation/computer).
+
+| Команда | Что делает |
+|---------|--------------|
+| `computer navigate <target>` | Открытие приложения, файла, каталога или URL |
+| `computer type <text>` | Ввод в фокусное окно |
+| `computer key <combo>` | Отправка сочетания клавиш |
+| `computer wait <ms>` | Пауза в миллисекундах |
+| `computer screenshot` | Снимок экрана |
+| `computer clipboard` | `get` / `set` системного буфера обмена |
+| `computer window list/activate/close` | Управление окнами |
+| `computer ui snapshot/click/drag/is` | `@eN` refs для нативного UI |
+| `computer doctor` | Диагностика окружения |
+| `computer backend` | Список бэкендов автоматизации |
+
+## Команды daemon
+
+Полное руководство: [Daemon и сессии](/docs/automation/sessions).
+
+| Команда | Что делает |
+|---|---|
+| `daemon start/stop/restart` | Жизненный цикл (идемпотентный старт) |
+| `daemon status` | Здоровье, версия, активные сессии |
+| `daemon logs` | Хвост лога |
+| `daemon trace` | JSONL-история (последние 10k команд) |
+| `daemon replay` | Повтор записанных действий |
+| `daemon watch` | Живой поток событий (SSE) |
+
+## Переменные окружения
+
+| Переменная | Назначение |
+|---|---|
+| `OMNISCOUT_JSON=1` | Принудительный вывод JSON для каждой команды |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | Не запускать daemon автоматически |
+| `OMNISCOUT_DAEMON_PORT` | Переопределение порта daemon (по умолчанию 7720) |
+| `OMNISCOUT_DATA_DIR` | Переопределение каталога данных |
+| `OMNISCOUT_BROWSER` | ID браузера (переопределяет конфиг) |
+| `OMNISCOUT_EMBED_LOCAL_ONLY=0` | Разрешить runtime-загрузки Hugging Face |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | Ключ решателя CAPTCHA |
+
+Полный список с ключами конфига и структурой данных: [Конфигурация](/docs/configuration).

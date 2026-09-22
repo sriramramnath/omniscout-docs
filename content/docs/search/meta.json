@@ -1,0 +1,10 @@
+{
+  "title": "Search & research",
+  "icon": "Search",
+  "pages": [
+    "search",
+    "extraction",
+    "research",
+    "memory"
+  ]
+}

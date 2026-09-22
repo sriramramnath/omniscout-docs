@@ -1,0 +1,94 @@
+---
+title: Cloud API概要
+description: 検索・根拠付き回答・ブラウザ／コンピューターセッションのためのOmniScout Cloud API。
+---
+
+OmniScout Cloudは、セマンティック検索・根拠付き回答・リモートブラウザ／コンピューターセッションのためのホスト型APIです。ローカルCLIと同じ取得・リランクパイプラインを使い、DuckDuckGoの代わりに独自Qdrantインデックスをバックエンドにしています。
+
+## 提供内容
+
+| 機能 | エンドポイント | 説明 |
+|---|---|---|
+| **検索** | `POST /v0/search` | 独自インデックスに対するハイブリッドベクトル＋BM25検索をomniscoutでリランク |
+| **回答** | `POST /v0/answer` | 検索 → 抽出 → 出典・信頼度付きAI統合 |
+| **ブラウザセッション** | `POST /v0/browser/sessions` | ブラウザ専用の軽量Sprite（`capabilities: ["browser"]`） |
+| **コンピューターセッション** | `POST /v0/computer/sessions` | ブラウザ＋デスクトップ統合Sprite（`capabilities: ["browser", "computer"]`） |
+| **セッションファイル** | `POST/GET /v0/sessions/{id}/files` | Spriteへのアップロード・Spriteからのダウンロード |
+
+### セッション利用者向け変更点
+
+`POST /v0/search`と`POST /v0/answer`は**変更なし**です。
+
+セッションエンドポイントは以前と同じパスですが、次の違いがあります：
+
+1. 作成レスポンスの**`session_secret`を保存**してください — 各コマンド・ファイル要求で`x-session-secret`経由で必須です。
+2. **コンピューターセッションは統合型** — 1つの`session_id`でブラウザコマンド（`POST /v0/browser/sessions/{id}`）とコンピューターコマンド（`POST /v0/computer/sessions/{id}`）の両方に対応します。コンピューターセッションがある場合、別途ブラウザセッションは不要です。
+3. **アクション名** — ブラウザアクションは素の名前（`navigate`、`screenshot`）を使い、コンピューターアクションは`computer.`プレフィックス（`computer.type`、`computer.screenshot`）を使います。
+4. **ファイルルートは新設** — ファイルのアップロードやSpriteからのスクリーンショット／PDFのダウンロードには`/v0/sessions/{id}/files`を使ってください。
+5. **有効期限は非アクティブ基準** — 各コマンドでセッションが延長されます（デフォルト：アイドル30分、最大2時間）。作成時刻からの固定TTLを想定しないでください。
+
+```bash
+# 1. 統合コンピューターセッションを作成（APIキーのみ）
+curl -X POST https://api.omniscout.xyz/v0/computer/sessions \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY"
+
+# レスポンスにsession_id、session_secret、capabilities: ["browser","computer"]が含まれる
+
+# 2. 同じセッションでブラウザコマンド（両方のヘッダー）
+curl -X POST "https://api.omniscout.xyz/v0/browser/sessions/$SESSION_ID" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"navigate","args":{"url":"https://example.com"}}'
+
+# 3. 同じセッションでコンピューターコマンド
+curl -X POST "https://api.omniscout.xyz/v0/computer/sessions/$SESSION_ID" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"computer.type","args":{"text":"hello"}}'
+```
+
+## クイックスタート
+
+1. [api.omniscout.xyz](https://api.omniscout.xyz)で登録します（またはデプロイ先URL）。
+2. ダッシュボードでAPIキーを作成します — キーは`os_live_`で始まります。
+3. 最初のリクエストを送信します：
+
+```bash
+curl -X POST https://api.omniscout.xyz/v0/search \
+  -H "Authorization: Bearer os_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "rust async runtimes", "limit": 10}'
+```
+
+## CLIとCloudの比較
+
+| | **CLI** | **Cloud API** |
+|---|---|---|
+| 検索ソース | DuckDuckGo＋ローカルリランク | 独自Qdrantインデックス＋omniscoutリランク |
+| 回答 | ローカルProbe Zero Mini | Vercel AI Gateway（モデル選択可） |
+| ブラウザ | ローカルのChrome／Playwright | omniscoutデーモン付きFly Sprite |
+| 認証 | なし（ローカル実行） | Bearer APIキー（`os_live_...`） |
+| 課金 | 無料・オープンソース | 無料枠＋有料プラン |
+
+ローカルCLIは変更ありません。Cloudは追加選択肢です — デプロイに合う方を使ってください。
+
+## アーキテクチャ
+
+```
+Client → Vercel gateway (/v0/*) → Fly search worker → Qdrant Cloud
+                                  → Vercel AI Gateway (answers)
+                                  → Fly Sprites (browser/computer)
+```
+
+- **Vercel**はダッシュボード、APIゲートウェイ、Clerk認証、Convex（キー・利用量・セッション）をホストします。
+- **Fly.io**は検索ワーカー、インデクサ、Spriteを実行します。
+- **Qdrant Cloud**は独自検索インデックスを格納します（Common Crawl＋StormCrawler、追加取り込み）。
+
+## 次のステップ
+
+- [認証とAPIキー](/ja/docs/authentication) — キーの作成・使い方
+- [エンドポイント](/ja/docs/endpoints) — 全ルートのリクエスト／レスポンス仕様
+- [レート制限](/ja/docs/rate-limits) — 日次上限と段階
+- [OpenAPIリファレンス](https://api.omniscout.xyz/docs) — 対話式APIエクスプローラー

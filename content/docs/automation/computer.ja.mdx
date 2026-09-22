@@ -1,0 +1,71 @@
+---
+title: コンピューターコマンド
+description: "`omniscout computer`サブコマンドによるmacOS向けデスクトップ自動化。"
+icon: Monitor
+---
+
+`omniscout computer`はネイティブmacOSアプリケーション、ウィンドウ、クリップボード、画面を操作します — [ブラウザ自動化](/docs/automation/browser)のデスクトップ版です。コマンドは同じdaemon JSONエンベロープと`--session`モデルを使います。
+
+最初に対応を確認します：`omniscout computer doctor`で環境を診断し、`omniscout computer backend`で利用可能なバックエンドを一覧表示します。デスクトップ自動化は現在、ネイティブ`open`、AppleScript、`screencapture`、クリップボードツール経由でmacOSに対応しています。
+
+## 開く、入力、キー
+
+```bash
+omniscout computer navigate /Applications/Notes.app   # app, file, dir, or URL
+omniscout computer navigate "Notes" --session notes
+omniscout computer type "Meeting notes" --session notes
+omniscout computer key cmd+s
+omniscout computer wait 300                            # milliseconds
+```
+
+- `navigate`はOSが開けるものなら何でも開きます：アプリのパス／名前、ファイル、ディレクトリ、URLです。
+- `type`は現在フォーカス中のウィンドウに入力します。`key`は組み合わせ（`cmd+s`、`ctrl+c`、`cmd+space`など）を送信します。
+- `wait`は固定ミリ秒スリープします — アニメーション向けにのみ使い分けます。デスクトップにDOM条件はありません。
+
+## クリップボードとスクリーンショット
+
+```bash
+omniscout computer clipboard set "Hello from Scout"
+omniscout computer clipboard get
+omniscout computer screenshot --out /tmp/desktop.png
+```
+
+クリップボードの往復はデスクトップとシェル（またはエージェント）間でテキストを移動する最も簡単な方法です：設定し、`key cmd+v`で貼り付け、getで検証します。
+
+## ウィンドウ
+
+```bash
+omniscout computer window list
+omniscout computer window activate "Notes"
+omniscout computer window close "Notes"
+```
+
+最初に一覧表示し（タイトルは一致必須）、入力の前にactivateでフォーカスします。
+
+## UI要素の操作
+
+盲目的に入力する代わりに要素単位で操作する場合は、アクセシビリティツリーを取得して`@eN` refで操作します — ブラウザ自動化と同じモデルです：
+
+```bash
+omniscout computer ui snapshot
+omniscout computer ui click '@e4'
+omniscout computer ui drag '@e2' '@e7'
+omniscout computer ui is '@e4' button
+```
+
+## 完全な実例
+
+```bash
+# Open Notes and type a message
+omniscout computer navigate "Notes" --session notes
+omniscout computer wait 300
+omniscout computer type "Hello from OmniScout!" --session notes
+omniscout computer key cmd+s
+omniscout computer screenshot --out /tmp/notes.png --session notes
+```
+
+## クラウド相当機能
+
+OmniScout Cloudでは、統合セッション上の`computer.*`アクションで同じプリミティブをリモートSprite上で実行します — [エンドポイント](/docs/endpoints#computer-sessions)をご覧ください。
+
+すべてのオプションは`omniscout computer --help`（および`omniscout computer ui --help`）をご覧ください。

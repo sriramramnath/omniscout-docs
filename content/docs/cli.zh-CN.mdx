@@ -1,0 +1,73 @@
+---
+title: "OmniScout CLI"
+description: 面向 AI agent 的本地优先浏览器控制、语义搜索与研究工具。
+icon: BookOpen
+---
+
+面向 AI agent 的本地优先浏览器控制、语义搜索与研究工具。无需云端账号、无需 API key — 装好即用。
+
+## 安装
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+完整配置：[安装](/docs/installation)。五分钟 tour：[快速上手](/docs/quickstart)。
+
+## 使用
+
+```bash
+omniscout daemon start
+
+# Search
+omniscout answer "what is the capital of france"
+
+# Extract
+omniscout extract https://example.com
+
+# Browser
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# Research
+omniscout research "AI agents in 2026"
+
+# Knowledge graph
+omniscout graph "Cursor"
+```
+
+## 开箱即用
+
+| 命令 | 功能 | 指南 |
+|---|---|---|
+| `omniscout answer` / `search` | 带引用的直接问答 / 排序后的结果 | [搜索](/docs/search/search) |
+| `omniscout extract` | 抓取 URL 并返回干净内容 | [提取](/docs/search/extraction) |
+| `omniscout research` / `graph` | 多步骤流水线 / 知识图谱 | [研究](/docs/search/research) |
+| `omniscout browser` | 控制浏览器 | [浏览器](/docs/automation/browser) |
+| `omniscout computer` | 桌面自动化（macOS） | [Computer](/docs/automation/computer) |
+| `omniscout daemon` / `session` / `profile` | 后台服务、会话、profile | [会话](/docs/automation/sessions) |
+| `omniscout remember` / `memory` | 存入并召回页面 | [记忆](/docs/search/memory) |
+| `omniscout record` / `macro` / `monitor` | 可复用流程、变化提醒 | [工作流](/docs/automation/workflows) |
+
+## 指南
+
+- [什么是 OmniScout](/docs/overview) — 概念与设计原则
+- [与 AI agent 配合使用](/docs/agents) — 技能、JSON 循环、调试运行
+- [示例与配方](/docs/examples) — 可直接复制的工作流
+- [命令参考](/docs/commands) — 每个动词、每个 flag
+- [工作原理](/docs/overview) — daemon、后端、ref、数据流
+- [配置](/docs/configuration) — config.toml、环境变量、数据布局
+- [故障排查](/docs/troubleshooting) — 修复与 FAQ
+
+## JSON 输出
+
+```bash
+export OMNISCOUT_JSON=1  # structured output for agents
+```
+
+## 本地优先
+
+无需云端账号、API key 或托管服务。唯一的出站流量是 DuckDuckGo 搜索与你明确抓取的 URL。

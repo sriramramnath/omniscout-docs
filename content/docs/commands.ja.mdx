@@ -1,0 +1,134 @@
+---
+title: コマンドリファレンス
+description: OmniScoutのCLIにあるすべてのコマンド。
+icon: List
+---
+
+`omniscout --help`ですべてのコマンドを、`omniscout <command> --help`（および`omniscout browser <action> --help`）でオプションを確認できます。各セクションから完全なフラグと実例のあるガイドにリンクしています。
+
+## トップレベルコマンド
+
+| コマンド | 内容 | ガイド |
+|---|---|---|
+| `answer` | 引用付きQ&Aです（`search`より推奨） | [検索](/docs/search/search) |
+| `search` | ローカル意味リランク付きWeb検索（`ui`付き）です | [検索](/docs/search/search) |
+| `map` | サイトをクロールしてURLマップを作成します（`--limit`、`--depth`） | [検索](/docs/search/search) |
+| `warmup` | daemon内の埋め込み・回答モデルを事前読み込みします | [検索](/docs/search/search) |
+| `extract` | URL／クエリ／サイトクロール → Markdownまたは構造化JSONです | [抽出](/docs/search/extraction) |
+| `research` | 検索 → クロール → 抽出 → リランク → 要約です | [リサーチ](/docs/search/research) |
+| `graph` | エンティティの構造化ナレッジグラフです | [リサーチ](/docs/search/research) |
+| `benchmark` | 回答／検索／書式モードを評価します | [リサーチ](/docs/search/research) |
+| `open` | ブラウザでURL（または直近検索のN番目の結果）を開きます | [ワークフロー](/docs/automation/workflows) |
+| `snapshot` | `@e` ref付きアクセシビリティsnapshotです（デフォルトセッション） | [ブラウザ](/docs/automation/browser) |
+| `context` | ワークフロー継続状態を表示します | [ワークフロー](/docs/automation/workflows) |
+| `reset` | 継続状態をリセットします | [ワークフロー](/docs/automation/workflows) |
+| `auto` | 入力を最適なコマンドに振り分けます | [ワークフロー](/docs/automation/workflows) |
+| `browser` | 完全なChromium自動化語彙です | [ブラウザ](/docs/automation/browser) |
+| `computer` | ネイティブデスクトップ自動化です（macOS） | [コンピューター](/docs/automation/computer) |
+| `daemon` | 開始／停止／状態／ログ／trace／replay／watchです | [セッション](/docs/automation/sessions) |
+| `session` | 長時間稼働セッションの開始／一覧／接続／削除です | [セッション](/docs/automation/sessions) |
+| `profile` | 永続プロファイルの作成／一覧／削除です | [セッション](/docs/automation/sessions) |
+| `settings` | 表示／ブラウザ／エンジン／設定です | [セッション](/docs/automation/sessions) |
+| `install` | ローカルChromiumが利用可能か検証します（`--skill`付き） | [インストール](/docs/installation) |
+| `setup` | ブラウザを選び、拡張機能バックエンドを準備します | [インストール](/docs/installation) |
+| `remember` | URLにアクセスしてブラウザメモリに保存します | [メモリ](/docs/search/memory) |
+| `memory` | 記憶の検索／一覧／メモ／削除です | [メモリ](/docs/search/memory) |
+| `index` | ローカル検索インデックスを管理します | [メモリ](/docs/search/memory) |
+| `extract-jobs` | バックグラウンド抽出ジョブを確認します | [メモリ](/docs/search/memory) |
+| `crawl` | ローカルクロールジョブを実行・確認します | [ワークフロー](/docs/automation/workflows) |
+| `record` | daemon操作を名前付きmacroに記録します | [ワークフロー](/docs/automation/workflows) |
+| `macro` | 保存済みmacroの一覧・実行です | [ワークフロー](/docs/automation/workflows) |
+| `replay` | 記録済みブラウザ操作を再生します | [ワークフロー](/docs/automation/workflows) |
+| `workflow` | 継続ワークフローをエクスポート・表示します | [ワークフロー](/docs/automation/workflows) |
+| `monitor` | URL内容の変更時にJSON行を出力します | [ワークフロー](/docs/automation/workflows) |
+| `distill` | 蒸留回答モデルを収集／準備／評価／学習します | — |
+
+## グローバルオプション
+
+すべてのコマンドが対応しています：
+
+- `--json` — 機械可読JSONをstdoutに出力します
+- `--verbose`、`-v` — 詳細なstderrログです
+- `--version` — バージョンを表示して終了します
+
+環境変数`OMNISCOUT_JSON=1`を設定するとJSON出力がデフォルトになります。完全なJSON契約とすべての環境変数は[設定](/docs/configuration)をご覧ください。
+
+## ブラウザコマンド
+
+完全なガイド：[ブラウザ自動化](/docs/automation/browser)。
+
+| コマンド | 内容 |
+|---------|--------------|
+| `browser navigate <url>` / `open` | URLを開きます（`--profile`、`--session`、`--new-tab`、`--headful`、`--wait-until`、`--auto-captcha`） |
+| `browser back/forward/reload` | 履歴ナビゲーションです |
+| `browser snapshot [--refs-only]` | `@eN` ref付きの操作可能要素です（可視化には`--overlay`） |
+| `browser observe "<hint>"` | 自然言語指示の候補refを探します |
+| `browser act "<instruction>"` | ページ操作を解決＋実行します（`--value`、`--dry-run`） |
+| `browser click <ref>` | クリックします（`--button`、`--clicks`、`--mod`、`--coord`） |
+| `browser fill <ref> <value>` | フィールド内容を置換します |
+| `browser type <ref> <text>` | テキストを追記します（`--delay-ms`） |
+| `browser paste <ref> <text>` | カーソル位置に挿入します |
+| `browser select <ref> <option>` | ネイティブ`<select>`です |
+| `browser scroll [up\|down]` | ページ／要素をスクロールします（`--amount`、`--ref`） |
+| `browser key <combo>` | キーボードショートカットです（Enter、`cmd+s`、…） |
+| `browser hover <ref>` | 要素／座標にマウスオーバーします |
+| `browser upload <ref> <files>` | `<input type=file>`にファイルを添付します |
+| `browser is <ref> <state>` | visible／hidden／enabled／disabled／checked／editableです |
+| `browser get title/url/text/html` | ページプロパティを読み取ります |
+| `browser eval <js>` | JavaScriptを実行して値を返します |
+| `browser extract-visible` | 可視テキストです。任意で`--schema`整形できます |
+| `browser find-image` | ビューポート内で画像テンプレートを探します |
+| `browser screenshot [-o PATH]` | PNG／JPEGです（`--full-page`、`--ref`、`--delay`、`--format`） |
+| `browser pdf [-o PATH]` | PDFに描画します（`--paper`、`--landscape`、`--scale`） |
+| `browser wait …` | `text`、`selector`、`networkidle`、`url`（`--ms`、`--timeout-ms`付き）です |
+| `browser mouse scroll/move` | 座標での生マウス入力です |
+| `browser tab list/close/switch` | セッション内のタブ管理です |
+| `browser network start/stop/list/tail/detail` | リクエスト／レスポンスのキャプチャです |
+| `browser console start/stop/list/tail` | コンソール＋JSエラー取得です |
+| `browser login <url>` | ヘッドフルログインでブロックします（`--profile`、`--done`、`--success-pattern`） |
+| `browser captcha` | 検出／解決します（none\|2captcha\|capsolver\|manual、`--detect-only`） |
+| `browser close [--all]` | 1セッションまたは全体を閉じます |
+
+## コンピューターコマンド（macOS）
+
+完全なガイド：[コンピューター](/docs/automation/computer)。
+
+| コマンド | 内容 |
+|---------|--------------|
+| `computer navigate <target>` | アプリ、ファイル、ディレクトリ、URLを開きます |
+| `computer type <text>` | フォーカス中のウィンドウに入力します |
+| `computer key <combo>` | キーボードショートカットを送信します |
+| `computer wait <ms>` | ミリ秒スリープします |
+| `computer screenshot` | 画面をキャプチャします |
+| `computer clipboard` | システムクリップボードの`get`／`set`です |
+| `computer window list/activate/close` | ウィンドウ管理です |
+| `computer ui snapshot/click/drag/is` | ネイティブUI向け`@eN` refです |
+| `computer doctor` | 環境を診断します |
+| `computer backend` | 自動化バックエンドを一覧表示します |
+
+## daemonコマンド
+
+完全なガイド：[daemonとセッション](/docs/automation/sessions)。
+
+| コマンド | 内容 |
+|---|---|
+| `daemon start/stop/restart` | ライフサイクルです（開始は冪等） |
+| `daemon status` | ヘルス、バージョン、アクティブセッションです |
+| `daemon logs` | ログを追跡します |
+| `daemon trace` | JSONL履歴です（直近1万コマンド） |
+| `daemon replay` | 記録済み操作を再実行します |
+| `daemon watch` | ライブイベントストリーム（SSE）です |
+
+## 環境変数
+
+| 変数 | 用途 |
+|---|---|
+| `OMNISCOUT_JSON=1` | すべてのコマンドでJSON出力を強制します |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | daemonを自動起動しません |
+| `OMNISCOUT_DAEMON_PORT` | daemonポートを上書きします（デフォルト7720） |
+| `OMNISCOUT_DATA_DIR` | データディレクトリを上書きします |
+| `OMNISCOUT_BROWSER` | ブラウザIDです（設定を上書きします） |
+| `OMNISCOUT_EMBED_LOCAL_ONLY=0` | 実行時のHugging Face取得を許可します |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | CAPTCHAソルバーのキーです |
+
+設定キーとデータ配置の完全な一覧は[設定](/docs/configuration)をご覧ください。

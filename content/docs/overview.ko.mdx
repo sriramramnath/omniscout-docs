@@ -1,0 +1,78 @@
+---
+title: OmniScout란?
+description: OmniScout — AI 에이전트를 위한 로컬 우선 브라우저 제어, 의미 검색, 리서치.
+icon: Info
+---
+
+OmniScout는 독립적인 **터미널 네이티브 웹 인터페이스**입니다. AI 에이전트를 위한 로컬 브라우저 브레인으로, 웹을 검색하고 구조화된 데이터를 추출하며 실제 브라우저를 제어하고 데스크톱 앱을 자동화하면서 모든 것을 기억합니다 — 노트북을 떠나지 않습니다.
+
+## 전체 구성
+
+- **CLI** — 직접(또는 에이전트가) 입력하는 `omniscout` 명령어. 모든 명령어는 JSON을 말합니다.
+- **Daemon** — `127.0.0.1:7720`의 long-lived 백그라운드 프로세스로 브라우저를 따뜻하게 유지해 동작이 1초 이내에 끝납니다.
+- **백엔드** — Patchright(기본값, 격리된 Chromium) 또는 실제 로그인이 있는 기존 브라우저를 구동하는 extension.
+
+전체 그림은 [동작 원리](/docs/overview)를 참고하세요: `@eN` ref, 세션, 프로필, 동작 히스토리, 이벤트 스트림.
+
+## 설치
+
+```bash
+pip install omniscout
+omniscout install --skill
+```
+
+전체 설정 — 브라우저, daemon, 모델 — 은 [설치](/docs/installation)에서 다룹니다. 5분 투어는 [빠른 시작](/docs/quickstart)입니다.
+
+## 할 수 있는 일
+
+| 영역 | 명령어 | 가이드 |
+|---|---|---|
+| 인용이 있는 Q&A | `answer` | [검색 및 답변](/docs/search/search) |
+| 랭크된 웹 히트 | `search`, `map` | [검색 및 답변](/docs/search/search) |
+| 페이지 → Markdown/JSON | `extract` | [추출](/docs/search/extraction) |
+| 다출처 리서치 | `research`, `graph` | [리서치 및 그래프](/docs/search/research) |
+| 브라우저 제어 | `browser`, `open`, `snapshot` | [브라우저 자동화](/docs/automation/browser) |
+| 데스크톱 자동화 (macOS) | `computer` | [컴퓨터](/docs/automation/computer) |
+| 백그라운드 서비스 | `daemon`, `session`, `profile` | [Daemon 및 세션](/docs/automation/sessions) |
+| 개인 웹 memory | `remember`, `memory`, `index` | [메모리](/docs/search/memory) |
+| 재사용 흐름 | `record`, `macro`, `replay`, `workflow`, `monitor` | [워크플로](/docs/automation/workflows) |
+| 설정 및 튜닝 | `install`, `setup`, `settings`, `warmup`, `benchmark` | [설정](/docs/configuration) |
+
+## 설계 원칙
+
+- **로컬 우선** — 클라우드 계정, API 키, 호스팅 서버가 없습니다. 상태, 임베딩, memory는 기기에 머물고, 외부로 나가는 트래픽은 실행한 검색과 가져온 URL뿐입니다.
+- **에이전트 ready** — everywhere `--json`, 안정적인 `@eN` 요소 ref, trace/replay가 가능한 기록된 동작 히스토리, Claude Code·Cursor·Codex·Gemini CLI용 스킬 파일.
+- **실제 브라우저** — 내 Chromium, 내 쿠키, 내 extension. 프로필로 한 번 로그인하면 계속 재사용합니다.
+
+## 사용
+
+```bash
+# Start the daemon (once)
+omniscout daemon start
+
+# Search the web
+omniscout answer "what is the capital of france"
+
+# Extract content from a URL
+omniscout extract https://example.com
+
+# Control a browser
+omniscout browser navigate https://example.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/page.png
+
+# Research a topic
+omniscout research "AI agents in 2026"
+
+# Build a knowledge graph
+omniscout graph "Cursor"
+```
+
+## 다음 단계
+
+- [설치](/docs/installation) — 요구 사항, 브라우저, daemon, 모델
+- [빠른 시작](/docs/quickstart) — 5분 만에 첫 실행
+- [AI 에이전트와 함께 사용하기](/docs/agents) — Claude Code, Cursor, Codex용 바로 쓰는 프롬프트
+- [명령어 레퍼런스](/docs/commands) — 모든 verb와 플래그
+- [예제 및 레시피](/docs/examples) — 자주 쓰는 워크플로

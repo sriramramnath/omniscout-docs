@@ -1,0 +1,88 @@
+---
+title: 认证
+description: 创建和使用 OmniScout 云 API 密钥。
+---
+
+所有云 API 请求都需要在 `Authorization` 请求头中携带 Bearer 令牌。
+
+搜索和问答端点只需要该 API 密钥。**浏览器和电脑会话命令**还需要第二个凭证：创建会话时返回的 `session_secret`（见[端点 → 浏览器会话](/zh-CN/docs/endpoints#browser-sessions)）。
+
+## API 密钥
+
+API 密钥在[控制台](https://api.omniscout.xyz/dashboard/api-keys)中创建。每个密钥：
+
+- 以 `os_live_` 开头
+- 绑定到你的 Clerk 账号
+- 有独立的用量统计
+- 可随时撤销
+
+```bash
+Authorization: Bearer os_live_abc123...
+```
+
+## 创建密钥
+
+1. 在 [api.omniscout.xyz](https://api.omniscout.xyz) 登录。
+2. 前往**控制台 → API 密钥**。
+3. 点击**创建密钥**并复制其值——它只显示一次。
+
+将密钥存放在环境变量中，不要写进源码：
+
+```bash
+export OMNISCOUT_API_KEY=os_live_abc123...
+```
+
+## 请求示例
+
+```bash
+curl -X POST https://api.omniscout.xyz/v0/search \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "python async patterns"}'
+```
+
+## 会话密钥
+
+会话路由使用**两个**凭证：
+
+| 凭证 | 请求头 | 何时使用 |
+|---|---|---|
+| API 密钥 | `Authorization: Bearer os_live_...` | 创建、命令、文件上传/下载、删除 |
+| 会话密钥 | `x-session-secret: <secret>` | 仅命令、文件上传/下载 |
+
+会话密钥在创建响应中**仅返回一次**（`session_secret`）。请与 `session_id` 一起保存——之后无法再次获取。
+
+```bash
+# 创建（仅需 API 密钥）
+curl -X POST https://api.omniscout.xyz/v0/computer/sessions \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY"
+
+# 执行命令（API 密钥 + 会话密钥）
+curl -X POST "https://api.omniscout.xyz/v0/computer/sessions/$SESSION_ID" \
+  -H "Authorization: Bearer $OMNISCOUT_API_KEY" \
+  -H "x-session-secret: $SESSION_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"computer.type","args":{"text":"hello"},"session":"default"}'
+```
+
+删除只需要 API 密钥（无需会话密钥）。
+
+## 错误响应
+
+| 状态码 | 含义 |
+|---|---|
+| `401` | 缺少或无效的 API 密钥 |
+| `401` | 会话命令或文件路由上的 `x-session-secret` 无效 |
+| `429` | 超出每日速率限制 |
+
+所有错误响应都包含 `request_id` 以便调试：
+
+```json
+{
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "error": {
+    "type": "unauthorized",
+    "message": "Invalid API key"
+  }
+}
+```

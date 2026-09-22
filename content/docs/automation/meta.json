@@ -1,0 +1,10 @@
+{
+  "title": "Browser & Computer automation",
+  "icon": "Bot",
+  "pages": [
+    "browser",
+    "computer",
+    "sessions",
+    "workflows"
+  ]
+}

@@ -1,0 +1,86 @@
+---
+title: クイックスタート
+description: 初めての検索、抽出、ブラウザ自動化を5分で体験します。
+icon: Rocket
+---
+
+このガイドでは、ゼロから動作するブラウザ自動化までを約5分で体験します。[インストール](/docs/installation)が完了していることを前提としています。
+
+## 1. daemonを起動します
+
+```bash
+omniscout daemon start
+```
+
+## 2. Webから回答を取得します
+
+`answer`は事実にたどり着く最速の方法です — 検索、ローカルでのリランク、出典付きの統合を行います：
+
+```bash
+omniscout answer "what is the capital of france"
+```
+
+ランク付きリンクだけが必要な場合は`search`を使います：
+
+```bash
+omniscout search "local-first AI agents" --limit 5
+```
+
+出典、depthモード、回答エンジンは[検索とQ&A](/docs/search/search)をご覧ください。
+
+## 3. ページを抽出します
+
+`extract`は任意のURLをクリーンなMarkdownに変換します — ブラウザは不要です：
+
+```bash
+omniscout extract https://example.com
+```
+
+Markdownではなく特定フィールドのJSONが必要な場合は[抽出](/docs/search/extraction)をご覧ください。
+
+## 4. ブラウザを操作します
+
+ほとんどのブラウザ作業は4つのコマンドで足ります：ページを開き、操作可能な要素をsnapshotで取得し、`@eN` refに対して操作し、結果をスクリーンショットで確認します：
+
+```bash
+omniscout browser navigate https://news.ycombinator.com
+omniscout browser snapshot --refs-only
+omniscout browser click '@e3'
+omniscout browser screenshot --out /tmp/hn.png
+```
+
+重要な原則：**snapshotは`@eN` refを返し、すべての操作はrefを対象とします。**ナビゲーションのたびに再取得します — ページが変わるとrefは無効になります。操作の全語彙は[ブラウザ自動化](/docs/automation/browser)をご覧ください。
+
+## 5. 機械可読な出力にします
+
+すべてのコマンドは`--json`に対応しており、エージェントは常に使うべきです：
+
+```bash
+omniscout --json answer "What is local-first software?"
+export OMNISCOUT_JSON=1   # same effect for every command
+```
+
+## 6. クリーンアップします
+
+```bash
+omniscout browser close --all
+```
+
+## チートシート
+
+```bash
+omniscout daemon start                              # once per machine
+omniscout answer "..."                              # Q&A with citations
+omniscout extract https://example.com               # page → Markdown
+omniscout browser navigate <url>                    # open a page
+omniscout browser snapshot --refs-only              # list @eN refs
+omniscout browser click '@e3'                       # act on a ref
+omniscout browser screenshot --out /tmp/out.png     # capture state
+omniscout browser close --all                       # clean up
+```
+
+## 次のステップ
+
+- [検索とQ&A](/docs/search/search) — 出典、リランク、depth、エンジンについて説明します
+- [ブラウザ自動化](/docs/automation/browser) — フォーム、タブ、ネットワーク、ログイン、CAPTCHAについて説明します
+- [実例とレシピ](/docs/examples) — コピー＆ペーストで使えるワークフロー集です

@@ -1,0 +1,134 @@
+---
+title: 명령어 레퍼런스
+description: OmniScout CLI의 모든 명령어.
+icon: List
+---
+
+`omniscout --help`로 모든 명령어를, `omniscout <command> --help`(그리고 `omniscout browser <action> --help`)로 옵션을 확인하세요. 아래 각 섹션은 전체 플래그와 예제가 있는 가이드로 연결됩니다.
+
+## 최상위 명령어
+
+| 명령어 | 설명 | 가이드 |
+|---|---|---|
+| `answer` | 인용이 있는 Q&A (`search`보다 권장) | [검색](/docs/search/search) |
+| `search` | 로컬 의미 리랭크가 적용된 웹 검색 (+ `ui`) | [검색](/docs/search/search) |
+| `map` | 사이트를 크롤링해 URL 맵 생성 (`--limit`, `--depth`) | [검색](/docs/search/search) |
+| `warmup` | daemon에 임베딩/답변 모델 미리 로드 | [검색](/docs/search/search) |
+| `extract` | URL/쿼리/사이트 크롤 → Markdown 또는 구조화된 JSON | [추출](/docs/search/extraction) |
+| `research` | 검색 → 크롤 → 추출 → 리랭크 → 요약 | [리서치](/docs/search/research) |
+| `graph` | 엔티티에 대한 구조화된 지식 그래프 | [리서치](/docs/search/research) |
+| `benchmark` | 답변/검색/서식 모드 평가 | [리서치](/docs/search/research) |
+| `open` | 브라우저에서 URL 열기 (또는 최근 검색 N번째 결과) | [워크플로](/docs/automation/workflows) |
+| `snapshot` | `@e` ref가 있는 접근성 snapshot (기본 세션) | [브라우저](/docs/automation/browser) |
+| `context` | 워크플로 연속성 상태 표시 | [워크플로](/docs/automation/workflows) |
+| `reset` | 연속성 상태 초기화 | [워크플로](/docs/automation/workflows) |
+| `auto` | 입력을 최적 명령어로 라우팅 | [워크플로](/docs/automation/workflows) |
+| `browser` | 전체 Chromium 자동화 명령어 | [브라우저](/docs/automation/browser) |
+| `computer` | 네이티브 데스크톱 자동화 (macOS) | [컴퓨터](/docs/automation/computer) |
+| `daemon` | 시작/중지/상태/로그/trace/replay/watch | [세션](/docs/automation/sessions) |
+| `session` | long-lived 세션 start/list/attach/kill | [세션](/docs/automation/sessions) |
+| `profile` | 영속 프로필 create/list/delete | [세션](/docs/automation/sessions) |
+| `settings` | show/browsers/engines/set | [세션](/docs/automation/sessions) |
+| `install` | 로컬 Chromium 확인 (+ `--skill`) | [설치](/docs/installation) |
+| `setup` | 브라우저 선택, extension 백엔드 준비 | [설치](/docs/installation) |
+| `remember` | URL을 방문해 브라우저 memory에 저장 | [메모리](/docs/search/memory) |
+| `memory` | 기억 검색/목록/메모/삭제 | [메모리](/docs/search/memory) |
+| `index` | 로컬 검색 인덱스 관리 | [메모리](/docs/search/memory) |
+| `extract-jobs` | 백그라운드 추출 작업 조회 | [메모리](/docs/search/memory) |
+| `crawl` | 로컬 크롤 작업 실행 / 확인 | [워크플로](/docs/automation/workflows) |
+| `record` | daemon 동작을 이름 있는 매크로로 기록 | [워크플로](/docs/automation/workflows) |
+| `macro` | 저장된 매크로 나열 / 실행 | [워크플로](/docs/automation/workflows) |
+| `replay` | 기록된 브라우저 동작 replay | [워크플로](/docs/automation/workflows) |
+| `workflow` | 연속성 워크플로 내보내기 / 보기 | [워크플로](/docs/automation/workflows) |
+| `monitor` | URL 콘텐츠가 바뀌면 JSON 라인 출력 | [워크플로](/docs/automation/workflows) |
+| `distill` | 증류 답변 모델 수집/준비/평가/학습 | — |
+
+## 전역 옵션
+
+모든 명령어가 지원합니다:
+
+- `--json` — stdout에 기계가 읽을 수 있는 JSON 출력
+- `--verbose`, `-v` — 자세한 stderr 로깅
+- `--version` — 버전 출력 후 종료
+
+JSON 출력을 기본값으로 만들려면 환경에 `OMNISCOUT_JSON=1`을 설정하세요. 전체 JSON 규약과 모든 환경 변수는 [설정](/docs/configuration)을 참고하세요.
+
+## 브라우저 명령어
+
+전체 가이드: [브라우저 자동화](/docs/automation/browser).
+
+| 명령어 | 설명 |
+|---------|--------------|
+| `browser navigate <url>` / `open` | URL 열기 (`--profile`, `--session`, `--new-tab`, `--headful`, `--wait-until`, `--auto-captcha`) |
+| `browser back/forward/reload` | 히스토리 내비게이션 |
+| `browser snapshot [--refs-only]` | `@eN` ref가 있는 상호작용 요소 (`--overlay`로 시각화) |
+| `browser observe "<hint>"` | 자연어 지시에 대한 후보 ref 찾기 |
+| `browser act "<instruction>"` | 페이지 동작 해석 + 수행 (`--value`, `--dry-run`) |
+| `browser click <ref>` | 클릭 (`--button`, `--clicks`, `--mod`, `--coord`) |
+| `browser fill <ref> <value>` | 필드 내용 교체 |
+| `browser type <ref> <text>` | 텍스트 이어 쓰기 (`--delay-ms`) |
+| `browser paste <ref> <text>` | 커서에 삽입 |
+| `browser select <ref> <option>` | 네이티브 `<select>` |
+| `browser scroll [up\|down]` | 페이지/요소 스크롤 (`--amount`, `--ref`) |
+| `browser key <combo>` | 키보드 단축키 (`Enter`, `cmd+s`, …) |
+| `browser hover <ref>` | 요소/좌표에 마우스 올리기 |
+| `browser upload <ref> <files>` | `<input type=file>`에 파일 첨부 |
+| `browser is <ref> <state>` | visible/hidden/enabled/disabled/checked/editable |
+| `browser get title/url/text/html` | 페이지 속성 읽기 |
+| `browser eval <js>` | JavaScript 실행 후 값 반환 |
+| `browser extract-visible` | 보이는 텍스트, 선택적으로 `--schema` 가공 |
+| `browser find-image` | 뷰포트에서 이미지 템플릿 찾기 |
+| `browser screenshot [-o PATH]` | PNG/JPEG (`--full-page`, `--ref`, `--delay`, `--format`) |
+| `browser pdf [-o PATH]` | PDF로 렌더링 (`--paper`, `--landscape`, `--scale`) |
+| `browser wait …` | `text`, `selector`, `networkidle`, `url` (+ `--ms`, `--timeout-ms`) |
+| `browser mouse scroll/move` | 좌표에 raw 마우스 입력 |
+| `browser tab list/close/switch` | 세션 내 탭 관리 |
+| `browser network start/stop/list/tail/detail` | 요청/응답 캡처 |
+| `browser console start/stop/list/tail` | 콘솔 + JS 오류 캡처 |
+| `browser login <url>` | headful 로그인, 블로킹 (`--profile`, `--done`, `--success-pattern`) |
+| `browser captcha` | 감지/해결 (`none\|2captcha\|capsolver\|manual`, `--detect-only`) |
+| `browser close [--all]` | 하나의 세션 또는 전체 닫기 |
+
+## 컴퓨터 명령어 (macOS)
+
+전체 가이드: [컴퓨터](/docs/automation/computer).
+
+| 명령어 | 설명 |
+|---------|--------------|
+| `computer navigate <target>` | 앱, 파일, 디렉터리 또는 URL 열기 |
+| `computer type <text>` | 포커스된 창에 입력 |
+| `computer key <combo>` | 키보드 단축키 전송 |
+| `computer wait <ms>` | 밀리초 sleep |
+| `computer screenshot` | 화면 캡처 |
+| `computer clipboard` | 시스템 클립보드 `get` / `set` |
+| `computer window list/activate/close` | 창 관리 |
+| `computer ui snapshot/click/drag/is` | 네이티브 UI용 `@eN` ref |
+| `computer doctor` | 환경 진단 |
+| `computer backend` | 자동화 백엔드 목록 |
+
+## Daemon 명령어
+
+전체 가이드: [Daemon 및 세션](/docs/automation/sessions).
+
+| 명령어 | 설명 |
+|---|---|
+| `daemon start/stop/restart` | 생명주기 (멱등 시작) |
+| `daemon status` | 상태, 버전, 활성 세션 |
+| `daemon logs` | 로그 tail |
+| `daemon trace` | JSONL 히스토리 (최근 10k 명령어) |
+| `daemon replay` | 기록된 동작 다시 실행 |
+| `daemon watch` | live 이벤트 스트림 (SSE) |
+
+## 환경 변수
+
+| 변수 | 용도 |
+|---|---|
+| `OMNISCOUT_JSON=1` | 모든 명령어에 JSON 출력 강제 |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | daemon 자동 시작 안 함 |
+| `OMNISCOUT_DAEMON_PORT` | daemon 포트 재정의 (기본값 7720) |
+| `OMNISCOUT_DATA_DIR` | 데이터 디렉터리 재정의 |
+| `OMNISCOUT_BROWSER` | 브라우저 id (설정 재정의) |
+| `OMNISCOUT_EMBED_LOCAL_ONLY=0` | 런타임 Hugging Face 가져오기 허용 |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | CAPTCHA 솔버 키 |
+
+설정 키와 데이터 구조 전체 목록: [설정](/docs/configuration).

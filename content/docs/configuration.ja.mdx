@@ -1,0 +1,88 @@
+---
+title: 設定
+description: config.toml、環境変数、データ配置、JSON出力について説明します。
+icon: Settings
+---
+
+## config.toml
+
+お使いのプラットフォームの設定ディレクトリに`config.toml`を作成します：
+
+| プラットフォーム | パス |
+|---|---|
+| macOS | `~/Library/Application Support/omniscout/config.toml` |
+| Linux | `~/.config/omniscout/config.toml` |
+
+```toml
+default_source = "searxng"   # searxng | ddg | wikipedia | web
+search_limit = 10
+research_results = 8
+request_throttle_seconds = 1.0
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+browser = "chrome"                    # chrome | edge | brave | vivaldi | opera | arc | chromium | custom
+# browser_executable = "/path/to/browser"  # only needed for 'custom'
+```
+
+手編集よりCLIを推奨します — `omniscout settings set`は同じファイルを書き込みます：
+
+```bash
+omniscout settings set browser brave
+omniscout settings show
+```
+
+インストール状態とエンジンは`omniscout install`、`omniscout settings browsers`、`omniscout settings engines`で確認します。
+
+## 環境変数
+
+| 変数 | 用途 |
+|---|---|
+| `OMNISCOUT_JSON=1` | すべてのコマンドでJSON出力を強制します |
+| `OMNISCOUT_DAEMON_AUTO_START=0` | daemonを自動起動しません |
+| `OMNISCOUT_DAEMON_PORT` | daemonポートです（デフォルト7720） |
+| `OMNISCOUT_DATA_DIR` | データディレクトリを変更します |
+| `OMNISCOUT_BROWSER` | ブラウザIDです（設定より優先します） |
+| `OMNISCOUT_EMBED_LOCAL_ONLY=0` | 実行時のHugging Face取得を許可します |
+| `TWOCAPTCHA_API_KEY` / `CAPTCHA_API_KEY` | CAPTCHAソルバーのキーです |
+| `OMNISCOUT_API_KEY` | クラウドAPIキーです（Cloud SDK／CLI用） |
+| `OMNISCOUT_BASE_URL` | クラウドベースURLです（デフォルトは本番環境） |
+
+従来の`HARNESS_*`相当も引き続き受け付けます。
+
+## JSON出力の契約
+
+すべてのコマンドはJSONを話します — エージェント連携の窓口です：
+
+```bash
+omniscout --json answer "What is local-first software?"
+export OMNISCOUT_JSON=1   # same for all commands in this shell
+```
+
+JSON有効時は`stdout`が構造化ペイロードになり、ログは`stderr`に出ます（`-v/--verbose`で増量）。`jq`にパイプします：
+
+```bash
+omniscout search "topic" | jq '.hits[] | {title, url}'
+```
+
+CLIを介さずdaemonに直接通信することもできます：
+
+```bash
+curl -X POST http://127.0.0.1:7720/command \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"navigate","args":{"url":"https://example.com"},"session":"demo"}'
+```
+
+完全なエージェントループ（JSON、trace／replay／watch、エラーの種類）は[AIエージェントでの利用](/docs/agents)をご覧ください。
+
+## ディスク上の状態
+
+| パス（データディレクトリ配下） | 用途 |
+|---|---|
+| `profiles/` | 永続ブラウザのユーザーデータディレクトリです |
+| `qdrant/` | 埋め込みベクトルインデックスです |
+| `models/sentence-transformers/` | 事前取得済み埋め込みモデルです |
+| `memory.sqlite` | ブラウザメモリ（訪問＋メモ）です |
+| `sessions.sqlite` | 長時間稼働セッションのレジストリです |
+| `cache/pages/` | コンテンツハッシュ化HTMLキャッシュです |
+| `daemon/` | PID、ポート、ログ、操作履歴、セッション復元です |
+
+プロファイルやモデル／キャッシュデータはバージョン管理外に保管します。
