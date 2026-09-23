@@ -46,12 +46,6 @@ Semantic search over the owned index.
 }
 ```
 
-### Pipeline
-
-1. Hybrid vector + BM25 query against Qdrant Cloud
-2. Rerank with `omniscout.engines.search.rerank`
-3. Return top hits with scores
-
 ---
 
 ## POST /v0/answer
@@ -87,13 +81,6 @@ Grounded one-sentence answer from web sources.
 
 When evidence is insufficient, `status` is `insufficient_information` and `answer` is `null`.
 
-### Pipeline
-
-1. Top-3 index search + rerank
-2. Extract URL content (omniscout or trafilatura)
-3. Synthesize via Vercel AI Gateway
-4. Return answer with sources and confidence
-
 ---
 
 ## Session API summary
@@ -103,13 +90,13 @@ When evidence is insufficient, `status` is `insufficient_information` and `answe
 | Topic | Before | Now |
 |---|---|---|
 | Create response | `session_id`, `expires_at` | Also `session_secret` (store it) and `capabilities` |
-| Command auth | API key + `x-session-secret` | Same — document explicitly; secret shown only at create |
-| Computer + browser | Separate sessions / VMs | Computer session ID works for **both** routes |
-| Browser actions | `navigate`, `screenshot`, … | Unchanged (bare action names) |
+| Command auth | API key + `x-session-secret` | Same — shown only when the session is created, so save it |
+| Computer + browser | Separate sessions | One computer session id works for **both** routes |
+| Browser actions | `navigate`, `screenshot`, … | Unchanged (short action names) |
 | Computer actions | `computer.*` prefix | Unchanged |
-| Screenshots / files | Path on Sprite only | Use `GET /v0/sessions/{id}/files` to download bytes |
-| Upload to browser | Paths on Sprite only | `POST /v0/sessions/{id}/files` first, then `upload` action |
-| Expiry | Fixed TTL from create | Sliding inactivity (default 30 min) with 2 hr max |
+| Screenshots / files | Path on the session only | Use `GET /v0/sessions/{id}/files` to download the file |
+| Upload to browser | Paths on the session only | `POST /v0/sessions/{id}/files` first, then the `upload` action |
+| Expiry | Fixed time from create | Stays alive while you use it (around 30 min idle, 2 hr max) |
 | Delete session | API key | API key only (no `x-session-secret`) |
 
 ---
@@ -118,7 +105,7 @@ When evidence is insufficient, `status` is `insufficient_information` and `answe
 
 ### POST /v0/browser/sessions
 
-Create a browser-only Fly Sprite session (lightweight Chromium VM).
+Create a browser-only remote session.
 
 Auth: `Authorization: Bearer os_live_...`
 
@@ -134,7 +121,7 @@ Auth: `Authorization: Bearer os_live_...`
 }
 ```
 
-Sessions expire after inactivity (`SESSION_INACTIVITY_MS`, default 30 minutes) or when the hard TTL is reached (`SESSION_MAX_TTL_MS`, default 2 hours). Every command extends the inactivity window.
+Sessions stay alive while you use them (around 30 minutes of inactivity, up to 2 hours total). Every command extends the window.
 
 ### `POST /v0/browser/sessions/{id}`
 
@@ -154,7 +141,7 @@ Proxy a daemon command to the session.
 |---|---|---|---|
 | `action` | string | yes | Browser action name (e.g. `navigate`, `snapshot`, `screenshot`) — no `browser.` prefix |
 | `args` | object | no | Action-specific arguments |
-| `session` | string | no | Daemon tab group name (default `default`) |
+| `session` | string | no | Session name (default `default`) |
 | `timeout_ms` | integer | no | Command timeout in milliseconds |
 
 Computer sessions with `capabilities: ["browser", "computer"]` also accept browser commands on this route using the **same** `session_id`.
@@ -163,7 +150,7 @@ Browser-only sessions reject `computer.*` actions with `400`.
 
 ### `DELETE /v0/browser/sessions/{id}`
 
-Destroy the session and release the Fly Machine.
+Destroy the session and release it.
 
 **Headers:** `Authorization: Bearer os_live_...` only (session secret not required).
 
@@ -171,11 +158,11 @@ Destroy the session and release the Fly Machine.
 
 ## Computer sessions
 
-Unified Fly Sprite sessions include both desktop automation and browser automation on the same VM.
+One computer session gives you both desktop control and browser control on the same session id.
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/v0/computer/sessions` | Create unified Sprite (`capabilities: ["browser", "computer"]`) |
+| `POST` | `/v0/computer/sessions` | Create a session with browser + desktop (`capabilities: ["browser", "computer"]`) |
 | `POST` | `/v0/computer/sessions/{id}` | Proxy command (`computer.*` actions) |
 | `DELETE` | `/v0/computer/sessions/{id}` | Destroy session (API key only) |
 
@@ -195,7 +182,7 @@ Computer commands use the `computer.` prefix:
 |---|---|---|---|
 | `action` | string | yes | Must start with `computer.` (e.g. `computer.type`, `computer.screenshot`) |
 | `args` | object | no | Action-specific arguments |
-| `session` | string | no | Daemon session name (default `default`) |
+| `session` | string | no | Session name (default `default`) |
 
 The same `session_id` works for browser commands via `/v0/browser/sessions/{id}` — you do not need a second browser session.
 
@@ -203,7 +190,7 @@ The same `session_id` works for browser commands via `/v0/browser/sessions/{id}`
 
 ## Session files
 
-Upload and download files on the Sprite filesystem.
+Upload files to, or download files from, a session.
 
 | Method | Path | Description |
 |---|---|---|
@@ -213,7 +200,7 @@ Upload and download files on the Sprite filesystem.
 
 Both routes require `Authorization` and `x-session-secret`.
 
-**Upload** — `multipart/form-data` with a `file` field. Optional `session` field sets the daemon session name (default `default`).
+**Upload** — `multipart/form-data` with a `file` field. Optional `session` field sets the session name (default `default`).
 
 ```bash
 curl -X POST "https://api.omniscout.xyz/v0/sessions/$SESSION_ID/files" \
@@ -244,9 +231,7 @@ Typical browser upload workflow:
 
 ## OpenAPI
 
-The full OpenAPI 3.1 spec is available at:
+Try every endpoint in your browser:
 
 - Interactive explorer: [api.omniscout.xyz/docs](https://api.omniscout.xyz/docs)
 - JSON: [api.omniscout.xyz/api/openapi](https://api.omniscout.xyz/api/openapi)
-
-The spec is generated from Zod route schemas and stays in sync with the live API.

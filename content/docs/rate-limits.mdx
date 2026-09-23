@@ -1,29 +1,29 @@
 ---
 title: Rate Limits & Spending Protection
-description: OmniScout Cloud abuse protection, concurrency caps, and spending limits.
+description: Fair-use guards, session limits, and spending caps.
 icon: Gauge
 ---
 
-OmniScout Cloud does **not** use subscription tiers or included monthly API allowances. Customers pay for consumed resources (see [Usage & Billing](/docs/billing)).
+OmniScout Cloud does **not** use subscription tiers. You pay for what you use (see [Usage & Billing](/docs/billing)). The limits below keep the service fair for everyone.
 
-## Abuse protection (not pricing plans)
+## Usage guards
 
-These limits protect the platform from abuse. They are **not** billable quotas.
+These guards protect the service from abuse. They are **not** billing quotas.
 
-| Control | Default | Env override |
-|---|---|---|
-| Concurrent sessions | 3 | `MAX_CONCURRENT_SESSIONS` |
-| Session inactivity TTL | 30 min | `SESSION_INACTIVITY_MS` |
-| Session max TTL | 2 hr | `SESSION_MAX_TTL_MS` |
-| Daily search cap (legacy guard) | 1,000 | `DAILY_SEARCH_LIMIT` |
-| Daily answer cap (legacy guard) | 100 | `DAILY_ANSWER_LIMIT` |
-| Daily session command cap (legacy guard) | 5,000 | `DAILY_SESSION_COMMAND_LIMIT` |
+| What is limited | Default |
+|---|---|
+| Sessions running at the same time | 3 |
+| Idle time before a session closes | 30 minutes |
+| Longest a session can stay open | 2 hours |
+| Searches per day | 1,000 |
+| Answers per day | 100 |
+| Session commands per day | 5,000 |
 
-Daily endpoint caps are legacy abuse guards and may be removed; billable usage is tracked separately in the Convex ledger.
+Most users never hit these. If you need more room, contact support.
 
 ## Spending limits
 
-Accounts may configure a monthly USD spending cap. When exceeded, billable operations return:
+Set a monthly spending cap in the dashboard. When the cap is reached, billable use stops with this error:
 
 ```json
 {
@@ -37,11 +37,13 @@ Accounts may configure a monthly USD spending cap. When exceeded, billable opera
 }
 ```
 
-## Payment required
+Raise the cap to continue.
 
-If Stripe reports `past_due` or `unpaid` billing status, new billable consumption may be blocked with `402 payment_required`.
+## Payment issues
 
-## Tracking usage
+If a payment fails, new billable use may be paused with a `402 payment_required` error until billing is up to date.
+
+## Check your usage
 
 - API: `GET /v0/usage` with your API key
 - Dashboard: [Usage](https://api.omniscout.xyz/dashboard/usage) and [Billing](https://api.omniscout.xyz/dashboard/billing)

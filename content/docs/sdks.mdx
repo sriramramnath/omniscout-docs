@@ -4,12 +4,12 @@ description: Python and TypeScript SDKs plus curl for OmniScout Cloud.
 icon: Package
 ---
 
-SDKs wrap the REST API from [Endpoints](/docs/endpoints): session lifecycle, actions, files, search, answer, and usage. Sources live in `cloud/sdk/` in the repository.
+SDKs wrap the REST API from [Endpoints](/docs/endpoints): session lifecycle, actions, files, search, answer, and usage.
 
 ## Python
 
 ```bash
-pip install omniscout-cloud  # from cloud/sdk/python
+pip install omniscout-cloud
 ```
 
 ```python
@@ -40,8 +40,6 @@ client.destroy_session(session_id)
 client.close()
 ```
 
-Full runnable script: `cloud/examples/python/full_session.py`. Client methods: `create_session`, `get_session`, `run_action`, `destroy_session`, `usage`, `close`.
-
 ## TypeScript
 
 ```typescript
@@ -69,23 +67,20 @@ await client.runAction(sessionId, secret, "computer.screenshot", { format: "url"
 await client.destroySession(sessionId);
 ```
 
-Full runnable script: `cloud/examples/typescript/full_session.ts` (run with `OMNISCOUT_API_KEY=os_live_... bun run cloud/examples/typescript/full_session.ts`).
-
 ## curl
 
-The complete lifecycle in bash — `cloud/examples/curl/session-lifecycle.sh`:
+The complete lifecycle in bash:
 
 ```bash
 export OMNISCOUT_API_KEY=os_live_...
 export OMNISCOUT_BASE_URL=https://api.omniscout.xyz
-bash cloud/examples/curl/session-lifecycle.sh
 ```
 
-It creates a session, polls to ready, runs `terminal.exec`, and destroys the session. Extend it with any action from [Endpoints](/docs/endpoints) — browser actions use bare names (`navigate`, `screenshot`), computer actions use the `computer.` prefix (`computer.type`, `computer.screenshot`).
+Create a session, wait until it is ready, run an action, then destroy the session. Extend it with any action from [Endpoints](/docs/endpoints) — browser actions use short names (`navigate`, `screenshot`), computer actions start with `computer.` (`computer.type`, `computer.screenshot`).
 
-## Files on the Sprite
+## Files
 
-Screenshots and PDFs land on the Sprite filesystem — download them via the file routes:
+Screenshots and PDFs are saved on the session — download them with the file routes:
 
 ```bash
 # After a screenshot action returns a path:
@@ -99,17 +94,3 @@ curl -X POST "$OMNISCOUT_BASE_URL/v0/sessions/$SESSION_ID/files" \
   -H "x-session-secret: $SESSION_SECRET" \
   -F "file=@./document.pdf"
 ```
-
-## Local testing
-
-Run the platform locally and point the SDKs at it:
-
-```bash
-cd cloud/platform
-cp .env.local.example .env.local
-bun install
-bunx convex dev   # terminal 1
-bun dev           # terminal 2 → http://localhost:3001
-```
-
-Set `FLY_SPRITES_MOCK=1` to test sessions without the Fly API, then `OMNISCOUT_BASE_URL=http://localhost:3001`.

@@ -4,7 +4,7 @@ description: API key, first search, first answer, and first browser session in m
 icon: Rocket
 ---
 
-OmniScout Cloud is the hosted API: semantic search over an owned index, grounded answers, and remote browser/computer sessions on Fly Sprites. The local CLI is unchanged — Cloud is additive.
+OmniScout Cloud is the hosted API: search, answers, and remote browser sessions with no install. The local CLI is unchanged — Cloud is additive.
 
 ## 1. Get an API key
 
@@ -43,7 +43,7 @@ You get an `answer` with `sources` and `confidence` — or `status: insufficient
 
 ## 4. First browser session
 
-Sessions run the same daemon primitives as the CLI, on a remote Sprite. Lifecycle: **create → poll → act → destroy**.
+Sessions run the same commands as the CLI, on a remote machine. Lifecycle: **create → wait until ready → act → delete**.
 
 ```bash
 # Create (API key only) — save session_id AND session_secret
@@ -71,7 +71,7 @@ curl -sS -X DELETE $OMNISCOUT_BASE_URL/v0/sessions/$SESSION_ID \
   -H "Authorization: Bearer $OMNISCOUT_API_KEY"
 ```
 
-Types: `"browser"` is a lightweight browser-only Sprite; `"computer"` is unified (browser + desktop on one session id). Sessions expire after inactivity (default 30 min, 2 hr max) — every command extends the window.
+Types: `"browser"` is a lightweight browser-only session; `"computer"` adds desktop control on the same session id. Sessions close after inactivity (around 30 minutes, up to 2 hours) — every command keeps them alive longer.
 
 Prefer SDKs? See [SDKs](/docs/sdks) for the same flow in Python and TypeScript.
 
@@ -82,7 +82,7 @@ curl -sS $OMNISCOUT_BASE_URL/v0/usage \
   -H "Authorization: Bearer $OMNISCOUT_API_KEY" | jq .
 ```
 
-Billing is usage-based only (infra cost × 1.30) — see [Usage & Billing](/docs/billing).
+Billing is usage-based — you pay only for what you use. See [Usage & Billing](/docs/billing).
 
 ## Next steps
 

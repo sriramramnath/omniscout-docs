@@ -1,20 +1,20 @@
 ---
 title: Cloud API Overview
-description: OmniScout Cloud API for search, grounded answers, and browser/computer sessions.
+description: Hosted search, answers, and remote browser sessions — no setup required.
 icon: Cloud
 ---
 
-OmniScout Cloud is the hosted API for semantic search, grounded answers, and remote browser/computer sessions. It uses the same retrieval and reranking pipeline as the local CLI, backed by an owned Qdrant index instead of DuckDuckGo.
+OmniScout Cloud is the hosted API for search, answers, and remote browser sessions. If the local CLI is not an option — for example, you want to run from a server or share access across a team — Cloud gives you the same capabilities over HTTPS.
 
 ## What you get
 
-| Capability | Endpoint | Description |
+| Capability | Endpoint | What it does for you |
 |---|---|---|
-| **Search** | `POST /v0/search` | Hybrid vector + BM25 retrieval over the owned index, reranked with omniscout |
-| **Answer** | `POST /v0/answer` | Search → extract → AI synthesis with sources and confidence |
-| **Browser sessions** | `POST /v0/browser/sessions` | Lightweight browser-only Sprite (`capabilities: ["browser"]`) |
-| **Computer sessions** | `POST /v0/computer/sessions` | Unified Sprite with browser + desktop (`capabilities: ["browser", "computer"]`) |
-| **Session files** | `POST/GET /v0/sessions/{id}/files` | Upload to or download from a Sprite |
+| **Search** | `POST /v0/search` | Ranked web results for any query |
+| **Answer** | `POST /v0/answer` | A direct answer with sources and confidence |
+| **Browser sessions** | `POST /v0/browser/sessions` | A remote browser you can drive with clicks, fills, and screenshots |
+| **Computer sessions** | `POST /v0/computer/sessions` | A remote session with browser plus desktop control |
+| **Session files** | `POST/GET /v0/sessions/{id}/files` | Upload files to, or download screenshots and PDFs from, a session |
 
 ### What changed for session callers
 
@@ -22,11 +22,11 @@ OmniScout Cloud is the hosted API for semantic search, grounded answers, and rem
 
 Session endpoints use the same paths as before, with these differences:
 
-1. **Save `session_secret`** from the create response — required on every command and file request via `x-session-secret`.
+1. **Save `session_secret`** from the create response — you need it on every command and file request via `x-session-secret`.
 2. **Computer sessions are unified** — one `session_id` supports both browser commands (`POST /v0/browser/sessions/{id}`) and computer commands (`POST /v0/computer/sessions/{id}`). You no longer need a separate browser session when you already have a computer session.
-3. **Action names** — browser actions use bare names (`navigate`, `screenshot`); computer actions use the `computer.` prefix (`computer.type`, `computer.screenshot`).
-4. **File routes are new** — use `/v0/sessions/{id}/files` to upload files or download screenshots/PDFs from the Sprite.
-5. **Expiry is inactivity-based** — sessions extend on each command (default 30 min idle, 2 hr max). Do not assume a fixed TTL from create time.
+3. **Action names** — browser actions use short names (`navigate`, `screenshot`); computer actions start with `computer.` (`computer.type`, `computer.screenshot`).
+4. **File routes are new** — use `/v0/sessions/{id}/files` to upload files or download screenshots and PDFs from the session.
+5. **Sessions stay alive while you use them** — each command extends the session (around 30 minutes of inactivity by default, up to 2 hours total). You do not need to track an expiry time yourself.
 
 ```bash
 # 1. Create unified computer session (API key only)
@@ -67,29 +67,17 @@ curl -X POST https://api.omniscout.xyz/v0/search \
 
 | | **CLI** | **Cloud API** |
 |---|---|---|
-| Search source | DuckDuckGo + local rerank | Owned Qdrant index + omniscout rerank |
-| Answers | Local Probe Zero Mini | Vercel AI Gateway (configurable model) |
-| Browser | Your local Chrome / Playwright | Fly Sprites with omniscout daemon |
-| Auth | None (runs locally) | Bearer API key (`os_live_...`) |
-| Billing | Free, open source | Free tier + paid plans |
+| Setup | Install on your machine, uses your browser | No install — send HTTPS requests from anywhere |
+| Search & answers | Runs locally | Hosted, always up to date |
+| Browser | Drives the browser on your machine | Remote browser session you control over the API |
+| Auth | None (runs locally) | API key (`os_live_...`) |
+| Billing | Free, open source | Free tier + usage-based pricing |
 
-The local CLI is unchanged. Cloud is additive — use whichever fits your deployment.
-
-## Architecture
-
-```
-Client → Vercel gateway (/v0/*) → Fly search worker → Qdrant Cloud
-                                 → Vercel AI Gateway (answers)
-                                 → Fly Sprites (browser/computer)
-```
-
-- **Vercel** hosts the dashboard, API gateway, Clerk auth, and Convex (keys, usage, sessions).
-- **Fly.io** runs the search worker, indexer, and Sprites.
-- **Qdrant Cloud** stores the owned search index (Common Crawl + StormCrawler, additive ingest).
+The local CLI is unchanged. Cloud is additive — use whichever fits your setup.
 
 ## Next steps
 
 - [Authentication & API keys](/docs/authentication) — how to create and use keys
-- [Endpoints](/docs/endpoints) — request/response schemas for every route
-- [Rate limits](/docs/rate-limits) — daily quotas and tiers
+- [Endpoints](/docs/endpoints) — request and response examples for every route
+- [Rate limits](/docs/rate-limits) — usage guards and spending caps
 - [OpenAPI reference](https://api.omniscout.xyz/docs) — interactive API explorer
