@@ -11,7 +11,15 @@ icon: FileText
 ```bash
 omniscout extract https://example.com
 omniscout extract https://example.com --format text
-omniscout extract https://example.com > /tmp/page.md
+omniscout extract https://example.com --out /tmp/page.md
+```
+
+Extracted Markdown keeps the page's content images (`![alt](url)`) with links pointing at the original site, so the saved file reads like the article. Tidy things up with:
+
+```bash
+omniscout extract https://example.com --no-images    # drop images, keep their captions as text
+omniscout extract https://example.com --no-links     # drop link URLs, keep the link text
+omniscout extract https://example.com --no-images --no-links
 ```
 
 | `--format/-f` | Returns |
@@ -56,7 +64,7 @@ Tune the crawl with:
 
 ## Site export — crawl a whole site to one file
 
-Pass `--out` to trigger site-crawl mode: OmniScout crawls same-host links and writes combined Markdown to a file:
+Pass `--out` together with `--depth 2` (or deeper) for site-crawl mode: OmniScout crawls same-host links and writes combined Markdown to a file. Without `--depth`, `--out` simply saves the single page.
 
 ```bash
 omniscout extract https://example.com --depth 2 --out /tmp/site.md
