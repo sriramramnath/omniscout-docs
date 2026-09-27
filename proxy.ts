@@ -18,6 +18,11 @@ export default async function proxy(request: NextRequest, event: NextFetchEvent)
     return NextResponse.next();
   }
 
+  // SEO metadata routes must never get a locale prefix
+  if (pathname === '/robots.txt' || pathname === '/sitemap.xml') {
+    return NextResponse.next();
+  }
+
   // legacy: unprefixed docs URLs -> default locale
   if (pathname === '/docs' || pathname.startsWith('/docs/')) {
     return NextResponse.redirect(new URL(`/en${pathname}`, request.url));

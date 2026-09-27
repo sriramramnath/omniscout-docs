@@ -9,6 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://docs.omniscout.xyz'),
   icons: {
     icon: '/omniscout.svg',
   },
