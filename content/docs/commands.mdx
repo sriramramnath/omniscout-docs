@@ -62,6 +62,7 @@ Full guide: [Browser automation](/docs/automation/browser).
 | `browser navigate <url>` / `open` | Open a URL (`--profile`, `--session`, `--new-tab`, `--headful`, `--wait-until`, `--auto-captcha`) |
 | `browser back/forward/reload` | History navigation |
 | `browser snapshot [--refs-only]` | Interactive elements with `@eN` refs (`--overlay` to visualize) |
+| `browser snapshot --visible-text` | Include visible page text in the element snapshot (on by default) |
 | `browser observe "<hint>"` | Find candidate refs for a natural-language instruction |
 | `browser act "<instruction>"` | Resolve + perform a page action (`--value`, `--dry-run`) |
 | `browser click <ref>` | Click (`--button`, `--clicks`, `--mod`, `--coord`) |
@@ -88,6 +89,12 @@ Full guide: [Browser automation](/docs/automation/browser).
 | `browser login <url>` | Headful login, blocks (`--profile`, `--done`, `--success-pattern`) |
 | `browser captcha` | Detect/solve (`none\|2captcha\|capsolver\|manual`, `--detect-only`) |
 | `browser close [--all]` | Close one session or everything |
+
+For supported pages, `browser content export-gsuite` saves Google Docs, Sheets,
+and Slides files. `browser content export-youtube-transcript` saves available
+captions. `browser webmcp list` lists tools offered by the current page, and
+`browser assets list` and `browser assets bundle` inspect and save page
+resources. Run `omniscout browser --help` for current options.
 
 ## Computer commands (macOS)
 
