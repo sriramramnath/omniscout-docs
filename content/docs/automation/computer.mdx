@@ -22,6 +22,7 @@ omniscout computer wait 300                            # milliseconds
 - `navigate` opens anything the OS can open: app paths/names, files, directories, URLs.
 - `type` types into the currently focused window; `key` sends combos (`cmd+s`, `ctrl+c`, `cmd+space`, …).
 - `paste` inserts plain text, including multiple lines. On macOS it restores the previous text clipboard afterward.
+- `ui click` accepts `--click-count 2` for a double-click or `--click-count 3` for a triple-click.
 - `wait` sleeps a fixed number of milliseconds — prefer it only for animations; there are no DOM conditions on the desktop.
 
 ## Clipboard & screenshots
@@ -55,6 +56,7 @@ For element-level control instead of blind typing, snapshot the page and act on 
 ```bash
 omniscout computer ui snapshot
 omniscout computer ui click '@e4'
+omniscout computer ui click '@e4' --click-count 2
 omniscout computer ui drag '@e2' '@e7'
 omniscout computer ui is '@e4' button
 ```
