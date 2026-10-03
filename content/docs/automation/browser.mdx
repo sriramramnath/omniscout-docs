@@ -10,8 +10,23 @@ icon: Globe
 omniscout browser navigate https://example.com   # 1. open a page
 omniscout browser snapshot --refs-only           # 2. list @eN element refs
 omniscout browser click '@e3'                    # 3. act on a ref
+omniscout browser check '@e4'                     # set a checkbox or switch on
+omniscout browser uncheck '@e5'                   # set it off
 omniscout browser screenshot --out /tmp/out.png  # 4. capture state
 ```
+
+## Where pages open
+
+By default, pages open in a **managed background window** — clean, separate
+from your own browsing. To open pages in **your own browser** instead, where
+you stay logged in and pick up where you left off, switch modes:
+
+```bash
+omniscout settings set browser-automation headful    # your own browser
+omniscout settings set browser-automation headless   # managed window (default)
+```
+
+Append `--headful` or `--headless` to any single command to override the default just once.
 
 ## The `@eN` ref model
 
@@ -39,6 +54,8 @@ omniscout browser get title                     # page title
 
 `navigate` accepts `--profile` (persistent login context), `--session` (tab group), `--new-tab`, `--headful/--headless`, `--auto-captcha`, and `--wait-until`. See [Daemon & sessions](/docs/automation/sessions) for profiles vs sessions.
 
+By default, the **first** navigation in a session opens a **new tab**; later navigations **reuse that tab** so multi-step flows (checkout, forms) stay on one page. Use `--reuse-tab` on the first open, or `omniscout settings set open_new_tab false`, to change that default.
+
 ## Clicking, typing, selecting
 
 | Action | Command | Notes |
@@ -50,6 +67,7 @@ omniscout browser get title                     # page title
 | Select | `browser select '@e5' "option"` | Native `<select>` elements |
 | Keys | `browser key Enter` | Combos like `cmd+s`, `ctrl+c` |
 | Hover | `browser hover '@e7'` | Or `--coord x y` |
+| Checkbox or switch | `browser check '@e8'` / `browser uncheck '@e8'` | Sets the requested state in Playwright and CDP sessions |
 | Upload | `browser upload '@e9' file.pdf` | Attaches files to `<input type=file>` |
 | Scroll | `browser scroll down` | Page or element, with `--amount` |
 | Check state | `browser is '@e3' visible` | Visibility, enabled, checked, … |
