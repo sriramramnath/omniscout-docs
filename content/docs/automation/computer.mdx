@@ -30,6 +30,7 @@ omniscout computer wait 300                            # milliseconds
 omniscout computer clipboard set "Hello from Scout"
 omniscout computer clipboard get
 omniscout computer screenshot --out /tmp/desktop.png
+omniscout computer screenshot --base64  # include PNG data in JSON output
 omniscout computer screenshot --region 100,100,800,600 --out /tmp/crop.png  # part of the screen
 ```
 
